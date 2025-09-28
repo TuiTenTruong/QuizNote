@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -24,11 +26,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @NotBlank(message = "name not be blanked")
+    @NotBlank(message = "name cannot be empty")
     private String name;
-    @NotBlank(message = "email khong duoc de trong")
+    @NotBlank(message = "email cannot be empty")
     private String email;
-    @NotBlank(message = "password khong duoc de trong")
+    @NotBlank(message = "password cannot be empty")
     private String password;
     private int age;
     private String address;
@@ -41,6 +43,9 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
     // @PrePersist
     // public void handleCreate() {
     // this.createdAt = Instant.now();
