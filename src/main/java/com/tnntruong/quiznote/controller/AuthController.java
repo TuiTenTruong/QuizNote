@@ -47,7 +47,7 @@ public class AuthController {
         User currentUser = this.userService.handleGetUserByUsername(loginDto.getUsername());
         if (currentUser != null) {
             ResLoginDTO.UserLogin user = new ResLoginDTO.UserLogin(currentUser.getId(), currentUser.getName(),
-                    currentUser.getEmail());
+                    currentUser.getEmail(), currentUser.getRole());
             res.setUser(user);
         }
         String accessToken = this.securityUtil.createAccessToken(authentication.getName(), res);

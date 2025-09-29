@@ -56,7 +56,8 @@ public class SecurityConfigaration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
         http
                 // Tắt CSRF cho REST API
                 .csrf(csrf -> csrf.disable())
@@ -68,7 +69,8 @@ public class SecurityConfigaration {
                         // .requestMatchers("/admin/**").hasRole("ADMIN")
                         // .requestMatchers("/seller/**").hasRole("SELLER")
                         .anyRequest().authenticated())
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
 
                 // Form login mặc định (có thể thay JWT sau)
                 .formLogin(f -> f.disable())
