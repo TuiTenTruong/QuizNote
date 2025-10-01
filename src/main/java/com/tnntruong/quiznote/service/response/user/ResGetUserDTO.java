@@ -20,6 +20,7 @@ public class ResGetUserDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
     private Instant createdAt;
     private String createdBy;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
     private Instant updatedAt;
     private String updatedBy;
 }

@@ -38,7 +38,7 @@ public class SubjectService {
             if (user == null) {
                 throw new InvalidException("user create subject invalid");
             }
-            subject.setUser(user);
+            subject.setSeller(user);
             Subject savedSubject = this.subjectRepository.save(subject);
             return this.convertSubjectToDTO(savedSubject);
         } else {
@@ -67,8 +67,8 @@ public class SubjectService {
         ResSubjectDTO res = new ResSubjectDTO();
 
         ResSubjectDTO.CurrentUser user = new ResSubjectDTO.CurrentUser();
-        user.setId(subject.getUser().getId());
-        user.setUsername(subject.getUser().getEmail());
+        user.setId(subject.getSeller().getId());
+        user.setUsername(subject.getSeller().getEmail());
 
         res.setId(subject.getId());
         res.setName(subject.getName());

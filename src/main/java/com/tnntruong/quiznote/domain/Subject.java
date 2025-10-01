@@ -46,8 +46,8 @@ public class Subject {
     private SubjectStatus status = SubjectStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "seller_id")
+    private User seller;
 
     private Instant createdAt;
     private Instant updatedAt;
