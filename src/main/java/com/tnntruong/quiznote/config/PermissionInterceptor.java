@@ -13,6 +13,7 @@ import com.tnntruong.quiznote.util.error.PermissionException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 
 public class PermissionInterceptor implements HandlerInterceptor {
     private final UserService userService;
@@ -22,6 +23,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     @Override
+    @Transactional
     public boolean preHandle(
             HttpServletRequest request,
             HttpServletResponse response, Object handler)

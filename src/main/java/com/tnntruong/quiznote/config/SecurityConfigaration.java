@@ -6,11 +6,12 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 @Configuration
-@EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfigaration {
     @Bean
     public static PasswordEncoder passwordEncoder() {
@@ -56,23 +57,24 @@ public class SecurityConfigaration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+    public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
-        http
-                // Tắt CSRF cho REST API
-                .csrf(csrf -> csrf.disable())
 
-                // Cấu hình phân quyền cho URL
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/login").permitAll()
-                        // .anyRequest().permitAll()
-                        // .requestMatchers("/admin/**").hasRole("ADMIN")
-                        // .requestMatchers("/seller/**").hasRole("SELLER")
-                        .anyRequest().authenticated())
+        String[] whiteList = { "/", "/api/v1/auth/login", "/api/v1/auth/refresh", "/storage/**",
+                "/api/v1/auth/register" };
+        http
+                .csrf(c -> c.disable())
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(
+                        authz -> authz
+                                .requestMatchers(whiteList).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
+                                .anyRequest().authenticated())
+                // .anyRequest().permitAll())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-
-                // Form login mặc định (có thể thay JWT sau)
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

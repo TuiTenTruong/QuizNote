@@ -3,6 +3,7 @@ package com.tnntruong.quiznote.domain;
 import java.time.Instant;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Entity;
@@ -39,6 +40,7 @@ public class Role {
     private String updatedBy;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<User> users;
 
     @ManyToMany(fetch = FetchType.LAZY)
