@@ -1,6 +1,8 @@
 package com.tnntruong.quiznote.domain;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.tnntruong.quiznote.util.constant.SubjectStatus;
 
@@ -14,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -48,6 +51,9 @@ public class Subject {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller;
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    private List<Purchase> purchases = new ArrayList<>();
 
     private Instant createdAt;
     private Instant updatedAt;

@@ -1,6 +1,7 @@
 package com.tnntruong.quiznote.domain;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.tnntruong.quiznote.util.SecurityUtil;
@@ -61,7 +62,10 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "seller", fetch = FetchType.LAZY)
-    private List<Subject> createdSubjects;
+    private List<Subject> createdSubjects = new ArrayList<>();
+
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    private List<Purchase> purchases = new ArrayList<>();
 
     @PrePersist
     public void handleCreate() {

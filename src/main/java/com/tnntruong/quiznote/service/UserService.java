@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.tnntruong.quiznote.domain.Role;
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.service.response.ResResultPagination;
@@ -20,9 +21,11 @@ import com.tnntruong.quiznote.util.error.InvalidException;
 @Service
 public class UserService {
     private UserRepository userRepository;
+    private RoleService roleService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, RoleService roleService) {
         this.userRepository = userRepository;
+        this.roleService = roleService;
     }
 
     public boolean isEmailExist(String email) {
@@ -30,6 +33,10 @@ public class UserService {
     }
 
     public ResCreateUserDTO handleCreateUser(User user) {
+        if (user.getRole() != null) {
+            Optional<Role> role = this.roleService.findById(user.getRole().getId());
+            user.setRole(role.isPresent() ? role.get() : null);
+        }
         User savedUser = this.userRepository.save(user);
         ResCreateUserDTO res = new ResCreateUserDTO();
         res.setId(savedUser.getId());
@@ -53,8 +60,13 @@ public class UserService {
             currentUser.setAge(user.getAge());
             currentUser.setAddress(user.getAddress());
             currentUser.setGender(user.getGender());
+            if (user.getRole() != null) {
+                Optional<Role> role = this.roleService.findById(user.getRole().getId());
+                currentUser.setRole(role.isPresent() ? role.get() : null);
+            }
             User savedUser = this.userRepository.save(currentUser);
             ResUpdateUserDTO res = new ResUpdateUserDTO();
+
             res.setId(savedUser.getId());
             res.setName(savedUser.getName());
             res.setEmail(savedUser.getEmail());
@@ -84,6 +96,7 @@ public class UserService {
 
     public ResGetUserDTO convertUsertoDTO(User user) {
         ResGetUserDTO res = new ResGetUserDTO();
+        ResGetUserDTO.RoleUser roleUser = new ResGetUserDTO.RoleUser();
         res.setId(user.getId());
         res.setName(user.getName());
         res.setEmail(user.getEmail());
@@ -93,6 +106,11 @@ public class UserService {
         res.setCreatedBy(user.getCreatedBy());
         res.setUpdatedAt(user.getUpdatedAt());
         res.setUpdatedBy(user.getUpdatedBy());
+        if (user.getRole() != null) {
+            roleUser.setId(user.getRole().getId());
+            roleUser.setName(user.getRole().getName());
+            res.setRole(roleUser);
+        }
         return res;
     }
 
