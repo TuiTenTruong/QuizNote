@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tnntruong.quiznote.domain.Purchase;
 import com.tnntruong.quiznote.service.PurchaseService;
+import com.tnntruong.quiznote.service.request.ReqCreatePurchaseDTO;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.validation.Valid;
@@ -26,7 +26,7 @@ public class PurchaseController {
     }
 
     @PostMapping("/purchases")
-    public ResponseEntity createPurchase(@Valid @RequestBody Purchase purchase) throws InvalidException {
+    public ResponseEntity createPurchase(@Valid @RequestBody ReqCreatePurchaseDTO purchase) throws InvalidException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.purchaseService.handleCreatePurchase(purchase));
     }
 
