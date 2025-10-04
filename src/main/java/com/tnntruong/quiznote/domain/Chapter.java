@@ -5,12 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tnntruong.quiznote.util.constant.SubjectStatus;
+import com.tnntruong.quiznote.util.SecurityUtil;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,56 +19,49 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "chapters")
 @Getter
 @Setter
-@Table(name = "subjects")
-public class Subject {
+
+public class Chapter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "subject name cannot be empty")
+    @NotBlank(message = "name cannot be blank")
     private String name;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String description;
-
-    @NotNull(message = "Price must not be null")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
-    private double price;
-
-    @Enumerated(EnumType.STRING)
-    private SubjectStatus status = SubjectStatus.PENDING;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id")
-    private User seller;
-
-    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
     @JsonIgnore
-    private List<Purchase> purchases = new ArrayList<>();
+    private Subject subject;
 
-    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
-    @JsonIgnore
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
 
     private Instant createdAt;
     private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
 
     @PrePersist
     public void handleCreate() {
         this.createdAt = Instant.now();
+        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "anonymous";
     }
 
     @PreUpdate
     public void handleUpdate() {
         this.updatedAt = Instant.now();
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "anonymous";
     }
 }

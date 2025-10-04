@@ -12,6 +12,7 @@ import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.service.request.ReqCreatePurchaseDTO;
 import com.tnntruong.quiznote.service.response.ResPurchaseDTO;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
@@ -29,28 +30,22 @@ public class PurchaseService {
         this.subjectRepository = subjectRepository;
     }
 
-    public ResPurchaseDTO handleCreatePurchase(Purchase purchase) throws InvalidException {
+    public ResPurchaseDTO handleCreatePurchase(ReqCreatePurchaseDTO dto) throws InvalidException {
+        User student = userRepository.findById(dto.getStudentId())
+                .orElseThrow(() -> new InvalidException("User not found"));
 
-        if (purchase.getStudent() != null) {
-            this.userRepository.findById(purchase.getStudent().getId())
-                    .orElseThrow(() -> new InvalidException("User not found"));
-        } else {
-            throw new InvalidException("student invalid");
+        Subject subject = subjectRepository.findById(dto.getSubjectId())
+                .orElseThrow(() -> new InvalidException("Subject not found"));
+
+        if (purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
+            throw new InvalidException("User already purchased this subject");
         }
 
-        if (purchase.getSubject() != null) {
-            this.subjectRepository.findById(purchase.getSubject().getId())
-                    .orElseThrow(() -> new InvalidException("Subject not found"));
-        } else {
-            throw new InvalidException("suject invalid");
-        }
+        Purchase purchase = new Purchase();
+        purchase.setStudent(student);
+        purchase.setSubject(subject);
 
-        this.purchaseRepository
-                .findByStudentIdAndSubjectId(purchase.getStudent().getId(), purchase.getSubject().getId())
-                .ifPresent(p -> {
-                    throw new RuntimeException("User already purchased this subject");
-                });
-        return this.convertResPurchaseDTO(purchaseRepository.save(purchase));
+        return convertResPurchaseDTO(purchaseRepository.save(purchase));
     }
 
     public ResPurchaseDTO convertResPurchaseDTO(Purchase purchase) {
@@ -112,11 +107,9 @@ public class PurchaseService {
     public ResPurchaseDTO handleGetPurchaseById(String id) throws InvalidException {
         try {
             Long idPurchase = Long.parseLong(id);
-            Optional<Purchase> purchaseOptional = this.purchaseRepository.findById(idPurchase);
-            if (purchaseOptional.isEmpty()) {
-                throw new InvalidException("Subject with id = " + idPurchase + " now found");
-            }
-            return this.convertResPurchaseDTO(purchaseOptional.get());
+            Purchase purchase = this.purchaseRepository.findById(idPurchase)
+                    .orElseThrow(() -> new InvalidException("Purchase with id = " + idPurchase + " now found"));
+            return this.convertResPurchaseDTO(purchase);
         } catch (NumberFormatException e) {
             throw new InvalidException("invalid id");
         }
@@ -125,9 +118,9 @@ public class PurchaseService {
     public void handleDeletePurchaseById(String id) throws InvalidException {
         try {
             Long idPurchase = Long.parseLong(id);
-            boolean isExistById = this.subjectRepository.existsById(idPurchase);
+            boolean isExistById = this.purchaseRepository.existsById(idPurchase);
             if (!isExistById) {
-                throw new InvalidException("Subject with id = " + idPurchase + " now found");
+                throw new InvalidException("Purchase with id = " + idPurchase + " now found");
             }
             this.purchaseRepository.deleteById(idPurchase);
         } catch (NumberFormatException e) {

@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity postCreateUser(@Valid @RequestBody User newUser) throws InvalidException {
+    public ResponseEntity<?> postCreateUser(@Valid @RequestBody User newUser) throws InvalidException {
         boolean isEmailExist = this.userService.isEmailExist(newUser.getEmail());
         if (isEmailExist) {
             throw new InvalidException("email has exist");
@@ -46,23 +46,23 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public ResponseEntity putUpdateUser(@RequestBody User updateUser) throws InvalidException {
+    public ResponseEntity<?> putUpdateUser(@RequestBody User updateUser) throws InvalidException {
         return ResponseEntity.ok().body(this.userService.handleUpdateUser(updateUser));
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity deleteUser(@PathVariable String id) throws InvalidException {
+    public ResponseEntity<?> deleteUser(@PathVariable String id) throws InvalidException {
         this.userService.handleDeleteUser(id);
         return ResponseEntity.ok("deleted");
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity getUserById(@PathVariable String id) throws InvalidException {
+    public ResponseEntity<?> getUserById(@PathVariable String id) throws InvalidException {
         return ResponseEntity.ok().body(this.userService.handleGetUserById(id));
     }
 
     @GetMapping("/users")
-    public ResponseEntity getAllUser(@Filter Specification<User> spec, Pageable page) {
+    public ResponseEntity<?> getAllUser(@Filter Specification<User> spec, Pageable page) {
         return ResponseEntity.ok().body(this.userService.handleGetAllUser(spec, page));
     }
 

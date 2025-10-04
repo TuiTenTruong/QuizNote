@@ -32,28 +32,28 @@ public class SubjectController {
     }
 
     @PostMapping("/subjects")
-    public ResponseEntity createSubject(@Valid @RequestBody Subject subject) throws InvalidException {
+    public ResponseEntity<?> createSubject(@Valid @RequestBody Subject subject) throws InvalidException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateSubject(subject));
     }
 
     @PutMapping("/subjects")
-    public ResponseEntity updateSubject(@RequestBody Subject subject) throws InvalidException {
+    public ResponseEntity<?> updateSubject(@RequestBody Subject subject) throws InvalidException {
         return ResponseEntity.ok(this.subjectService.handleUpdateSubject(subject));
     }
 
     @DeleteMapping("/subjects/{id}")
-    public ResponseEntity deleteSubject(@PathVariable long id) throws InvalidException {
+    public ResponseEntity<?> deleteSubject(@PathVariable long id) throws InvalidException {
         this.subjectService.handleDeleteSubject(id);
         return ResponseEntity.ok("deleted subject");
     }
 
     @GetMapping("/subjects/{id}")
-    public ResponseEntity getSubjectById(@PathVariable long id) throws InvalidException {
+    public ResponseEntity<?> getSubjectById(@PathVariable long id) throws InvalidException {
         return ResponseEntity.ok().body(this.subjectService.handleGetSubjectById(id));
     }
 
     @GetMapping("/subjects")
-    public ResponseEntity getALlSubject(@Filter Specification<Subject> spec, Pageable page) {
+    public ResponseEntity<?> getALlSubject(@Filter Specification<Subject> spec, Pageable page) {
         return ResponseEntity.ok().body(this.subjectService.handleGetAllSubject(spec, page));
     }
 
