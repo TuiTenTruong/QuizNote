@@ -63,6 +63,33 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Get a subject by id", "/api/v1/subjects/{id}", "GET", "SUBJECTS"));
             arr.add(new Permission("Get subjects with pagination", "/api/v1/subjects", "GET", "SUBJECTS"));
 
+            arr.add(new Permission("Create a subject", "/api/v1/subjects", "POST", "SUBJECTS"));
+            arr.add(new Permission("Update a subject", "/api/v1/subjects", "PUT", "SUBJECTS"));
+            arr.add(new Permission("Delete a subject", "/api/v1/subjects/{id}", "DELETE", "SUBJECTS"));
+            arr.add(new Permission("Get a subject by id", "/api/v1/subjects/{id}", "GET", "SUBJECTS"));
+            arr.add(new Permission("Get subjects with pagination", "/api/v1/subjects", "GET", "SUBJECTS"));
+
+            arr.add(new Permission("Create a purchase", "/api/v1/purchases", "POST", "PURCHASES"));
+            arr.add(new Permission("Get a purchase by userId", "/api/v1/purchases/user/{userId}", "GET", "PURCHASES"));
+            arr.add(new Permission("Delete a purchase", "/api/v1/purchases/{id}", "DELETE", "PURCHASES"));
+            arr.add(new Permission("Get a purchase by id", "/api/v1/purchases/{id}", "GET", "PURCHASES"));
+            arr.add(new Permission("Get purchases by subjectId", "/api/v1/purchases/subject/{subjectId}", "GET",
+                    "PURCHASES"));
+
+            arr.add(new Permission("Create a question", "/api/v1/questions", "POST", "QUESTIONS"));
+            arr.add(new Permission("Update a question", "/api/v1/questions", "PUT", "QUESTIONS"));
+            arr.add(new Permission("Delete a question", "/api/v1/questions/{id}", "DELETE", "QUESTIONS"));
+            arr.add(new Permission("Get a question by id", "/api/v1/questions/{id}", "GET", "QUESTIONS"));
+            arr.add(new Permission("Get questions by subjectId", "/api/v1/questions/subject/{subjectId}", "GET",
+                    "QUESTIONS"));
+
+            arr.add(new Permission("Create a chapter", "/api/v1/chapters", "POST", "CHAPTERS"));
+            arr.add(new Permission("Update a chapter", "/api/v1/chapters", "PUT", "CHAPTERS"));
+            arr.add(new Permission("Delete a chapter", "/api/v1/chapters/{id}", "DELETE", "CHAPTERS"));
+            arr.add(new Permission("Get a chapter by id", "/api/v1/chapters/{id}", "GET", "CHAPTERS"));
+            arr.add(new Permission("Get chapters by subjectId", "/api/v1/chapters/subject/{subjectId}", "GET",
+                    "CHAPTERS"));
+
             arr.add(new Permission("Download a file", "/api/v1/files", "GET", "FILES"));
             arr.add(new Permission("Upload a file", "/api/v1/files", "POST", "FILES"));
             this.permissionRepository.saveAll(arr);
