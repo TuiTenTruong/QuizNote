@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tnntruong.quiznote.domain.Permission;
 import com.tnntruong.quiznote.service.PermissionService;
 import com.tnntruong.quiznote.service.RoleService;
-import com.tnntruong.quiznote.service.response.ResResultPagination;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
 import com.turkraft.springfilter.boot.Filter;
@@ -40,7 +39,7 @@ public class PermissionController {
 
     @PostMapping("/permissions")
     @ApiMessage("create a permission")
-    public ResponseEntity<Permission> createPermission(@Valid @RequestBody Permission newPermission)
+    public ResponseEntity<?> createPermission(@Valid @RequestBody Permission newPermission)
             throws InvalidException {
         boolean isExist = this.permissionService.isPermissionExist(newPermission);
 
@@ -53,7 +52,7 @@ public class PermissionController {
 
     @PutMapping("/permissions")
     @ApiMessage("update a permission")
-    public ResponseEntity<Permission> updatePermission(@Valid @RequestBody Permission updatePermission)
+    public ResponseEntity<?> updatePermission(@Valid @RequestBody Permission updatePermission)
             throws InvalidException {
         Optional<Permission> currentPer = this.permissionService.findById(updatePermission.getId());
         if (currentPer.isEmpty()) {
@@ -71,13 +70,13 @@ public class PermissionController {
 
     @GetMapping("/permissions")
     @ApiMessage("get all permission")
-    public ResponseEntity<ResResultPagination> getAllPermission(@Filter Specification<Permission> spec, Pageable page) {
+    public ResponseEntity<?> getAllPermission(@Filter Specification<Permission> spec, Pageable page) {
         return ResponseEntity.ok().body(this.permissionService.getALlPermission(spec, page));
     }
 
     @DeleteMapping("/permission/{id}")
     @ApiMessage("delete permission by id")
-    public ResponseEntity<Void> deletePermission(@PathVariable("id") long id) throws InvalidException {
+    public ResponseEntity<?> deletePermission(@PathVariable("id") long id) throws InvalidException {
         Optional<Permission> currentPer = this.permissionService.findById(id);
         if (currentPer.isEmpty()) {
             throw new InvalidException("Permission với id = " + id + " không tồn tại");

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.Role;
 import com.tnntruong.quiznote.service.RoleService;
-import com.tnntruong.quiznote.service.response.ResResultPagination;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
 import com.turkraft.springfilter.boot.Filter;
@@ -35,7 +34,7 @@ public class RoleController {
 
     @PostMapping("/roles")
     @ApiMessage("create a role")
-    public ResponseEntity<Role> createRole(@Valid @RequestBody Role newRole) throws InvalidException {
+    public ResponseEntity<?> createRole(@Valid @RequestBody Role newRole) throws InvalidException {
         boolean isExist = this.roleService.isExistByName(newRole.getName());
         if (isExist) {
             throw new InvalidException("role with name = " + newRole.getName() + " exist");
@@ -45,7 +44,7 @@ public class RoleController {
 
     @PutMapping("/roles")
     @ApiMessage("update a role")
-    public ResponseEntity<Role> updateRole(@Valid @RequestBody Role newRole) throws InvalidException {
+    public ResponseEntity<?> updateRole(@Valid @RequestBody Role newRole) throws InvalidException {
         Optional<Role> roleOptional = this.roleService.findById(newRole.getId());
         if (roleOptional.isEmpty()) {
             throw new InvalidException("role with id = " + newRole.getId() + "does not exist");
@@ -55,13 +54,13 @@ public class RoleController {
 
     @GetMapping("/roles")
     @ApiMessage("get all role")
-    public ResponseEntity<ResResultPagination> getAllRole(@Filter Specification<Role> spec, Pageable page) {
+    public ResponseEntity<?> getAllRole(@Filter Specification<Role> spec, Pageable page) {
         return ResponseEntity.ok().body(this.roleService.fetchAllRole(spec, page));
     }
 
     @DeleteMapping("/roles/{id}")
     @ApiMessage("delete role by id")
-    public ResponseEntity<Void> deleteRole(@PathVariable("id") long id) throws InvalidException {
+    public ResponseEntity<?> deleteRole(@PathVariable("id") long id) throws InvalidException {
         Optional<Role> roleOptional = this.roleService.findById(id);
         if (roleOptional.isEmpty()) {
             throw new InvalidException("role with id = " + id + "does not exist");
