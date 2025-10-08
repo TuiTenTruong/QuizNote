@@ -23,7 +23,7 @@ public class GlobalException {
             UsernameNotFoundException.class,
             BadCredentialsException.class
     })
-    public ResponseEntity<RestResponse<Object>> handleException(Exception ex) {
+    public ResponseEntity<?> handleException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError("Exception occur ..");
@@ -32,7 +32,7 @@ public class GlobalException {
     }
 
     @ExceptionHandler(value = { PermissionException.class })
-    public ResponseEntity<RestResponse<Object>> handlePermissionException(Exception ex) {
+    public ResponseEntity<?> handlePermissionException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.FORBIDDEN.value());
         res.setError("Exception permission...");
@@ -41,7 +41,7 @@ public class GlobalException {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<RestResponse<Object>> handleException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<?> handleException(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         final List<FieldError> fieldErrors = result.getFieldErrors();
 
@@ -55,7 +55,7 @@ public class GlobalException {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<RestResponse<Object>> handleException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<?> handleException(HttpMessageNotReadableException ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError("Exception permission...");
