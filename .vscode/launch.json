@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-QuiznoteApplication<quiznote>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tnntruong.quiznote.QuiznoteApplication",
+            "projectName": "quiznote",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
