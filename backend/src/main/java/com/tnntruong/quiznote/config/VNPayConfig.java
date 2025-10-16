@@ -34,6 +34,8 @@ public class VNPayConfig {
     public String vnp_HashSecret = "";
 
     public String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    @Value("${vnpay.ipnUrl}")
+    public String vnp_IpnUrl = "";
 
     public String getVnp_PayUrl() {
         return vnp_PayUrl;
@@ -53,6 +55,10 @@ public class VNPayConfig {
 
     public String getVnp_ApiUrl() {
         return vnp_ApiUrl;
+    }
+
+    public String getVnp_IpnUrl() {
+        return vnp_IpnUrl;
     }
 
     public String md5(String message) {

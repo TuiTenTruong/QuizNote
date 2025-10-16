@@ -1,17 +1,14 @@
 package com.tnntruong.quiznote.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.tnntruong.quiznote.service.VNPayService;
-import com.tnntruong.quiznote.service.request.ReqVNPayDTO;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -32,14 +29,15 @@ public class VNPayController {
     public String submidOrder(@RequestParam("amount") int orderTotal,
             @RequestParam("orderInfo") String orderInfo,
             HttpServletRequest request) {
-        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":"
+                + request.getServerPort();
         System.out.println(baseUrl);
         String vnpayUrl = vnPayService.createOrder(orderTotal, orderInfo, baseUrl);
         return "redirect:" + vnpayUrl;
     }
 
     @GetMapping("/vnpay-payment")
-    public String GetMapping(HttpServletRequest request, Model model) {
+    public ResponseEntity GetMapping(HttpServletRequest request, Model model) {
         int paymentStatus = vnPayService.orderReturn(request);
 
         String orderInfo = request.getParameter("vnp_OrderInfo");
@@ -51,22 +49,31 @@ public class VNPayController {
         model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("paymentTime", paymentTime);
         model.addAttribute("transactionId", transactionId);
+        long amount = Long.parseLong(request.getParameter("vnp_Amount")) / 100;
 
-        return paymentStatus == 1 ? "ordersuccess" : "orderfail";
+        if (paymentStatus == 1) {
+            vnPayService.handleSuccessfulPayment(orderInfo, transactionId,
+                    request.getParameter("vnp_PayDate"), amount);
+            // phải trả về đúng chữ “OK” cho VNPay để họ ngừng gửi lại
+            return ResponseEntity.ok("OK");
+        }
+        return ResponseEntity.ok("FAILED");
     }
-    // Return URL (user được chuyển về)
-    // @GetMapping("/vnpay-return")
-    // @ResponseBody
-    // public String vnpayReturn(@RequestParam Map<String, String[]> params) {
-    // PaymentResult pr = vnPayService.handleReturn(params);
-    // return pr.isSuccess() ? "Payment success" : "Payment failed (code=" +
-    // pr.responseCode + ")";
-    // }
 
-    // // IPN URL (VNPay gọi server-to-server)
-    // @GetMapping("/vnpay-ipn")
-    // @ResponseBody
-    // public String vnpayIpn(@RequestParam Map<String, String[]> params) {
-    // return vnPayService.handleIpn(params);
+    // @GetMapping("/ipn")
+    // public ResponseEntity<String> ipn(HttpServletRequest request) {
+    // int paymentStatus = vnPayService.orderReturn(request);
+
+    // String orderInfo = request.getParameter("vnp_OrderInfo");
+    // String transactionId = request.getParameter("vnp_TransactionNo");
+    // long amount = Long.parseLong(request.getParameter("vnp_Amount")) / 100;
+
+    // if (paymentStatus == 1) {
+    // vnPayService.handleSuccessfulPayment(orderInfo, transactionId,
+    // request.getParameter("vnp_PayDate"), amount);
+    // // phải trả về đúng chữ “OK” cho VNPay để họ ngừng gửi lại
+    // return ResponseEntity.ok("OK");
+    // }
+    // return ResponseEntity.ok("FAILED");
     // }
 }

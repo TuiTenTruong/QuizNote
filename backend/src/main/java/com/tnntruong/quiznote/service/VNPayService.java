@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -14,21 +15,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.config.VNPayConfig;
-import com.tnntruong.quiznote.service.request.ReqVNPayDTO;
-import com.tnntruong.quiznote.service.response.ResVNPayDTO;
+import com.tnntruong.quiznote.domain.PaymentTransaction;
+import com.tnntruong.quiznote.domain.SellerProfile;
+import com.tnntruong.quiznote.domain.Subject;
+import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
+import com.tnntruong.quiznote.repository.SellerProfileRepository;
+import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class VNPayService {
     private VNPayConfig vnPayConfig;
+    private PaymentTransactionRepository paymentRepo;
+    private UserRepository userRepository;
+    private SubjectRepository subjectRepository;
+    private SellerProfileRepository sellerProfileRepository;
 
-    public VNPayService(VNPayConfig vnPayConfig) {
+    public VNPayService(VNPayConfig vnPayConfig, PaymentTransactionRepository paymentRepo,
+            UserRepository userRepository, SubjectRepository subjectRepository,
+            SellerProfileRepository sellerProfileRepository) {
         this.vnPayConfig = vnPayConfig;
+        this.paymentRepo = paymentRepo;
+        this.userRepository = userRepository;
+        this.subjectRepository = subjectRepository;
+        this.sellerProfileRepository = sellerProfileRepository;
     }
 
     public String createOrder(int total, String orderInfor, String urlReturn) {
@@ -38,7 +54,6 @@ public class VNPayService {
         String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = vnPayConfig.getVnp_TmnCode();
         String orderType = "order-type";
-
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
@@ -56,7 +71,6 @@ public class VNPayService {
         urlReturn += vnPayConfig.vnp_ReturnUrl;
         vnp_Params.put("vnp_ReturnUrl", urlReturn);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
@@ -135,4 +149,60 @@ public class VNPayService {
         }
     }
 
+    public void handleSuccessfulPayment(String orderInfo, String transactionNo,
+            String paymentTime, long totalPrice) {
+
+        if (paymentRepo.existsByTransactionNo(transactionNo)) {
+            System.out.println("Transaction already exists, skip saving...");
+            return;
+        }
+
+        Map<String, String> infoMap = parseOrderInfo(orderInfo);
+        Long buyerId = Long.parseLong(infoMap.get("buyer"));
+        Long subjectId = Long.parseLong(infoMap.get("subject"));
+
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new RuntimeException("Buyer not found"));
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
+        User seller = subject.getSeller();
+
+        PaymentTransaction tx = new PaymentTransaction();
+        tx.setTransactionNo(transactionNo);
+        tx.setOrderInfo(orderInfo);
+        tx.setPaymentTime(paymentTime);
+        tx.setAmount(totalPrice);
+        tx.setStatus("SUCCESS");
+        tx.setPaymentMethod("VNPAY");
+        tx.setBuyer(buyer);
+        tx.setSeller(seller);
+        tx.setSubject(subject);
+        tx.setCreatedAt(Instant.now());
+        paymentRepo.save(tx);
+
+        SellerProfile profile = sellerProfileRepository.findByUser(seller)
+                .orElseGet(() -> {
+                    SellerProfile sp = new SellerProfile();
+                    sp.setUser(seller);
+                    return sp;
+                });
+
+        profile.setPendingBalance(profile.getPendingBalance() + totalPrice);
+        profile.setTotalRevenue(profile.getTotalRevenue() + totalPrice);
+        sellerProfileRepository.save(profile);
+
+        System.out.println("✅ Payment saved successfully for order " + orderInfo);
+    }
+
+    private Map<String, String> parseOrderInfo(String orderInfo) {
+        Map<String, String> map = new HashMap<>();
+        String[] pairs = orderInfo.split(";");
+        for (String pair : pairs) {
+            String[] kv = pair.split(":");
+            if (kv.length == 2) {
+                map.put(kv[0], kv[1]);
+            }
+        }
+        return map;
+    }
 }

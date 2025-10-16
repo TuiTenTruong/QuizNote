@@ -7,6 +7,7 @@ import java.util.List;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.constant.GenderEnum;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -66,6 +68,15 @@ public class User {
 
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private List<Purchase> purchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "buyer")
+    private List<PaymentTransaction> paymentsMade;
+
+    @OneToMany(mappedBy = "seller")
+    private List<PaymentTransaction> paymentsReceived;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private SellerProfile sellerProfile;
 
     @PrePersist
     public void handleCreate() {
