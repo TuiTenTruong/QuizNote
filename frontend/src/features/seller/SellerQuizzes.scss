@@ -1,0 +1,178 @@
+.seller-quizzes {
+    background-color: #0b0b0f;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #fff;
+
+    h3 {
+        font-weight: 700;
+        font-size: 1.7rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    p {
+        color: #a5a5a5;
+    }
+
+    /* Filter Buttons */
+    .btn-group {
+        button {
+            border: 1px solid #2e2e2e;
+            background-color: #141414;
+            color: #ccc;
+            font-weight: 500;
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem;
+            transition: 0.3s ease;
+
+            &:hover {
+                color: #fff;
+                border-color: #9333ea;
+            }
+
+            &.gradient-active {
+                background: linear-gradient(90deg, #9333ea, #f97316);
+                color: #fff;
+                border: none;
+            }
+        }
+    }
+
+    /* Search box + dropdown */
+    input[type="text"] {
+        border-radius: 8px;
+        background: #121212;
+        border: 1px solid #2e2e2e;
+        color: #ddd;
+        transition: 0.3s;
+
+        &:focus {
+            border-color: #9333ea;
+            box-shadow: 0 0 6px rgba(147, 51, 234, 0.4);
+        }
+    }
+
+    /* Each quiz card */
+    .quiz-item {
+        background-color: #151515;
+        border: none;
+        border-radius: 14px;
+        padding: 1rem 1.3rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0); // Khởi tạo box-shadow
+        position: relative; // Cần thiết cho z-index
+        z-index: 1; // z-index mặc định
+
+        &:hover {
+            background-color: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(147, 51, 234, 0.15); // Tăng cường hiệu ứng shadow
+            z-index: 10; // Nâng item lên trên các item khác khi hover
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #9333ea, #f97316);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.2rem;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+        }
+
+        h6 {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        p {
+            color: #bbb;
+            font-size: 0.9rem;
+        }
+
+        .small {
+            color: #999;
+            font-size: 0.85rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            border-radius: 6px;
+            padding: 0.35rem 0.6rem;
+        }
+
+        button {
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.3s;
+
+            &.btn-outline-light {
+                border: 1px solid #3a3a3a;
+                color: #ddd;
+
+                &:hover {
+                    background: linear-gradient(90deg, #9333ea, #f97316);
+                    color: #fff;
+                    border: none;
+                }
+            }
+        }
+
+        .dropdown-toggle {
+            background: none !important;
+            border: none !important;
+            color: #aaa;
+
+            &:hover {
+                color: #fff;
+            }
+        }
+    }
+
+    /* Responsive layout */
+    @media (max-width: 768px) {
+        padding: 1rem;
+
+        .quiz-item {
+            padding: 1rem;
+
+            .icon-box {
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
+            }
+        }
+
+        .btn-group {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .d-flex.gap-2 {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .quiz-item {
+            .text-end {
+                text-align: start !important;
+                margin-top: 0.75rem;
+            }
+
+            .badge {
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+}

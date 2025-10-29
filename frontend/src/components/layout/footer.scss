@@ -1,0 +1,41 @@
+.footer {
+    background-color: #0b0b0f;
+    font-size: 0.95rem;
+
+    .text-gradient {
+        background: linear-gradient(to right, #a855f7, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        transition: 0.2s ease;
+
+        &:hover {
+            color: #fff;
+        }
+    }
+
+    .social-link {
+        transition: 0.3s ease;
+
+        &:hover {
+            color: #a855f7;
+            transform: translateY(-2px);
+        }
+    }
+
+    hr {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 575.98px) {
+        text-align: center;
+
+        .social-link {
+            margin: 0 auto;
+        }
+    }
+}

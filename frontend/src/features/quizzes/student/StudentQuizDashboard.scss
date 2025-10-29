@@ -1,0 +1,85 @@
+.student-dashboard {
+    background-color: #0b0b0f;
+    color: #fff;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .gradient-active {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        color: #fff !important;
+        border: none;
+    }
+
+    .hero-carousel {
+        border-radius: 16px;
+        overflow: hidden;
+
+        .hero-slide {
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+
+            .hero-content {
+                padding: 2rem;
+                color: #fff;
+            }
+        }
+    }
+
+    .quiz-card {
+        border-radius: 12px;
+        transition: 0.25s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 16px rgba(147, 51, 234, 0.3);
+        }
+
+        .quiz-thumbnail {
+            height: 140px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            margin: 8px;
+        }
+    }
+
+    .category-scroll {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+
+        &::-webkit-scrollbar {
+            height: 4px;
+        }
+    }
+
+    .quiz-tabs .nav-link {
+        color: #aaa;
+
+        &.active {
+            color: #fff;
+            border-bottom: 2px solid #9333ea;
+            background-color: transparent;
+        }
+    }
+}

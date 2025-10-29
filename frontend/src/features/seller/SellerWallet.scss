@@ -1,0 +1,63 @@
+.seller-wallet {
+    background-color: #0b0b0f;
+    color: #fff;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .wallet-card {
+        border-radius: 12px;
+        transition: 0.3s ease;
+
+        &:hover {
+            background-color: #1a1a1a;
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.25);
+        }
+
+        .icon {
+            font-size: 1.8rem;
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+
+        &:hover {
+            opacity: 0.9;
+            color: #fff;
+        }
+    }
+
+    .table {
+        color: #ccc;
+
+        tbody tr:hover {
+            background-color: rgba(147, 51, 234, 0.1);
+        }
+
+        th {
+            color: #999;
+            font-weight: 500;
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem;
+
+        .wallet-card {
+            padding: 1rem;
+
+            .icon {
+                font-size: 1.4rem;
+            }
+        }
+    }
+}

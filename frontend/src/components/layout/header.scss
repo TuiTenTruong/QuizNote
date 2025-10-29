@@ -1,0 +1,15 @@
+.text-gradient {
+    background: linear-gradient(to right, #5813c1, #ff6754);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-content {
+    .navbar {
+        .btn-gradient {
+            background: linear-gradient(to right, #5813c1, #ff6754);
+            color: white;
+        }
+    }
+
+}

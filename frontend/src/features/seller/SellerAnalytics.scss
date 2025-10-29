@@ -1,0 +1,44 @@
+.seller-analytics {
+    background-color: #0b0b0f; // Đổi nền thành màu tối
+    color: #fff;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+
+    .stat-card {
+        background-color: #151515; // Thêm màu nền mặc định
+        border-radius: 12px;
+        transition: 0.3s ease;
+
+
+        &:hover {
+            background-color: #1f1f1f; // Đổi màu nền khi hover
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.2);
+        }
+
+        .icon {
+            font-size: 1.6rem;
+        }
+    }
+
+    .chart-card {
+        border-radius: 12px;
+        transition: 0.3s ease;
+
+        &:hover {
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.25);
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem;
+
+        .stat-card {
+            font-size: 0.9rem;
+
+            p {
+                font-size: 0.8rem;
+            }
+        }
+    }
+}

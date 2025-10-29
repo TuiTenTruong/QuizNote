@@ -1,0 +1,19 @@
+// Chứa các lớp tiện ích có thể tái sử dụng ở bất kỳ đâu
+
+.text-gradient {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.btn-gradient {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    border: none;
+    color: #fff;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}

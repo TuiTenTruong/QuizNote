@@ -1,0 +1,94 @@
+.seller-dashboard {
+    background-color: #0b0b0f;
+    padding: 2rem 1rem;
+
+    .sidebar {
+        width: 240px;
+        background-color: #111;
+
+        .brand {
+            .text-gradient {
+                background: linear-gradient(90deg, #a855f7, #f97316);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+
+        .nav-link {
+            color: #bbb;
+            padding: 10px 16px;
+            border-radius: 8px;
+
+            &:hover,
+            &.active {
+                background: linear-gradient(90deg, #9333ea, #f97316);
+                color: #fff;
+            }
+        }
+    }
+
+    .topbar {
+        background-color: #141414;
+
+        .btn-gradient {
+            background: linear-gradient(90deg, #9333ea, #f97316);
+            border: none;
+            color: #fff;
+        }
+
+        input {
+            color: #fff;
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .stat-card {
+        background-color: #1a1a1a;
+        border: none;
+        color: #fff;
+        border-radius: 12px;
+        transition: 0.3s;
+
+        &:hover {
+            background-color: #222;
+        }
+    }
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .order-card,
+    .quiz-card {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: #1e1e1e;
+            transform: translateY(-2px);
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        padding: 1rem;
+
+        .stat-card h5 {
+            font-size: 1rem;
+        }
+
+        .btn-gradient {
+            width: 100%;
+        }
+    }
+}

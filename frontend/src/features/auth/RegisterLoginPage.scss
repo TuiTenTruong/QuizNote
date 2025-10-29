@@ -1,0 +1,92 @@
+.register-page,
+.login-page {
+    background-color: #0b0b0f;
+    color: #fff;
+
+    .text-gradient {
+        background: linear-gradient(to right, #a855f7, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .inner-icon {
+        background: linear-gradient(90deg, #a855f7, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .register-left,
+    .login-left {
+        background-image: radial-gradient(circle at left, rgb(70, 40, 94) 5%, transparent 30%),
+            radial-gradient(circle at right, rgb(59, 24, 17) 5%, transparent 30%);
+        background-size: cover;
+        background-position: center;
+    }
+
+    .register-right,
+    .login-right {
+        background-color: #fff;
+        color: #000;
+    }
+
+    .form-box {
+        width: 100%;
+        max-width: 550px;
+        background-color: #fff;
+    }
+
+    .role-card {
+        border: 1px solid #ddd;
+        cursor: pointer;
+        transition: 0.3s;
+
+        &:hover {
+            border-color: #a855f7;
+            transform: translateY(-2px);
+        }
+
+        &.active {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: #a855f7;
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(to right, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+        transition: 0.3s;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    input {
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+
+    @media (max-width: 767.98px) {
+
+        .register-right,
+        .login-right {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .form-box {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #000000;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        input {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+    }
+}

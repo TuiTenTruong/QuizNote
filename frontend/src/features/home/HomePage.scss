@@ -1,0 +1,114 @@
+.homepage-container {
+
+    .hero-section {
+        background-color: #0d0911;
+        background-image: radial-gradient(circle at left, rgb(70, 40, 94) 5%, transparent 30%),
+            radial-gradient(circle at right, rgb(59, 24, 17) 5%, transparent 30%);
+
+        .hero-section-container {
+            margin-top: 10%;
+            height: 60vh;
+
+            h1 {
+                line-height: 130%;
+            }
+
+            p {
+                line-height: 130%;
+            }
+
+            .btn-gradient {
+                background: linear-gradient(to right, #5813c1, #ff6754);
+                color: white;
+            }
+
+
+        }
+
+
+    }
+
+    background-color: #0f0f11;
+
+    .quiz-categories {
+
+        .category-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                transform: translateY(-3px);
+            }
+        }
+    }
+
+    .why-section {
+
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                transform: translateY(-4px);
+            }
+
+            .icon-box {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            p {
+                font-size: 0.9rem;
+            }
+
+            .feature-card {
+                text-align: center;
+            }
+        }
+
+        .box-container {
+            background-image: linear-gradient(to bottom right, #6118b5, #c14e3a);
+            border-radius: 10px;
+            padding: 30px 15px 20px 15px;
+
+            .left-box {
+                width: 40%;
+            }
+
+            .demo_image {
+                width: 60%;
+                height: 200px;
+
+                img {
+                    margin-top: 10px;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain
+                }
+            }
+
+        }
+
+        p {
+            font-size: 17px;
+            color: #c4c4c4;
+        }
+
+        .create-button {
+            font-weight: 600;
+        }
+
+    }
+
+
+}
