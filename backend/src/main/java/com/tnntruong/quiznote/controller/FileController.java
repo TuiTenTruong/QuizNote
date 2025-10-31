@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tnntruong.quiznote.dto.response.ResUploadFileDTO;
 import com.tnntruong.quiznote.service.FileService;
-import com.tnntruong.quiznote.service.response.ResUploadFileDTO;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.StorageException;
 

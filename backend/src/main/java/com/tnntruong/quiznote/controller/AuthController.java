@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.request.ReqLoginDTO;
+import com.tnntruong.quiznote.dto.response.ResLoginDTO;
 import com.tnntruong.quiznote.service.UserService;
-import com.tnntruong.quiznote.service.request.ReqLoginDTO;
-import com.tnntruong.quiznote.service.response.ResLoginDTO;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;

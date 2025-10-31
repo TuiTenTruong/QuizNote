@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.response.Submission;
+package com.tnntruong.quiznote.dto.response.Submission;
 
 import java.util.List;
 

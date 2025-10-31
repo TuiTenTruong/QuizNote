@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.response.user;
+package com.tnntruong.quiznote.dto.response.user;
 
 import java.time.Instant;
 
@@ -10,7 +10,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ResCreateUserDTO {
+public class ResUpdateUserDTO {
     private long id;
     private String name;
     private String email;
@@ -19,6 +19,6 @@ public class ResCreateUserDTO {
     private int age;
     private String avatarUrl;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
-    private Instant createdAt;
-    private String createdBy;
+    private Instant updatedAt;
+    private String updatedBy;
 }

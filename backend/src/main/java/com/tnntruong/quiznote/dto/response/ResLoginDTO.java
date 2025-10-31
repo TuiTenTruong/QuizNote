@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.response;
+package com.tnntruong.quiznote.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tnntruong.quiznote.domain.Role;

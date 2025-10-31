@@ -9,13 +9,13 @@ import com.tnntruong.quiznote.domain.Chapter;
 import com.tnntruong.quiznote.domain.Question;
 import com.tnntruong.quiznote.domain.QuestionOption;
 import com.tnntruong.quiznote.domain.Subject;
+import com.tnntruong.quiznote.dto.request.ReqCreateQuestionDTO;
+import com.tnntruong.quiznote.dto.request.ReqUpdateQuestionDTO;
+import com.tnntruong.quiznote.dto.response.ResQuestionDTO;
+import com.tnntruong.quiznote.dto.response.ResQuestionDTO.ResOptionDTO;
 import com.tnntruong.quiznote.repository.ChapterRepository;
 import com.tnntruong.quiznote.repository.QuestionRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
-import com.tnntruong.quiznote.service.request.ReqCreateQuestionDTO;
-import com.tnntruong.quiznote.service.request.ReqUpdateQuestionDTO;
-import com.tnntruong.quiznote.service.response.ResQuestionDTO;
-import com.tnntruong.quiznote.service.response.ResQuestionDTO.ResOptionDTO;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service

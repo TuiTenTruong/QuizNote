@@ -1,6 +1,5 @@
 package com.tnntruong.quiznote.service;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,11 +12,12 @@ import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Role;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.response.ResResultPagination;
+import com.tnntruong.quiznote.dto.response.user.ResCreateUserDTO;
+import com.tnntruong.quiznote.dto.response.user.ResGetUserDTO;
+import com.tnntruong.quiznote.dto.response.user.ResUpdateUserDTO;
 import com.tnntruong.quiznote.repository.UserRepository;
-import com.tnntruong.quiznote.service.response.ResResultPagination;
-import com.tnntruong.quiznote.service.response.user.ResCreateUserDTO;
-import com.tnntruong.quiznote.service.response.user.ResGetUserDTO;
-import com.tnntruong.quiznote.service.response.user.ResUpdateUserDTO;
+import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -172,5 +172,10 @@ public class UserService {
 
     public Role getDefaultRole() {
         return this.roleService.findById(2).orElseThrow(() -> new RuntimeException("Default USER role not found"));
+    }
+
+    public User handleGetCurrentUser() {
+        String username = SecurityUtil.getCurrentUserLogin().get();
+        return this.userRepository.findByEmail(username);
     }
 }

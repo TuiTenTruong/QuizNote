@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.request;
+package com.tnntruong.quiznote.dto.request;
 
 import java.util.List;
 
@@ -9,9 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ReqUpdateQuestionDTO {
-    @NotNull(message = "Question id cannot be null")
-    private long id;
+public class ReqCreateQuestionDTO {
     @NotNull(message = "SubjectId cannot be null")
     private Long subjectId;
     private Long chapterId;

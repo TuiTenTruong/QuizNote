@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.response.subject;
+package com.tnntruong.quiznote.dto.response.subject;
 
 import java.time.Instant;
 
@@ -20,7 +20,10 @@ public class ResSubjectDTO {
     private String description;
     private double price;
     private SubjectStatus status;
-    private CurrentUser currentuser;
+    private Double averageRating;
+    private Integer ratingCount;
+    private String imageUrl;
+    private CreateUser createUser;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
     private Instant createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
@@ -30,7 +33,7 @@ public class ResSubjectDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CurrentUser {
+    public static class CreateUser {
         private long id;
         private String username;
     }

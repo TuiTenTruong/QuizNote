@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Chapter;
 import com.tnntruong.quiznote.domain.Subject;
+import com.tnntruong.quiznote.dto.request.ReqCreateChapterDTO;
+import com.tnntruong.quiznote.dto.request.ReqUpdateChapterDTO;
+import com.tnntruong.quiznote.dto.response.ResChapterDTO;
 import com.tnntruong.quiznote.repository.ChapterRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
-import com.tnntruong.quiznote.service.request.ReqCreateChapterDTO;
-import com.tnntruong.quiznote.service.request.ReqUpdateChapterDTO;
-import com.tnntruong.quiznote.service.response.ResChapterDTO;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service

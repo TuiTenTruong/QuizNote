@@ -1,4 +1,6 @@
-package com.tnntruong.quiznote.service.request;
+package com.tnntruong.quiznote.dto.response;
+
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReqSubmitAnswerDTO {
-    private Long questionId;
-    private Long selectedOptionId;
+public class ResUploadFileDTO {
+    private String fileName;
+    private Instant uploadedAt;
 }

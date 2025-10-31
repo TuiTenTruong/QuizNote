@@ -1,4 +1,4 @@
-package com.tnntruong.quiznote.service.request;
+package com.tnntruong.quiznote.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

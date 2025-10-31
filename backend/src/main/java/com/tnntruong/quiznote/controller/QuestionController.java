@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tnntruong.quiznote.dto.request.ReqCreateQuestionDTO;
+import com.tnntruong.quiznote.dto.request.ReqUpdateQuestionDTO;
 import com.tnntruong.quiznote.service.QuestionService;
-import com.tnntruong.quiznote.service.request.ReqCreateQuestionDTO;
-import com.tnntruong.quiznote.service.request.ReqUpdateQuestionDTO;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.validation.Valid;

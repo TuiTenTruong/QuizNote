@@ -8,8 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Permission;
+import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.repository.PermissionRepository;
-import com.tnntruong.quiznote.service.response.ResResultPagination;
 
 @Service
 public class PermissionService {
