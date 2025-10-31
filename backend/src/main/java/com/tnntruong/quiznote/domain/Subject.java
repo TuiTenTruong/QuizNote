@@ -50,6 +50,9 @@ public class Subject {
     @Enumerated(EnumType.STRING)
     private SubjectStatus status = SubjectStatus.PENDING;
 
+    private Double averageRating = 0.0;
+    private Integer ratingCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller;
@@ -61,6 +64,14 @@ public class Subject {
     @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Question> questions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Chapter> chapters = new ArrayList<>();
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Comment> comments = new ArrayList<>();
 
     private Instant createdAt;
     private Instant updatedAt;

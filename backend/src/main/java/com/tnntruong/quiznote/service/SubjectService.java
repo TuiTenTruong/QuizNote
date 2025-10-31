@@ -11,39 +11,41 @@ import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.response.ResResultPagination;
+import com.tnntruong.quiznote.dto.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
-import com.tnntruong.quiznote.service.response.ResResultPagination;
-import com.tnntruong.quiznote.service.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
 public class SubjectService {
 
-    private SubjectRepository subjectRepository;
-    private UserRepository userRepository;
+    private final FileService fileService;
 
-    public SubjectService(SubjectRepository subjectRepository, UserRepository userRepository) {
+    private final UserService userService;
+
+    private SubjectRepository subjectRepository;
+
+    public SubjectService(SubjectRepository subjectRepository, UserService userService, FileService fileService) {
         this.subjectRepository = subjectRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.fileService = fileService;
     }
 
-    public ResSubjectDTO handleCreateSubject(Subject subject) throws InvalidException {
-        String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
-        if (email != null) {
-            User user = this.userRepository.findByEmail(email);
-            if (user == null) {
-                throw new InvalidException("user create subject invalid");
-            }
-            subject.setSeller(user);
-            Subject savedSubject = this.subjectRepository.save(subject);
-            return this.convertSubjectToDTO(savedSubject);
-        } else {
+    public ResSubjectDTO handleCreateSubject(Subject subject, String fileUrl) throws InvalidException {
+        User currentUser = this.userService.handleGetCurrentUser();
+        if (currentUser == null) {
             throw new InvalidException("user create subject invalid");
         }
+        subject.setSeller(currentUser);
+        Subject savedSubject = this.subjectRepository.save(subject);
+        if (fileUrl != null) {
+            savedSubject.setImageUrl(fileUrl);
+
+        }
+        savedSubject = this.subjectRepository.save(savedSubject);
+        return this.convertSubjectToDTO(savedSubject);
     }
 
     public ResSubjectDTO handleUpdateSubject(Subject subject) throws InvalidException {
@@ -59,6 +61,9 @@ public class SubjectService {
         currentSubject.setPrice(subject.getPrice());
         currentSubject.setStatus(subject.getStatus());
         currentSubject.setDescription(subject.getDescription());
+        currentSubject.setImageUrl(subject.getImageUrl());
+        currentSubject.setAverageRating(subject.getAverageRating());
+        currentSubject.setRatingCount(subject.getRatingCount());
         Subject savedSubject = this.subjectRepository.save(currentSubject);
         return this.convertSubjectToDTO(savedSubject);
     }
@@ -66,7 +71,7 @@ public class SubjectService {
     public ResSubjectDTO convertSubjectToDTO(Subject subject) {
         ResSubjectDTO res = new ResSubjectDTO();
 
-        ResSubjectDTO.CurrentUser user = new ResSubjectDTO.CurrentUser();
+        ResSubjectDTO.CreateUser user = new ResSubjectDTO.CreateUser();
         user.setId(subject.getSeller().getId());
         user.setUsername(subject.getSeller().getEmail());
 
@@ -75,10 +80,12 @@ public class SubjectService {
         res.setDescription(subject.getDescription());
         res.setPrice(subject.getPrice());
         res.setStatus(subject.getStatus());
-
+        res.setAverageRating(subject.getAverageRating());
+        res.setRatingCount(subject.getRatingCount());
+        res.setImageUrl(subject.getImageUrl());
         res.setCreatedAt(subject.getCreatedAt());
         res.setUpdatedAt(subject.getUpdatedAt());
-        res.setCurrentuser(user);
+        res.setCreateUser(user);
 
         return res;
     }

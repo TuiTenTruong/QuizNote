@@ -26,12 +26,10 @@ const LoginPage = () => {
     }
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // validate
         if (!email || !password) {
             toast.error("Please fill in all fields.");
             return;
         }
-        // Call API login here
         const response = await postLogin(email, password);
         console.log(response);
         if (response && (response.statusCode === 200 || response.statusCode === 201)) {

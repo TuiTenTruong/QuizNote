@@ -72,7 +72,7 @@ public class SecurityConfigaration {
                 "/api/v1/auth/**",
                 "/api/v1/files/**",
                 "/api/v1/users/register",
-                "/api/v1/payments/vnpay/**"
+                "/api/v1/payments/vnpay/**",
         };
         http
                 .csrf(c -> c.disable())
@@ -80,11 +80,11 @@ public class SecurityConfigaration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers(generalPermitAllPaths).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**", "/api/v1/jobs/**",
-                                        "/api/v1/skills/**")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**", "/api/v1/subjects/**",
+                                        "/api/v1/questions/**")
                                 .permitAll()
                                 .anyRequest().authenticated())
-                // .anyRequest().permitAll())
+
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .formLogin(f -> f.disable())

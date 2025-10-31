@@ -19,4 +19,8 @@ const postLogin = async (email, password) => {
 const postLogout = async () => {
     return Axios.post('api/v1/auth/logout');
 }
-export { postCreateNewUser, postLogin, postLogout };
+const getExploreData = async () => {
+    return Axios.get(`/api/v1/subjects?filter=id<=6`);
+}
+
+export { postCreateNewUser, postLogin, postLogout, getExploreData };

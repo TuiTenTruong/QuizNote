@@ -79,6 +79,12 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private SellerProfile sellerProfile;
 
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
     @PrePersist
     public void handleCreate() {
         this.createdAt = Instant.now();
