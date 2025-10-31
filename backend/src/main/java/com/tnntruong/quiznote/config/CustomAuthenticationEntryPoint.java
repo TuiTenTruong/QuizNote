@@ -2,7 +2,6 @@ package com.tnntruong.quiznote.config;
 
 import java.io.IOException;
 import java.util.Optional;
-
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,9 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response,
             org.springframework.security.core.AuthenticationException authException)
             throws IOException, ServletException {
+        // Do not delegate, we want to control the response completely
         this.delegate.commence(request, response, authException);
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json;charset=UTF-8");
 
         RestResponse<Object> res = new RestResponse<Object>();

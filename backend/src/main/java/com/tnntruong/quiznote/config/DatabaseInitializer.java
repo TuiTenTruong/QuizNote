@@ -2,6 +2,7 @@ package com.tnntruong.quiznote.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -105,7 +106,26 @@ public class DatabaseInitializer implements CommandLineRunner {
             this.roleRepository.save(adminRole);
         }
 
+        // ensure a USER role exists (assign common GET/read permissions)
+        if (this.roleRepository.findByName("USER") == null) {
+            List<Permission> allPermissions = this.permissionRepository.findAll();
+            List<Permission> userPermissions = allPermissions.stream()
+                    .filter(p -> "GET".equalsIgnoreCase(p.getMethod()) && (p.getApiPath().startsWith("/api/v1/subjects")
+                            || p.getApiPath().startsWith("/api/v1/questions")
+                            || p.getApiPath().startsWith("/api/v1/purchases")
+                            || p.getApiPath().startsWith("/api/v1/files")
+                            || p.getApiPath().startsWith("/api/v1/users")))
+                    .collect(Collectors.toList());
+            Role userRole = new Role();
+            userRole.setName("USER");
+            userRole.setDescription("Default regular user with read permissions");
+            userRole.setActive(true);
+            userRole.setPermissions(userPermissions);
+            this.roleRepository.save(userRole);
+        }
+
         if (countUser == 0) {
+            // create admin user
             User adminUser = new User();
             adminUser.setEmail("admin@gmail.com");
             adminUser.setAddress("hn");
@@ -119,6 +139,21 @@ public class DatabaseInitializer implements CommandLineRunner {
                 adminUser.setRole(adminRole);
             }
             this.userRepository.save(adminUser);
+
+            // create regular user with USER role and common read permissions
+            User regularUser = new User();
+            regularUser.setEmail("user@gmail.com");
+            regularUser.setAddress("hn");
+            regularUser.setAge(22);
+            regularUser.setGender(GenderEnum.FEMALE);
+            regularUser.setName("Regular User");
+            regularUser.setPassword(this.passwordEncoder.encode("123456"));
+
+            Role userRole = this.roleRepository.findByName("USER");
+            if (userRole != null) {
+                regularUser.setRole(userRole);
+            }
+            this.userRepository.save(regularUser);
         }
 
         if (countPermission > 0 && countRole > 0 && countUser > 0) {

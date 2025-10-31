@@ -53,6 +53,7 @@ public class User {
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
+    private String avatarUrl;
 
     private Instant createdAt;
     private Instant updatedAt;

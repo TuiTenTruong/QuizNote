@@ -1,9 +1,11 @@
 package com.tnntruong.quiznote.service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +24,8 @@ import com.tnntruong.quiznote.util.error.InvalidException;
 public class UserService {
     private UserRepository userRepository;
     private RoleService roleService;
+    @Value("${quiznote.upload-file.base-uri}")
+    private String baseURI;
 
     public UserService(UserRepository userRepository, RoleService roleService) {
         this.userRepository = userRepository;
@@ -32,10 +36,13 @@ public class UserService {
         return this.userRepository.existsByEmail(email);
     }
 
-    public ResCreateUserDTO handleCreateUser(User user) {
+    public ResCreateUserDTO handleCreateUser(User user, String fileUrl) {
         if (user.getRole() != null) {
             Optional<Role> role = this.roleService.findById(user.getRole().getId());
             user.setRole(role.isPresent() ? role.get() : null);
+        }
+        if (fileUrl != null) {
+            user.setAvatarUrl(baseURI + "/users/" + fileUrl);
         }
         User savedUser = this.userRepository.save(user);
         ResCreateUserDTO res = new ResCreateUserDTO();
@@ -44,6 +51,7 @@ public class UserService {
         res.setEmail(savedUser.getEmail());
         res.setGender(savedUser.getGender());
         res.setAge(savedUser.getAge());
+        res.setAvatarUrl(savedUser.getAvatarUrl());
         res.setCreatedAt(savedUser.getCreatedAt());
         res.setCreatedBy(savedUser.getCreatedBy());
         return res;
@@ -60,6 +68,7 @@ public class UserService {
             currentUser.setAge(user.getAge());
             currentUser.setAddress(user.getAddress());
             currentUser.setGender(user.getGender());
+            currentUser.setAvatarUrl(user.getAvatarUrl());
             if (user.getRole() != null) {
                 Optional<Role> role = this.roleService.findById(user.getRole().getId());
                 currentUser.setRole(role.isPresent() ? role.get() : null);
@@ -72,7 +81,7 @@ public class UserService {
             res.setEmail(savedUser.getEmail());
             res.setGender(savedUser.getGender());
             res.setAge(savedUser.getAge());
-
+            res.setAvatarUrl(savedUser.getAvatarUrl());
             res.setUpdatedAt(savedUser.getUpdatedAt());
             res.setUpdatedBy(savedUser.getUpdatedBy());
             return res;
@@ -102,6 +111,7 @@ public class UserService {
         res.setEmail(user.getEmail());
         res.setGender(user.getGender());
         res.setAge(user.getAge());
+        res.setAvatarUrl(user.getAvatarUrl());
         res.setCreatedAt(user.getCreatedAt());
         res.setCreatedBy(user.getCreatedBy());
         res.setUpdatedAt(user.getUpdatedAt());
@@ -158,5 +168,9 @@ public class UserService {
             currentUser.setRefreshToken(token);
             this.userRepository.save(currentUser);
         }
+    }
+
+    public Role getDefaultRole() {
+        return this.roleService.findById(2).orElseThrow(() -> new RuntimeException("Default USER role not found"));
     }
 }

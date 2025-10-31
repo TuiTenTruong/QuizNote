@@ -12,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,20 +58,31 @@ public class SecurityConfigaration {
     }
 
     @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(HttpMethod.GET, "/storage/**");
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
 
-        String[] whiteList = { "/", "/api/v1/auth/login", "/api/v1/auth/refresh", "/storage/**",
-                "/api/v1/auth/register", "/api/v1/payments/vnpay/**" };
+        // Define paths that should be publicly accessible without authentication
+        String[] generalPermitAllPaths = {
+                "/",
+                "/api/v1/auth/**",
+                "/api/v1/files/**",
+                "/api/v1/users/register",
+                "/api/v1/payments/vnpay/**"
+        };
         http
                 .csrf(c -> c.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-                                .requestMatchers(whiteList).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
+                                .requestMatchers(generalPermitAllPaths).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**", "/api/v1/jobs/**",
+                                        "/api/v1/skills/**")
+                                .permitAll()
                                 .anyRequest().authenticated())
                 // .anyRequest().permitAll())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())

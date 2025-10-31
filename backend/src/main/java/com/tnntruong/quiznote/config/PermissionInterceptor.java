@@ -1,6 +1,8 @@
 package com.tnntruong.quiznote.config;
 
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -16,11 +18,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
 public class PermissionInterceptor implements HandlerInterceptor {
-    private final UserService userService;
-
-    public PermissionInterceptor(UserService userService) {
-        this.userService = userService;
-    }
+    @Autowired
+    private UserService userService;
 
     @Override
     @Transactional
@@ -35,6 +34,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> path= " + path);
         System.out.println(">>> httpMethod= " + httpMethod);
         System.out.println(">>> requestURI= " + requestURI);
+
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
 
@@ -47,13 +47,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
                     boolean isAllow = permissions.stream()
                             .anyMatch(items -> items.getApiPath().equals(path) && items.getMethod().equals(httpMethod));
                     if (isAllow == false) {
-                        throw new PermissionException("You do not have access to this endpoint");
+                        throw new PermissionException("Bạn không có quyền truy cập endpoint này");
                     }
                 } else {
-                    throw new PermissionException("You do not have access to this endpoint");
+                    throw new PermissionException("Bạn không có quyền truy cập endpoint này");
                 }
             }
         }
+
         return true;
     }
 }

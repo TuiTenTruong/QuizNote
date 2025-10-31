@@ -17,6 +17,7 @@ public class ResUpdateUserDTO {
     private GenderEnum gender;
     private String address;
     private int age;
+    private String avatarUrl;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
     private Instant updatedAt;
     private String updatedBy;

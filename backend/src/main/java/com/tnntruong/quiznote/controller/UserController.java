@@ -1,26 +1,36 @@
 package com.tnntruong.quiznote.controller;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.tnntruong.quiznote.domain.User;
-import com.tnntruong.quiznote.service.UserService;
-import com.tnntruong.quiznote.util.error.InvalidException;
-import com.turkraft.springfilter.boot.Filter;
-
-import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.service.FileService;
+import com.tnntruong.quiznote.service.UserService;
+import com.tnntruong.quiznote.util.error.InvalidException;
+import com.tnntruong.quiznote.util.error.StorageException;
+import com.turkraft.springfilter.boot.Filter;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -28,21 +38,43 @@ public class UserController {
 
     private final PasswordEncoder passwordEncoder;
     private UserService userService;
+    private FileService fileService;
+    @Value("${quiznote.upload-file.base-uri}")
+    private String baseURI;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, FileService fileService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.fileService = fileService;
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> postCreateUser(@Valid @RequestBody User newUser) throws InvalidException {
+    public ResponseEntity<?> postCreateUser(@RequestBody @Valid User newUser)
+            throws InvalidException, URISyntaxException {
         boolean isEmailExist = this.userService.isEmailExist(newUser.getEmail());
         if (isEmailExist) {
             throw new InvalidException("email has exist");
         }
         String hashPassword = passwordEncoder.encode(newUser.getPassword());
         newUser.setPassword(hashPassword);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(newUser));
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(newUser, null));
+    }
+
+    @PostMapping(value = "/users/{email}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadAvatar(@PathVariable String email,
+            @RequestPart(name = "file", required = true) MultipartFile file)
+            throws InvalidException, StorageException, IOException, URISyntaxException {
+        User updateUser = this.userService.handleGetUserByUsername(email);
+
+        if (file == null || file.isEmpty()) {
+            throw new InvalidException("file is required");
+        }
+
+        this.fileService.createDirectory(baseURI + "/users");
+        String stored = this.fileService.store(file, "/users"); // có thể là relative path hoặc filename
+        updateUser.setAvatarUrl(stored);
+
+        return ResponseEntity.ok().body(this.userService.handleUpdateUser(updateUser));
     }
 
     @PutMapping("/users")

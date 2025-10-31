@@ -39,6 +39,7 @@ public class Subject {
     @NotBlank(message = "subject name cannot be empty")
     private String name;
 
+    private String imageUrl;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 

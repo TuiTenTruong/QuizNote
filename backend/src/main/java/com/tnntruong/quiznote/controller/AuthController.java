@@ -2,6 +2,7 @@ package com.tnntruong.quiznote.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -59,7 +60,7 @@ public class AuthController {
         User currentUser = this.userService.handleGetUserByUsername(loginDto.getUsername());
         if (currentUser != null) {
             ResLoginDTO.UserLogin user = new ResLoginDTO.UserLogin(currentUser.getId(), currentUser.getName(),
-                    currentUser.getEmail(), currentUser.getRole());
+                    currentUser.getEmail(), currentUser.getAvatarUrl(), currentUser.getRole());
             res.setUser(user);
         }
         String accessToken = this.securityUtil.createAccessToken(authentication.getName(), res);
@@ -67,6 +68,8 @@ public class AuthController {
 
         // create refesh token
         String refeshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
+        res.setRefreshToken(refeshToken);
+        System.out.println("refeshToken: " + refeshToken);
         // update user
         this.userService.updateUserToken(refeshToken, loginDto.getUsername());
         // set cookies
@@ -115,7 +118,7 @@ public class AuthController {
         User currentUserDB = this.userService.handleGetUserByUsername(email);
         if (currentUserDB != null) {
             ResLoginDTO.UserLogin user = new ResLoginDTO.UserLogin(currentUserDB.getId(), currentUserDB.getName(),
-                    currentUserDB.getEmail(), currentUser.getRole());
+                    currentUserDB.getEmail(), currentUser.getAvatarUrl(), currentUser.getRole());
             res.setUser(user);
         }
         String accessToken = this.securityUtil.createAccessToken(email, res);
@@ -153,6 +156,23 @@ public class AuthController {
                 .path("/")
                 .build();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString()).body(null);
+    }
+
+    @PostMapping("/auth/register")
+    @ApiMessage("register success")
+    public ResponseEntity<?> register(@Valid @RequestBody User newUser) throws InvalidException {
+        // check email exist
+        User existingUser = this.userService.handleGetUserByUsername(newUser.getEmail());
+        if (existingUser != null) {
+            throw new InvalidException("email da ton tai");
+        }
+        // ma hoa password
+        String encodedPassword = passwordEncoder.encode(newUser.getPassword());
+        newUser.setPassword(encodedPassword);
+        // them role mac dinh
+        newUser.setRole(this.userService.getDefaultRole());
+        this.userService.handleCreateUser(newUser, null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
 }
