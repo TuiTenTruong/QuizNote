@@ -1,0 +1,89 @@
+.practice-quiz {
+    background-color: #0b0b0f;
+    color: #fff;
+    min-height: 100vh;
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+
+        &:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+    }
+
+    .option-card {
+        background: #1a1a1f;
+        border: 1px solid #333;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+
+        &:hover {
+            border-color: #9333ea;
+        }
+
+        &.selected {
+            border-color: #9333ea;
+            background: #9333ea22;
+        }
+
+        &.correct {
+            border-color: #22c55e;
+            background: #22c55e22;
+        }
+
+        &.wrong {
+            border-color: #ef4444;
+            background: #ef444422;
+        }
+    }
+
+    .feedback {
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #9333ea;
+    }
+
+    .grid-answers {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+        gap: 6px;
+
+        .num-btn {
+            background: #1a1a1f;
+            border: 1px solid #333;
+            color: #aaa;
+            font-size: 0.85rem;
+
+            &.answered {
+                background: #9333ea33;
+                color: #fff;
+            }
+
+            &.active {
+                border-color: #f97316;
+            }
+        }
+    }
+
+    .progress-gradient .progress-bar {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+    }
+}
+
+.practice-result {
+    background-color: #0b0b0f;
+    color: #fff;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}

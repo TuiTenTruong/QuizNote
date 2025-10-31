@@ -10,7 +10,7 @@ const HeroSection = () => {
                         Study, Quiz, <span className="text-gradient">Succeed</span>
                     </h1>
 
-                    <p className=" mb-4 text-white text-start w-xs-75 w-sm-100 text-sm-center">
+                    <p className=" mb-4 text-white text-start text-sm-center w-sm-75 w-xs-50">
                         Enhance your study with thousands of carefully designed quiz sets.
                         Learn anywhere, anytime, with instant feedback.
                     </p>
