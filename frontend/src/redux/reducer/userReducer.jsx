@@ -1,0 +1,38 @@
+import { FETCH_USER_SUCCESS } from '../action/userAction';
+const INITIAL_STATE = {
+    account: {
+        access_token: '',
+        refresh_token: '',
+        username: '',
+        role: '',
+        image: '',
+    },
+    isauthenticated: false,
+};
+const userReducer = (state = INITIAL_STATE, action) => {
+    switch (action.type) {
+        case FETCH_USER_SUCCESS:
+            return {
+                ...state, account: {
+                    access_token: action.payload.access_token,
+                    refresh_token: action.payload.refreshToken,
+                    username: action.payload.user.name,
+                    role: action.payload.user.role,
+                    image: action.payload.user.avatarUrl,
+                }, isauthenticated: true,
+            };
+        case 'LOGOUT':
+            return {
+                ...state, account: {
+                    access_token: '',
+                    refresh_token: '',
+                    username: '',
+                    role: '',
+                    image: '',
+                }, isauthenticated: false,
+            };
+        default: return state;
+    }
+};
+
+export default userReducer;

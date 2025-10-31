@@ -1,8 +1,20 @@
-import { Navbar, Nav, Button } from 'react-bootstrap';
+import { Navbar, Nav, Button, NavDropdown } from 'react-bootstrap';
 import { LinearGradient } from 'react-text-gradients'
 import './header.scss'
 import { Link, NavLink } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { doLogout } from '../../redux/action/userAction';
+import axiosInstance from '../../utils/axiosCustomize';
+import defaultImage from '../../assets/upload/users/default-avatar.png';
+
 const Header = () => {
+    const dispatch = useDispatch();
+    const isAuthenticated = useSelector(state => state.user.isauthenticated);
+    const account = useSelector(state => state.user.account);
+
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/users/";
+    const userAvatarSrc = account.image ? `${backendBaseURL}${account.image.startsWith('/') ? account.image.substring(1) : account.image}` : defaultImage;
+    console.log("User Avatar Src:", userAvatarSrc);
     return (
         <div className='header-content'>
             <Navbar bg="dark" variant="dark" expand="lg" className="px-4 py-3">
@@ -19,8 +31,22 @@ const Header = () => {
                         <NavLink className='nav-link mx-2 text-white' to="/rewards">Rewards</NavLink>
                         <NavLink className='nav-link mx-2 text-white' to="/about">About</NavLink>
                     </Nav>
-                    <Button as={Link} to="/login" variant="light" className="me-2">Sign In</Button>
-                    <Button as={Link} to="/register" variant="gradient" className="bg-primary border-0 px-3">Register</Button>
+                    {!isAuthenticated ? (
+                        <><Button as={Link} to="/login" variant="light" className="me-2">Sign In</Button>
+                            <Button as={Link} to="/register" variant="gradient" className="bg-primary border-0 px-3">Register</Button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="d-flex align-items-center">
+                                <img src={userAvatarSrc} alt={account.username} className="rounded-circle me-2" width="40" height="40" />
+                                <NavDropdown title={account.username} id="basic-nav-dropdown" className='text-white'>
+                                    <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} onClick={() => dispatch(doLogout())}>Logout</NavDropdown.Item>
+                                </NavDropdown>
+                            </div>
+                        </>
+                    )}
+
                 </Navbar.Collapse>
             </Navbar>
         </div>

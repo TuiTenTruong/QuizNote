@@ -1,13 +1,53 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
-import { FaUser, FaEnvelope, FaLock, FaChalkboardTeacher, FaGraduationCap } from "react-icons/fa";
+import { FaChalkboardTeacher, FaGraduationCap } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
+import { useState } from "react";
 import "./RegisterLoginPage.scss";
-import { AiFillYuque } from "react-icons/ai";
-import { LinearGradient } from 'react-text-gradients'
+import { IoEye } from "react-icons/io5";
+import { IoMdEyeOff } from "react-icons/io";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { postCreateNewUser } from "../../services/apiService";
 
+const RegisterPage = () => {
+    const [name, setName] = useState("");
+    const [gender, setGender] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [type, setType] = useState('password');
+    const navigate = useNavigate()
+    const handleToggle = () => {
+        if (type === 'password') {
+            setType('text')
+        } else {
+            setType('password')
+        }
+    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        // validate
+        if (!name || !gender || !email || !password || !confirmPassword) {
+            toast.error("Please fill in all fields.");
+            return;
+        }
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match.");
+            return;
+        }
 
-function RegisterPage() {
+        let res = await postCreateNewUser(email, password, name, gender);
+        console.log(res);
+        if (res.data && (res.statusCode === 200 || res.statusCode === 201)) {
+
+            toast.success(res.data.message);
+            navigate("/login");
+        } else {
+            toast.error(res.data.message);
+        }
+    }
+
     return (
         <section className="register-page">
             <Container fluid className="g-0">
@@ -55,26 +95,43 @@ function RegisterPage() {
                             <div className="text-center text-muted mb-3">OR</div>
 
                             {/* FORM */}
-                            <Form>
+                            <Form onSubmit={handleSubmit}>
                                 <Row className="g-3">
+
                                     <Col xs={12} sm={6}>
-                                        <Form.Group controlId="fullname">
-                                            <Form.Control type="text" placeholder="Full Name" />
+                                        <Form.Group controlId="name">
+                                            <Form.Control type="text" placeholder="Username" value={name} onChange={(e) => setName(e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} sm={6}>
-                                        <Form.Group controlId="username">
-                                            <Form.Control type="text" placeholder="Username" />
+                                        <Form.Group controlId="gender">
+                                            <Form.Control type="select" as="select" value={gender} onChange={(e) => setGender(e.target.value)}>
+                                                <option value="" disabled>Select Gender</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                                <option value="OTHER">Other</option>
+                                            </Form.Control>
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12}>
                                         <Form.Group controlId="email">
-                                            <Form.Control type="email" placeholder="Email" />
+                                            <Form.Control type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12}>
-                                        <Form.Group controlId="password">
-                                            <Form.Control type="password" placeholder="Password" />
+                                        <Form.Group controlId="password" className="position-relative">
+                                            <Form.Control type={type} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                            <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
+                                                {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
+                                            </span>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12}>
+                                        <Form.Group controlId="confirmPassword" className="position-relative">
+                                            <Form.Control type={type} placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                                            <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
+                                                {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
+                                            </span>
                                         </Form.Group>
                                     </Col>
                                 </Row>

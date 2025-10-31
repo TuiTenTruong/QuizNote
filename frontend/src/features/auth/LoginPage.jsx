@@ -2,14 +2,50 @@ import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF, FaUser } from "react-icons/fa";
+import { useState } from "react";
+import { IoEye } from "react-icons/io5";
+import { IoMdEyeOff } from "react-icons/io";
+import { toast } from "react-toastify";
 import "./RegisterLoginPage.scss";
-
-function LoginPage() {
+import { postLogin } from "../../services/apiService";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { doLogin } from "../../redux/action/userAction";
+const LoginPage = () => {
+    const [type, setType] = useState('password');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const navigate = useNavigate()
+    const dispatch = useDispatch();
+    const handleToggle = () => {
+        if (type === 'password') {
+            setType('text')
+        } else {
+            setType('password')
+        }
+    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        // validate
+        if (!email || !password) {
+            toast.error("Please fill in all fields.");
+            return;
+        }
+        // Call API login here
+        const response = await postLogin(email, password);
+        console.log(response);
+        if (response && (response.statusCode === 200 || response.statusCode === 201)) {
+            dispatch(doLogin(response.data));
+            toast.success("Login successful!");
+            navigate("/");
+        } else {
+            toast.error("Login failed. Please check your credentials.");
+        }
+    }
     return (
         <section className="login-page">
             <Container fluid className="g-0">
                 <Row className="min-vh-100 g-0">
-                    {/* LEFT SIDE */}
                     <Col
                         md={6}
                         className="login-left d-none d-md-flex align-items-center justify-content-center"
@@ -38,21 +74,19 @@ function LoginPage() {
                             <div className="text-center text-muted mb-3">OR</div>
 
                             {/* FORM */}
-                            <Form>
+                            <Form onSubmit={handleSubmit}>
                                 <Row className="g-3">
                                     <Col xs={12}>
-                                        <Form.Group controlId="username">
-                                            <Form.Control type="text" placeholder="Username" />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col xs={12}>
                                         <Form.Group controlId="email">
-                                            <Form.Control type="email" placeholder="Email" />
+                                            <Form.Control type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12}>
-                                        <Form.Group controlId="password">
-                                            <Form.Control type="password" placeholder="Password" />
+                                        <Form.Group controlId="password" className="position-relative">
+                                            <Form.Control type={type} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                            <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
+                                                {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
+                                            </span>
                                         </Form.Group>
                                     </Col>
                                 </Row>
