@@ -1,5 +1,7 @@
 package com.tnntruong.quiznote.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tnntruong.quiznote.domain.Question;
 import com.tnntruong.quiznote.dto.request.ReqCreateQuestionDTO;
 import com.tnntruong.quiznote.dto.request.ReqUpdateQuestionDTO;
 import com.tnntruong.quiznote.service.QuestionService;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 
@@ -34,6 +38,13 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.questionService.hanleCreateQuestion(questionDTO));
     }
 
+    // tạo câu hỏi bằng 1 mảng ReqCreateQuestionDTO
+    @PostMapping("/questions/batch")
+    public ResponseEntity<?> createQuestions(@Valid @RequestBody ReqCreateQuestionDTO[] questionDTOs)
+            throws InvalidException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.questionService.handleCreateQuestions(questionDTOs));
+    }
+
     @PutMapping("/questions")
     public ResponseEntity<?> updateQuestion(@Valid @RequestBody ReqUpdateQuestionDTO questionDTO)
             throws InvalidException {
@@ -52,8 +63,10 @@ public class QuestionController {
     }
 
     @GetMapping("/questions/subject/{subjectId}")
-    public ResponseEntity<?> getQuestionBySubjectId(@PathVariable String subjectId) throws InvalidException {
-        return ResponseEntity.ok(this.questionService.handleGetQuestionBySubjectId(subjectId));
+    public ResponseEntity<?> getQuestionBySubjectId(@PathVariable String subjectId,
+            @Filter Specification<Question> spec,
+            Pageable page) throws InvalidException {
+        return ResponseEntity.ok(this.questionService.handleGetQuestionBySubjectId(subjectId, spec, page));
     }
 
     @GetMapping("/questions/chapter/{chapterId}")

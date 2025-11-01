@@ -14,23 +14,18 @@ import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.repository.SubjectRepository;
-import com.tnntruong.quiznote.repository.UserRepository;
-import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
 public class SubjectService {
 
-    private final FileService fileService;
-
     private final UserService userService;
 
     private SubjectRepository subjectRepository;
 
-    public SubjectService(SubjectRepository subjectRepository, UserService userService, FileService fileService) {
+    public SubjectService(SubjectRepository subjectRepository, UserService userService) {
         this.subjectRepository = subjectRepository;
         this.userService = userService;
-        this.fileService = fileService;
     }
 
     public ResSubjectDTO handleCreateSubject(Subject subject, String fileUrl) throws InvalidException {
@@ -62,8 +57,10 @@ public class SubjectService {
         currentSubject.setStatus(subject.getStatus());
         currentSubject.setDescription(subject.getDescription());
         currentSubject.setImageUrl(subject.getImageUrl());
+        currentSubject.setHighestScore(subject.getHighestScore());
         currentSubject.setAverageRating(subject.getAverageRating());
         currentSubject.setRatingCount(subject.getRatingCount());
+        currentSubject.setPurchaseCount(subject.getPurchaseCount());
         Subject savedSubject = this.subjectRepository.save(currentSubject);
         return this.convertSubjectToDTO(savedSubject);
     }
@@ -74,7 +71,7 @@ public class SubjectService {
         ResSubjectDTO.CreateUser user = new ResSubjectDTO.CreateUser();
         user.setId(subject.getSeller().getId());
         user.setUsername(subject.getSeller().getEmail());
-
+        user.setAvatarUrl(subject.getSeller().getAvatarUrl());
         res.setId(subject.getId());
         res.setName(subject.getName());
         res.setDescription(subject.getDescription());
@@ -82,7 +79,9 @@ public class SubjectService {
         res.setStatus(subject.getStatus());
         res.setAverageRating(subject.getAverageRating());
         res.setRatingCount(subject.getRatingCount());
+        res.setPurchaseCount(subject.getPurchaseCount());
         res.setImageUrl(subject.getImageUrl());
+        res.setHighestScore(subject.getHighestScore());
         res.setCreatedAt(subject.getCreatedAt());
         res.setUpdatedAt(subject.getUpdatedAt());
         res.setCreateUser(user);

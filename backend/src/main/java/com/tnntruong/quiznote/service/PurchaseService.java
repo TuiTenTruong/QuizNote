@@ -45,6 +45,9 @@ public class PurchaseService {
         purchase.setStudent(student);
         purchase.setSubject(subject);
 
+        subject.setPurchaseCount(subject.getPurchaseCount() + 1);
+        subjectRepository.save(subject);
+
         return convertResPurchaseDTO(purchaseRepository.save(purchase));
     }
 

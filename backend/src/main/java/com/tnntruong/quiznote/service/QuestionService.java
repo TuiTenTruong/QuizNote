@@ -3,6 +3,9 @@ package com.tnntruong.quiznote.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Chapter;
@@ -61,6 +64,19 @@ public class QuestionService {
         return convertToDTO(saved);
     }
 
+    public List<ResQuestionDTO> handleCreateQuestions(ReqCreateQuestionDTO[] dtos) throws InvalidException {
+        List<ResQuestionDTO> createdQuestions = java.util.Arrays.stream(dtos)
+                .map(dto -> {
+                    try {
+                        return hanleCreateQuestion(dto);
+                    } catch (InvalidException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+        return createdQuestions;
+    }
+
     public ResQuestionDTO handleGetQuestionById(String id) throws InvalidException {
         try {
             Long idQuestion = Long.parseLong(id);
@@ -111,16 +127,20 @@ public class QuestionService {
         }
     }
 
-    public List<ResQuestionDTO> handleGetQuestionBySubjectId(String id) throws InvalidException {
+    public List<ResQuestionDTO> handleGetQuestionBySubjectId(String id, Specification<Question> spec,
+            Pageable page) throws InvalidException {
         try {
             Long idSubject = Long.parseLong(id);
             boolean isExistById = this.subjectRepository.existsById(idSubject);
             if (!isExistById) {
                 throw new InvalidException("subject with id = " + idSubject + " not found");
             }
-            List<Question> questions = this.questionRepository.findAllBySubjectId(idSubject)
-                    .orElseThrow(() -> new InvalidException("fail to load questions"));
-            List<ResQuestionDTO> res = questions.stream().map((ques) -> convertToDTO(ques))
+            Specification<Question> finalSpec = (root, query, cb) -> cb.equal(root.get("subject").get("id"), idSubject);
+            if (spec != null) {
+                finalSpec = finalSpec.and(spec);
+            }
+            Page<Question> questions = this.questionRepository.findAll(finalSpec, page);
+            List<ResQuestionDTO> res = questions.getContent().stream().map((ques) -> convertToDTO(ques))
                     .collect(Collectors.toList());
             return res;
         } catch (NumberFormatException e) {
@@ -156,6 +176,7 @@ public class QuestionService {
                 q.getExplanation(),
                 q.getSubject().getId(),
                 q.getChapter() != null ? q.getChapter().getId() : null,
-                optionDTOs);
+                optionDTOs,
+                q.getCorrectnessPercentage());
     }
 }

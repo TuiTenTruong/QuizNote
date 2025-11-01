@@ -2,6 +2,7 @@ package com.tnntruong.quiznote.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import com.tnntruong.quiznote.dto.response.Submission.ResCreateSubmission;
 import com.tnntruong.quiznote.dto.response.Submission.ResSubmissionDTO;
 import com.tnntruong.quiznote.dto.response.Submission.ResSubmissionDTO.ResSubmissionAnswerDTO;
 import com.tnntruong.quiznote.repository.QuestionOptionRepository;
+import com.tnntruong.quiznote.repository.SubmissionAnswerRepository;
 import com.tnntruong.quiznote.repository.QuestionRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.SubmissionRepository;
@@ -32,15 +34,17 @@ public class SubmissionService {
     private SubjectRepository subjectRepository;
     private QuestionRepository questionRepository;
     private QuestionOptionRepository optionRepository;
+    private SubmissionAnswerRepository submissionAnswerRepository;
 
     public SubmissionService(SubmissionRepository submissionRepository, UserRepository userRepository,
             SubjectRepository subjectRepository, QuestionRepository questionRepository,
-            QuestionOptionRepository optionRepository) {
+            QuestionOptionRepository optionRepository, SubmissionAnswerRepository submissionAnswerRepository) {
         this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
+        this.submissionAnswerRepository = submissionAnswerRepository;
     }
 
     public ResCreateSubmission handleStartSubmission(ReqStartSubmissionDTO dto) throws InvalidException {
@@ -74,7 +78,7 @@ public class SubmissionService {
         return res;
     }
 
-    public ResSubmissionDTO handleStartSubmission(Long submissionId, List<ReqSubmitAnswerDTO> answers)
+    public ResSubmissionDTO handleSubmission(Long submissionId, List<ReqSubmitAnswerDTO> answers)
             throws InvalidException {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new InvalidException("Submission not found"));
@@ -111,6 +115,17 @@ public class SubmissionService {
 
         Submission saved = submissionRepository.save(submission);
 
+        // Update correctness percentage for all affected questions
+        Set<Long> questionIds = answers.stream()
+                .map(ReqSubmitAnswerDTO::getQuestionId)
+                .collect(Collectors.toSet());
+
+        for (Long qId : questionIds) {
+            updateQuestionCorrectnessPercentage(qId);
+        }
+        // Update highest score for the subject
+        updateSubjectHighestScore(submission.getSubject().getId());
+
         return convertToDTO(saved);
     }
 
@@ -132,5 +147,36 @@ public class SubmissionService {
                 submission.getCorrectCount(),
                 submission.getTotalQuestions(),
                 answers);
+    }
+
+    private void updateQuestionCorrectnessPercentage(Long questionId) {
+        Question question = questionRepository.findById(questionId).orElse(null);
+        if (question == null) {
+            return;
+        }
+
+        long correctCount = submissionAnswerRepository.countByQuestionIdAndIsCorrect(questionId, true);
+        long totalCount = submissionAnswerRepository.countByQuestionId(questionId);
+
+        double percentage = (totalCount == 0) ? 0.0 : ((double) correctCount / totalCount) * 100.0;
+
+        question.setCorrectnessPercentage(percentage);
+        questionRepository.save(question);
+    }
+
+    private void updateSubjectHighestScore(Long subjectId) {
+        Double highestScore = submissionRepository.findHighestScoreBySubjectId(subjectId);
+        Subject subject = subjectRepository.findById(subjectId).orElse(null);
+        if (subject != null) {
+            subject.setHighestScore(highestScore);
+            subjectRepository.save(subject);
+        }
+    }
+
+    public Double getHighestScoreForSubject(Long subjectId) throws InvalidException {
+        if (!subjectRepository.existsById(subjectId)) {
+            throw new InvalidException("Subject with id = " + subjectId + " not found");
+        }
+        return submissionRepository.findHighestScoreBySubjectId(subjectId);
     }
 }

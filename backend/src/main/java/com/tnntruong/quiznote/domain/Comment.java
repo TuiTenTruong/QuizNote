@@ -17,7 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,7 +33,6 @@ public class Comment {
     @Column(nullable = true, length = 2000)
     private String content;
 
-    @NotBlank(message = "rating is required")
     private Integer rating;
 
     @ManyToOne(fetch = FetchType.LAZY)

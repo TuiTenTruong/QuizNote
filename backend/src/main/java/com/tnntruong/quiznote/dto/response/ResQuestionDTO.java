@@ -17,6 +17,7 @@ public class ResQuestionDTO {
     private String explanation;
     private Long subjectId;
     private Long chapterId;
+    private Double correctnessPercentage;
     private List<ResOptionDTO> options;
 
     @Getter
@@ -30,4 +31,14 @@ public class ResQuestionDTO {
         private Integer optionOrder;
     }
 
+    public ResQuestionDTO(Long id, String content, String explanation, Long subjectId, Long chapterId,
+            List<ResOptionDTO> options, Double correctnessPercentage) {
+        this.id = id;
+        this.content = content;
+        this.explanation = explanation;
+        this.subjectId = subjectId;
+        this.chapterId = chapterId;
+        this.options = options;
+        this.correctnessPercentage = correctnessPercentage;
+    }
 }

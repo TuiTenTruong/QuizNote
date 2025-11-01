@@ -22,6 +22,8 @@ public class ResSubjectDTO {
     private SubjectStatus status;
     private Double averageRating;
     private Integer ratingCount;
+    private Integer purchaseCount;
+    private Double highestScore;
     private String imageUrl;
     private CreateUser createUser;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
@@ -36,5 +38,6 @@ public class ResSubjectDTO {
     public static class CreateUser {
         private long id;
         private String username;
+        private String avatarUrl;
     }
 }

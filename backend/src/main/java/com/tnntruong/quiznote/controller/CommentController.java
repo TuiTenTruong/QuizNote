@@ -2,6 +2,8 @@ package com.tnntruong.quiznote.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +19,7 @@ import com.tnntruong.quiznote.dto.request.ReqCreateCommentDTO;
 import com.tnntruong.quiznote.dto.response.ResCommentDTO;
 import com.tnntruong.quiznote.service.CommentService;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.turkraft.springfilter.boot.Filter;
 
 @RestController
 @RequestMapping("/api/v1/comments")
@@ -43,10 +46,9 @@ public class CommentController {
     }
 
     @GetMapping("/subject/{subjectId}")
-    public ResponseEntity<?> getComments(@PathVariable Long subjectId) {
-        List<ResCommentDTO> list = commentService.getCommentsBySubject(subjectId)
-                .stream().map(ResCommentDTO::new).toList();
-        return ResponseEntity.ok(list);
+    public ResponseEntity<?> getComments(@PathVariable Long subjectId, @Filter Specification<Comment> spec,
+            Pageable page) throws InvalidException {
+        return ResponseEntity.ok(commentService.getCommentsBySubject(subjectId, spec, page));
     }
 
     @DeleteMapping("/{commentId}")

@@ -52,7 +52,8 @@ public class Subject {
 
     private Double averageRating = 0.0;
     private Integer ratingCount = 0;
-
+    private Integer purchaseCount = 0;
+    private Double highestScore = 0.0;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller;
