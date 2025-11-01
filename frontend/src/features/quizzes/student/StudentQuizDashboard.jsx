@@ -14,103 +14,118 @@ import {
 } from "react-bootstrap";
 import {
     FaSearch,
-    FaFilter,
     FaStar,
-    FaBookOpen,
-    FaClock,
     FaUser,
     FaPlay,
+    FaUsers
 } from "react-icons/fa";
 import "./StudentQuizDashboard.scss";
-
-const quizData = [
-    {
-        title: "Hàm số và Đồ thị - Toán 10",
-        category: "Math",
-        difficulty: "Hard",
-        author: "Trần Thị B",
-        time: "30 min",
-        price: 0,
-        rating: 4.9,
-        questions: 40,
-        enrolled: 570,
-        thumbnail: "https://i.imgur.com/rFs9O0u.jpg",
-    },
-    {
-        title: "Phân loại động vật - Sinh học 7",
-        category: "Biology",
-        difficulty: "Medium",
-        author: "Nguyễn Văn A",
-        time: "20 min",
-        price: 49000,
-        rating: 4.7,
-        questions: 50,
-        enrolled: 320,
-        thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
-    },
-    {
-        title: "Ngữ pháp tiếng Anh cơ bản",
-        category: "Language",
-        difficulty: "Easy",
-        author: "Phạm Mỹ Duyên",
-        time: "25 min",
-        price: 0,
-        rating: 4.8,
-        questions: 35,
-        enrolled: 1050,
-        thumbnail: "https://i.imgur.com/LDpRgTk.jpg",
-    },
-    {
-        title: "Lịch sử Việt Nam hiện đại",
-        category: "History",
-        difficulty: "Easy",
-        author: "Lê Quốc Cường",
-        time: "15 min",
-        price: 25000,
-        rating: 4.6,
-        questions: 30,
-        enrolled: 220,
-        thumbnail: "https://i.imgur.com/8VTEhW2.jpg",
-    },
-];
+import { useEffect } from "react";
+import { getAllSubjects } from "../../../services/apiService";
+import axiosInstance from "../../../utils/axiosCustomize";
+import { Link } from "react-router-dom";
+// const quizData = [
+//     {
+//         title: "Hàm số và Đồ thị - Toán 10",
+//         category: "Math",
+//         difficulty: "Hard",
+//         author: "Trần Thị B",
+//         time: "30 min",
+//         price: 0,
+//         rating: 4.9,
+//         questions: 40,
+//         enrolled: 570,
+//         thumbnail: "https://i.imgur.com/rFs9O0u.jpg",
+//     },
+//     {
+//         title: "Phân loại động vật - Sinh học 7",
+//         category: "Biology",
+//         difficulty: "Medium",
+//         author: "Nguyễn Văn A",
+//         time: "20 min",
+//         price: 49000,
+//         rating: 4.7,
+//         questions: 50,
+//         enrolled: 320,
+//         thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
+//     },
+//     {
+//         title: "Ngữ pháp tiếng Anh cơ bản",
+//         category: "Language",
+//         difficulty: "Easy",
+//         author: "Phạm Mỹ Duyên",
+//         time: "25 min",
+//         price: 0,
+//         rating: 4.8,
+//         questions: 35,
+//         enrolled: 1050,
+//         thumbnail: "https://i.imgur.com/LDpRgTk.jpg",
+//     },
+//     {
+//         title: "Lịch sử Việt Nam hiện đại",
+//         category: "History",
+//         difficulty: "Easy",
+//         author: "Lê Quốc Cường",
+//         time: "15 min",
+//         price: 25000,
+//         rating: 4.6,
+//         questions: 30,
+//         enrolled: 220,
+//         thumbnail: "https://i.imgur.com/8VTEhW2.jpg",
+//     },
+// ];
 
 const categories = ["All", "Math", "Biology", "Language", "History", "Chemistry"];
 
-function StudentQuizDashboard() {
+const StudentQuizDashboard = () => {
     const [activeTab, setActiveTab] = useState("All Quizzes");
     const [filterCategory, setFilterCategory] = useState("All");
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("Popular");
+    const [subjectsData, setSubjectsData] = useState([]);
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
 
-    const filtered = quizData
+    useEffect(() => {
+        const fetchSubjectsData = async () => {
+            const response = await getAllSubjects();
+            if (response && response.statusCode === 200) {
+                setSubjectsData(response.data.result);
+            } else {
+                console.error('Failed to fetch quiz data', response);
+            }
+        };
+        fetchSubjectsData();
+    }, []);
+
+    const filtered = subjectsData
         .filter(
             (q) =>
                 (filterCategory === "All" || q.category === filterCategory) &&
-                q.title.toLowerCase().includes(search.toLowerCase())
+                q.name.toLowerCase().includes(search.toLowerCase())
         )
         .sort((a, b) => {
-            if (sortBy === "Popular") return b.enrolled - a.enrolled;
-            if (sortBy === "Rating") return b.rating - a.rating;
-            if (sortBy === "Newest") return a.title.localeCompare(b.title);
+            if (sortBy === "Popular") return b.ratingCount - a.ratingCount; // Assuming ratingCount can represent popularity
+            if (sortBy === "Rating") return b.averageRating - a.averageRating;
+            if (sortBy === "Newest") return a.name.localeCompare(b.name);
             return 0;
         });
 
     return (
-        <div className="student-dashboard">
-            <Container fluid="sm">
+        <div className="student-dashboard p-4">
+            <div>
                 {/* HERO CAROUSEL */}
                 <Carousel fade interval={5000} indicators={false} className="hero-carousel mb-5">
-                    {quizData.slice(0, 3).map((quiz, i) => (
+                    {subjectsData.slice(0, 3).map((subject, i) => (
                         <Carousel.Item key={i}>
                             <div
                                 className="hero-slide"
                                 style={{
-                                    backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${quiz.thumbnail})`,
+                                    backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backendBaseURL + subject.imageUrl})`,
                                 }}
                             >
                                 <div className="hero-content">
-                                    <h2 className="fw-bold mb-2">{quiz.title}</h2>
-                                    <p className="mb-3">{quiz.author} • {quiz.category}</p>
+                                    <h2 className="fw-bold mb-2">{subject.name}</h2>
+                                    <p className="mb-3">{subject.createUser?.username}</p>
                                     <Button className="btn-gradient">
                                         <FaPlay className="me-2" /> Start Now
                                     </Button>
@@ -179,50 +194,57 @@ function StudentQuizDashboard() {
 
                 {/* QUIZ GRID */}
                 <Row className="g-4">
-                    {filtered.map((quiz, i) => (
-                        <Col xs={12} sm={6} lg={4} xl={3} key={i}>
-                            <Card className="quiz-card bg-dark border-0 shadow-sm h-100 overflow-hidden">
+                    {filtered.map((subject) => (
+                        <Col xs={12} sm={6} lg={4} xl={3} key={subject.id}>
+                            <Card className="quiz-card bg-dark border-0 shadow-sm h-100 overflow-hidden" as={Link} to={`/student/quizzes/${subject.id}`}>
                                 <div
                                     className="quiz-thumbnail"
-                                    style={{ backgroundImage: `url(${quiz.thumbnail})` }}
+                                    style={{ backgroundImage: `url(${backendBaseURL + subject.imageUrl})` }}
                                 ></div>
                                 <Card.Body className="p-3">
                                     <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <Badge bg="secondary">{quiz.category}</Badge>
-                                        <span className="text-warning small">
-                                            <FaStar className="me-1" />
-                                            {quiz.rating}
-                                        </span>
+                                        {subject.averageRating ?
+                                            <span className="text-warning small d-flex align-items-center gap-1">
+                                                <FaStar />
+                                                {subject.averageRating.toFixed(1)}
+
+                                            </span> : <div className="muted">Chưa có đánh giá nào.</div>}
+
+
+
                                     </div>
 
-                                    <h6 className="fw-semibold text-white">{quiz.title}</h6>
-                                    <p className="small text-secondary mb-3">{quiz.author}</p>
+                                    <h6 className="fw-semibold text-white">{subject.name}</h6>
+                                    <p className="small text-secondary mb-3">{subject.createUser?.username}</p>
 
-                                    <div className="d-flex flex-wrap small text-white-50 mb-3 gap-2">
-                                        <span>
-                                            <FaClock className="me-1" />
-                                            {quiz.time}
-                                        </span>
-                                        <span>
-                                            <FaBookOpen className="me-1" />
-                                            {quiz.questions} Qs
-                                        </span>
-                                        <span>
+                                    <div className="small text-white-50 mb-3 gap-2">
+                                        <span className="d-flex align-items-center gap-1">
                                             <FaUser className="me-1" />
-                                            {quiz.enrolled}
+                                            {subject.ratingCount} ratings
                                         </span>
+                                        {subject.purchaseCount > 0 ? (
+                                            <span className="d-flex align-items-center gap-1">
+                                                <FaUsers className="me-1" />
+                                                {subject.purchaseCount} students enrolled
+                                            </span>
+                                        ) :
+                                            <span className="muted align-items-center gap-1">
+                                                <span className="muted">Chưa có học viên nào.</span>
+                                            </span>}
                                     </div>
 
-                                    {quiz.price > 0 ? (
+
+
+                                    {subject.price > 0 ? (
                                         <h6 className="text-gradient fw-bold mb-2">
-                                            {quiz.price.toLocaleString("vi-VN")} ₫
+                                            {subject.price.toLocaleString("vi-VN")} ₫
                                         </h6>
                                     ) : (
                                         <h6 className="text-success fw-bold mb-2">Free</h6>
                                     )}
 
                                     <Button className="btn-gradient w-100">
-                                        {quiz.price > 0 ? "Buy Quiz" : "Start Quiz"}
+                                        {subject.price > 0 ? "Mua Quiz" : "Bắt đầu"}
                                     </Button>
                                 </Card.Body>
                             </Card>
@@ -235,7 +257,7 @@ function StudentQuizDashboard() {
                         </p>
                     )}
                 </Row>
-            </Container>
+            </div>
         </div>
     );
 }

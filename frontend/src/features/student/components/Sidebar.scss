@@ -1,0 +1,33 @@
+.student-sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: #0d0d0d;
+    transition: transform 0.3s ease-in-out;
+    border-right: 1px solid #222;
+
+    .nav-link {
+        display: block;
+        color: #bbb;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        transition: 0.2s;
+
+        &:hover {
+            background: #1b1b1b;
+            color: #fff;
+        }
+
+        &.active {
+            background: linear-gradient(90deg, #7b2ff7, #f107a3);
+            color: white;
+        }
+    }
+
+    .text-gradient {
+        background: linear-gradient(90deg, #7b2ff7, #f107a3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+}

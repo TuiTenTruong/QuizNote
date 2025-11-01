@@ -9,6 +9,16 @@
         min-height: 320px;
         display: flex;
         align-items: end;
+
+        .text-ellipsis {
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 60%;
+        }
     }
 
     .btn-gradient {
@@ -23,6 +33,7 @@
 
     .text-gradient {
         background: linear-gradient(90deg, #9333ea, #f97316);
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }

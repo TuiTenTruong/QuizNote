@@ -13,67 +13,103 @@ import {
     FaStar,
     FaUser,
     FaChartLine,
+    FaUserGraduate,
     FaShoppingCart,
 } from "react-icons/fa";
 import "./StudentQuizDetail.scss";
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axiosInstance from "../../../utils/axiosCustomize";
+import ReviewItem from "./ReviewItem"; // Import component mới
+import { getQuizDetail, getQuizDemo, getQuizReviews } from "../../../services/apiService";
+const StudentQuizDetail = () => {
+    const [quiz, setQuiz] = useState(null);
+    const [quizDemo, setQuizDemo] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [reviewsPage, setReviewsPage] = useState(0);
+    const [maxReviews, setMaxReviews] = useState(0);
+    const [countReviews, setCountReviews] = useState(0);
+    const [hasMoreReviews, setHasMoreReviews] = useState(true);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
 
-const quiz = {
-    title: "Phân loại động vật - Sinh học 7",
-    thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
-    author: "Nguyễn Văn A",
-    authorAvatar: "https://i.imgur.com/hE5rD8D.png",
-    description:
-        "Ôn tập lại các kiến thức trọng tâm về phân loại động vật, cấu trúc cơ thể, các lớp động vật và đặc điểm sinh học cơ bản.",
-    category: "Biology",
-    difficulty: "Medium",
-    time: "20 min",
-    questions: 50,
-    rating: 4.7,
-    enrolled: 320,
-    price: 49000,
-    topScore: 98,
-    sampleQuestions: [
-        "Động vật không có xương sống thuộc nhóm nào?",
-        "Động vật có hệ tuần hoàn kín là loài nào?",
-        "Lớp bò sát gồm những loài nào dưới đây?",
-        "Động vật máu lạnh là gì?",
-    ],
-    reviews: [
-        { name: "Trần Minh", rating: 5, comment: "Câu hỏi hay và sát đề thi!", time: "2 ngày trước" },
-        { name: "Lê Hoàng", rating: 4, comment: "Quiz khá ổn, nên thêm phần giải thích!", time: "1 tuần trước" },
-    ],
-};
+    const { quizId } = useParams();
+    const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
 
-function StudentQuizDetail() {
-    return (
-        <div className="student-quiz-detail">
+    useEffect(() => {
+        // Fetch quiz detail from API
+        const fetchQuizDetail = async () => {
+            const response = await getQuizDetail(quizId);
+            if (response && response.statusCode === 200) {
+                setQuiz(response.data);
+            } else {
+                console.error("Failed to fetch quiz detail", response);
+            }
+        };
+        fetchQuizDetail();
+    }, [quizId]);
+
+    useEffect(() => {
+        const fetchQuizDemo = async () => {
+            const response = await getQuizDemo(quizId);
+            if (response && response.statusCode === 200) {
+                setQuizDemo(response.data);
+            } else {
+                console.error("Failed to fetch quiz demo", response);
+            }
+        };
+        fetchQuizDemo();
+    }, [quizId]);
+
+    // Fetch reviews
+    const fetchReviews = async (page) => {
+        if (!hasMoreReviews && page > 0) return;
+        setReviewsLoading(true);
+        const res = await getQuizReviews(quizId, page, 5);
+        if (res && res.statusCode === 200) {
+            setReviews(prev => [...prev, ...res.data.result]);
+            setReviewsPage(page);
+            setHasMoreReviews(!res.data.last);
+            setMaxReviews(res.data.meta.pages);
+            setCountReviews(res.data.meta.total);
+        } else {
+            console.error("Failed to fetch reviews");
+        }
+        setReviewsLoading(false);
+    };
+
+    useEffect(() => {
+        if (quizId) {
+            fetchReviews(0);
+        }
+    }, [quizId]);
+
+    const handleLoadMoreReviews = () => {
+        fetchReviews(reviewsPage + 1);
+    };
+
+    if (!quiz) {
+        return <div className="text-center text-light p-5">Loading quiz details...</div>;
+    } return (
+        <div className="student-quiz-detail w-100">
             {/* HEADER BANNER */}
             <div
                 className="quiz-banner"
                 style={{
-                    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.9)), url(${quiz.thumbnail})`,
+                    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.9)), url(${backendBaseSubjectURL + quiz.imageUrl})`,
                 }}
             >
                 <Container className="py-5 text-white">
                     <Row>
                         <Col md={8}>
                             <h2 className="fw-bold">{quiz.title}</h2>
-                            <p className="text-light">{quiz.description}</p>
+                            <p className="text-light text-ellipsis">{quiz.description}</p>
                             <div className="d-flex flex-wrap gap-3 mt-3 small text-white-50">
-                                <span>
-                                    <FaClock className="me-1" /> {quiz.time}
+                                <span className="d-flex align-items-center">
+                                    <FaUserGraduate className="me-1" /> {quiz.purchaseCount} học viên
                                 </span>
-                                <span>
-                                    <FaBookOpen className="me-1" /> {quiz.questions} câu hỏi
-                                </span>
-                                <span>
-                                    <FaChartLine className="me-1" /> {quiz.difficulty}
-                                </span>
-                                <span>
-                                    <FaUser className="me-1" /> {quiz.enrolled} học viên
-                                </span>
-                                <span className="text-warning">
-                                    <FaStar className="me-1" /> {quiz.rating}
+                                <span className="text-warning d-flex align-items-center">
+                                    <FaStar className="me-1" /> {quiz.averageRating.toFixed(1)} / 5
                                 </span>
                             </div>
                         </Col>
@@ -112,33 +148,41 @@ function StudentQuizDetail() {
 
                         <Card className="bg-dark text-light border-0 shadow-sm p-4 mb-4">
                             <h5 className="fw-bold mb-3">Câu hỏi mẫu</h5>
-                            {quiz.sampleQuestions.map((q, i) => (
+                            {console.log(quizDemo)}
+                            {(quizDemo !== null && quizDemo.length > 0) ? quizDemo.map((question, i) => (
                                 <div key={i} className="sample-question mb-3">
-                                    <strong>{i + 1}. </strong> {q}
+                                    <strong>{i + 1}. </strong> {question.content}
                                     <ProgressBar
-                                        now={Math.random() * 100}
+                                        now={question.correctnessPercentage}
                                         variant="purple"
                                         className="mt-2"
                                     />
                                 </div>
-                            ))}
+                            )) : <p className="text-secondary">Không có câu hỏi mẫu nào.</p>}
                         </Card>
 
                         <Card className="bg-dark text-light border-0 shadow-sm p-4">
-                            <h5 className="fw-bold mb-3">Đánh giá từ học viên</h5>
-                            {quiz.reviews.map((r, i) => (
-                                <div key={i} className="review-item mb-3">
-                                    <div className="d-flex justify-content-between">
-                                        <h6 className="fw-semibold mb-1">{r.name}</h6>
-                                        <span className="text-warning small">
-                                            {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
-                                        </span>
-                                    </div>
-                                    <p className="text-secondary small mb-1">{r.comment}</p>
-                                    <small className="text-muted">{r.time}</small>
-                                    {i < quiz.reviews.length - 1 && <hr className="text-secondary opacity-25" />}
+                            <h5 className="fw-bold mb-3">Đánh giá từ học viên {countReviews > 0 && `(${countReviews})`}</h5>
+                            {reviews.length > 0 ? reviews.map((r, i) => (
+                                <div key={r.id}>
+                                    <ReviewItem review={r} />
+                                    {i < reviews.length - 1 && <hr className="text-secondary opacity-25" />}
                                 </div>
-                            ))}
+                            )) : <p className="text-secondary">Chưa có đánh giá nào.</p>}
+
+                            {reviewsLoading && <div className="text-center text-secondary">Đang tải...</div>}
+
+                            {hasMoreReviews && !reviewsLoading && (
+                                <div className="text-center mt-3">
+                                    {(reviewsPage < maxReviews - 1) ? <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        onClick={handleLoadMoreReviews}
+                                    >
+                                        Xem thêm đánh giá
+                                    </Button> : <span className="text-secondary">Đã tải hết đánh giá.</span>}
+                                </div>
+                            )}
                         </Card>
                     </Col>
 
@@ -146,22 +190,25 @@ function StudentQuizDetail() {
                     <Col lg={4}>
                         <Card className="bg-dark text-light border-0 shadow-sm p-4 sticky-md-top">
                             <div className="d-flex align-items-center mb-3">
-                                <img
-                                    src={quiz.authorAvatar}
+                                {quiz.createUser.avatarUrl && (<img
+                                    src={backendBaseUserURL + quiz.createUser.avatarUrl}
                                     alt="author"
                                     className="rounded-circle me-3"
                                     width={60}
                                     height={60}
-                                />
+                                />)}
+
                                 <div>
-                                    <h6 className="fw-bold mb-0">{quiz.author}</h6>
+                                    <h6 className="fw-bold mb-0 text-white">{quiz.createUser.username}</h6>
                                     <small className="text-secondary">Teacher</small>
                                 </div>
                             </div>
-
-                            <h6 className="fw-bold mb-2">Điểm cao nhất:</h6>
-                            <h3 className="text-success fw-bold mb-3">{quiz.topScore}%</h3>
-
+                            {quiz.highestScore && (
+                                <>
+                                    <h6 className="fw-bold mb-2">Điểm cao nhất:</h6>
+                                    <h3 className="text-success fw-bold mb-3">{quiz.highestScore}%</h3>
+                                </>
+                            )}
                             <div className="d-flex flex-column gap-2">
                                 <Button variant="outline-light" className="w-100">
                                     Xem bảng xếp hạng
@@ -174,7 +221,7 @@ function StudentQuizDetail() {
                     </Col>
                 </Row>
             </Container>
-        </div>
+        </div >
     );
 }
 

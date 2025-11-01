@@ -3,7 +3,7 @@ import App from "./App";
 import HomePage from "./features/home/HomePage";
 import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
-import Dashboard from "./features/seller/Dashboard";
+import Dashboard from "./features/student/Dashboard";
 import SellerDashboard from "./features/seller/SellerDashboardPage";
 import SellerQuizzes from "./features/seller/SellerQuizzes";
 import SellerOrders from "./features/seller/SellerOrders";
@@ -36,34 +36,22 @@ const router = createBrowserRouter([
         element: <RegisterPage />
     },
     {
-        path: "/student-dashboard",
-        element: <StudentDashboard />
-    },
-    {
-        path: "/student-quizzes/:quizId",
-        element: <StudentQuizDetail />
-    },
-    {
-        path: "/quiz-payment",
-        element: <QuizPayment />
-    },
-    {
-        path: "/quiz/:quizId/mode-select",
-        element: <QuizModeSelect />
-    },
-    {
-        path: "/quiz/:quizId/exam",
-        element: <ExamQuiz />
-    },
-    {
-        path: "/quiz/:quizId/practice",
-        element: <QuizPracticePage />
-    },
-    {
-        path: "/dashboard",
+        path: "/student",
         element: <Dashboard />,
         children: [
-            { index: true, element: <SellerDashboard /> },
+            { index: true, element: <StudentDashboard /> },
+            { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
+            { path: "quiz-payment", element: <QuizPayment /> },
+            { path: "quiz/:quizId/mode-select", element: <QuizModeSelect /> },
+            { path: "quiz/:quizId/exam", element: <ExamQuiz /> },
+            { path: "quiz/:quizId/practice", element: <QuizPracticePage /> },
+        ]
+    },
+    {
+        path: "/seller",
+        element: <Dashboard />,
+        children: [
+            { path: "dashboard", element: <SellerDashboard /> },
             { path: "quizzes", element: <SellerQuizzes /> },
             { path: 'orders', element: <SellerOrders /> },
             { path: 'analytics', element: <SellerAnalytics /> },
