@@ -56,6 +56,16 @@
     .progress-gradient .progress-bar {
         background: linear-gradient(90deg, #9333ea, #f97316);
     }
+
+    .chapter-divider {
+        h5 {
+            margin-bottom: 0.5rem;
+        }
+
+        hr {
+            opacity: 0.3;
+        }
+    }
 }
 
 .exam-result {

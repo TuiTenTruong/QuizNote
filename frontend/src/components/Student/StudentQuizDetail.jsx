@@ -145,7 +145,7 @@ const StudentQuizDetail = () => {
                     {/* SIDEBAR */}
                     <Col lg={4}>
                         <Card className="bg-dark text-light border-0 shadow-sm p-4 sticky-md-top">
-                            <div className="d-flex align-items-center mb-3">
+                            <div className="d-flex align-items-center mb-3 ">
                                 <img
                                     src={quiz.authorAvatar}
                                     alt="author"
@@ -159,7 +159,7 @@ const StudentQuizDetail = () => {
                                 </div>
                             </div>
 
-                            <h6 className="fw-bold mb-2">Điểm cao nhất:</h6>
+                            <h6 className="fw-bold mb-2 ">Điểm cao nhất:</h6>
                             <h3 className="text-success fw-bold mb-3">{quiz.topScore}%</h3>
 
                             <div className="d-flex flex-column gap-2">
@@ -174,6 +174,7 @@ const StudentQuizDetail = () => {
                     </Col>
                 </Row>
             </Container>
+
         </div>
     );
 }

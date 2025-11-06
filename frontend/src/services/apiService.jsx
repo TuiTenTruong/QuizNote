@@ -31,7 +31,34 @@ const getQuizDetail = async (subjectId) => {
 const getQuizDemo = async (subjectId) => {
     return Axios.get(`/api/v1/questions/subject/${subjectId}?page=0&size=5`);
 }
+const getQuizQuestions = async (subjectId) => {
+    return Axios.get(`/api/v1/questions/subject/${subjectId}`);
+}
 const getQuizReviews = async (subjectId, page, size) => {
     return Axios.get(`/api/v1/comments/subject/${subjectId}?page=${page}&size=${size}`);
 }
-export { postCreateNewUser, postLogin, postLogout, getExploreData, getAllSubjects, getQuizDetail, getQuizDemo, getQuizReviews };
+const getQuizRandom = async (subjectId, numberOfQuestions) => {
+    return Axios.get(`/api/v1/questions/subject/${subjectId}/random?size=${numberOfQuestions}`);
+}
+const fetchMyQuizzes = async (userId) => {
+    return Axios.get(`/api/v1/purchases/user/${userId}`);
+}
+const startSubmission = async (quizId, userId, duration) => {
+    const data = {
+        userId: userId,
+        subjectId: quizId,
+        duration: duration
+    };
+    return Axios.post(`/api/v1/submissions/start`, data);
+}
+const submitQuizResult = async (submissionId, answers) => {
+    return Axios.post(`/api/v1/submissions/${submissionId}/submit`, answers);
+};
+const getHistoryUser = async (userId) => {
+    return Axios.get(`/api/v1/submissions/history/user/${userId}`);
+}
+export {
+    postCreateNewUser, postLogin, postLogout, getExploreData,
+    getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
+    getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser
+};

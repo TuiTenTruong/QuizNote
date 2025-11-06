@@ -1,30 +1,58 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap";
 import { FaClock, FaBookOpen, FaTrophy, FaBrain, FaUser } from "react-icons/fa";
 import "./QuizModeSelect.scss";
-
-function QuizModeSelect() {
+import { useEffect, useState } from "react";
+import { getQuizDetail } from "../../../services/apiService";
+import { Form } from "react-bootstrap";
+import { useSelector } from "react-redux";
+import axiosInstance from "../../../utils/axiosCustomize";
+const QuizModeSelect = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { quizId } = useParams();
+    const [quiz, setQuiz] = useState({});
+    const [loading, setLoading] = useState(true);
+    const account = useSelector(state => state.user.account);
 
-    // 👉 Giả lập quiz đã được mua
-    const quiz = {
-        id: 5,
-        title: "Phân loại động vật - Sinh học 7",
-        thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
-        author: "Nguyễn Văn A",
-        questions: 50,
-        time: "20 phút",
-        topScore: 92,
-        attempts: 3,
-    };
+    const STORAGE_KEY = `exam_quiz_${quizId}_${account?.id}`;
+    const savedState = sessionStorage.getItem(STORAGE_KEY);
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    useEffect(() => {
+        if (location.state?.quiz) {
+            setQuiz(location.state.quiz);
+            setLoading(false);
+            console.log("Quiz data from state:", location.state.quiz);
+        } else {
+            // Fallback: gọi API nếu user truy cập trực tiếp URL
+            const fetchQuizDetails = async () => {
+                try {
+                    const quizId = location.pathname.split("/")[3];
+                    const response = await getQuizDetail(quizId);
+                    setQuiz(response.data);
+                    console.log("Quiz data from API:", response.data);
+                } catch (error) {
+                    console.error("Lỗi khi lấy chi tiết quiz:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchQuizDetails();
+        }
+    }, [quizId, location.state]);
 
     const handleSelectMode = (mode) => {
         if (mode === "practice") {
-            navigate(`/quiz/${quiz.id}/practice`);
+            navigate(`/student/quizzes/${quiz.id}/practice`, { state: { quizId: quiz.id } });
         } else {
-            navigate(`/quiz/${quiz.id}/exam`);
+            navigate(`/student/quizzes/${quiz.id}/exam`, { state: { quizId: quiz.id, duration: quiz.time, numberOfQuestions: quiz.numberOfQuestions } });
         }
     };
+
+    if (loading) {
+        return <div className="text-center text-light py-5">Đang tải...</div>;
+    }
 
     return (
         <div className="quiz-mode-page">
@@ -36,7 +64,7 @@ function QuizModeSelect() {
                             <Row className="g-3 align-items-center">
                                 <Col xs={12} md={4}>
                                     <img
-                                        src={quiz.thumbnail}
+                                        src={backendBaseURL + quiz.imageUrl}
                                         alt={quiz.title}
                                         className="rounded-3 w-100"
                                         style={{ height: "180px", objectFit: "cover" }}
@@ -45,7 +73,7 @@ function QuizModeSelect() {
                                 <Col xs={12} md={8}>
                                     <h4 className="fw-bold text-gradient mb-2">{quiz.title}</h4>
                                     <p className="text-secondary small mb-3">
-                                        {quiz.author} • {quiz.questions} câu hỏi • {quiz.time}
+                                        {quiz.createUser?.username ? quiz.createUser.username : quiz.username} • {quiz.questionCount} câu hỏi
                                     </p>
                                     <div className="d-flex flex-wrap gap-3 text-white-50 small">
                                         <span>
@@ -105,8 +133,32 @@ function QuizModeSelect() {
                                         <li>Không hiển thị đáp án khi làm</li>
                                         <li>Kết quả được lưu và xếp hạng</li>
                                     </ul>
+                                    {savedState == null && (<>
+                                        <Form.Group controlId="formExamTime" className="mb-3">
+                                            <Form.Label>Thời gian làm bài (phút)</Form.Label>
+                                            <Form.Control className="bg-dark text-white"
+                                                type="number"
+                                                placeholder="Nhập thời gian"
+                                                value={quiz.time}
+                                                onChange={(e) => setQuiz({ ...quiz, time: e.target.value })}
+                                            />
+                                        </Form.Group >
+                                        <Form.Group controlId="formNumberOfQuestions" className="mb-3">
+                                            <Form.Label>Số câu hỏi</Form.Label>
+                                            <Form.Control className="bg-dark text-white"
+                                                type="number"
+                                                placeholder="Nhập số câu hỏi"
+                                                value={quiz.numberOfQuestions > quiz.questions ? quiz.questions : quiz.numberOfQuestions}
+                                                onChange={(e) => setQuiz({ ...quiz, numberOfQuestions: e.target.value })}
+                                            />
+                                        </Form.Group>
+                                    </>
+
+                                    )
+                                    }
+
                                     <Button
-                                        variant="outline-light"
+                                        variant="outline-light hover-gradient"
                                         className="w-100"
                                         onClick={() => handleSelectMode("exam")}
                                     >

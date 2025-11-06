@@ -10,6 +10,7 @@
         font-weight: 600;
 
         &:hover {
+            background: linear-gradient(90deg, #764ba2, #667eea);
             opacity: 0.9;
             transform: translateY(-2px);
         }
@@ -69,8 +70,25 @@
         }
     }
 
-    .progress-gradient .progress-bar {
-        background: linear-gradient(90deg, #9333ea, #f97316);
+    .progress-gradient {
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0.25rem;
+            z-index: 1;
+        }
+    }
+
+    .chapter-divider {
+        h5 {
+            margin-bottom: 0.5rem;
+        }
+
+        hr {
+            opacity: 0.3;
+        }
     }
 }
 
@@ -82,8 +100,9 @@
     place-items: center;
 
     .text-gradient {
-        background: linear-gradient(90deg, #9333ea, #f97316);
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 }

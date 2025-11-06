@@ -1,63 +1,83 @@
-import { NavLink } from "react-router-dom";
-import { FaHome, FaBook, FaChartBar, FaWallet, FaCog } from "react-icons/fa";
-import { NavbarBrand } from "react-bootstrap";
-import "./Sidebar.scss";
+import { Nav, NavbarBrand } from "react-bootstrap";
+import { FaHome, FaBook, FaShoppingCart, FaChartLine, FaWallet, FaCog, FaTimes } from "react-icons/fa";
+import { NavLink, Link } from "react-router-dom";
+import "./Appbar.scss";
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     return (
-        <div
-            className={`student-sidebar d-flex flex-column p-3 text-light ${isOpen ? "open" : ""}`}
-        >
-            {/* Brand Logo */}
-            <div className="mb-4 text-center">
-                <NavbarBrand
-                    as={NavLink}
-                    to="/student/dashboard"
-                    className="text-gradient fw-bold fs-4"
-                    onClick={onClose}
-                >
-                    QuizNote
-                </NavbarBrand>
+        <>
+            {isSidebarOpen && (
+                <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+            )}
+
+            <div className={`sidebar p-3 p-sm-4 text-light ${isSidebarOpen ? 'show' : ''}`}>
+                {/* Close button for mobile */}
+                <button className="btn-close-sidebar d-md-none" onClick={toggleSidebar}>
+                    <FaTimes />
+                </button>
+
+                <div className="brand mb-4 text-center">
+                    <NavbarBrand as={Link} to="/">
+                        <h4 className="text-gradient fw-bold">QuizNote</h4>
+                    </NavbarBrand>
+                </div>
+
+                <Nav className="flex-column ">
+                    <Nav.Item>
+                        <NavLink
+                            to="/student"
+                            end
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaHome className="me-2" /> <span>Trang Chủ</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
+                            to="/student/quizzes/my"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaShoppingCart className="me-2" /> <span>Quiz của tôi</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
+                            to="/student/history"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaChartLine className="me-2" /> <span>Lịch sử</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
+                            to="/student/analytics"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaWallet className="me-2" /> <span>Phân tích</span>
+                        </NavLink>
+                    </Nav.Item>
+                </Nav>
+
+                <hr className="my-4 border-secondary" />
+
+                <Nav>
+                    <Nav.Item className="w-100">
+                        <NavLink
+                            to="/student/settings"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaCog className="me-2" /> <span>Settings</span>
+                        </NavLink>
+                    </Nav.Item>
+                </Nav>
             </div>
-
-            {/* Navigation */}
-            <nav className="flex-grow-1">
-                <NavLink
-                    to="/student/dashboard"
-                    onClick={onClose}
-                    className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                >
-                    <FaHome className="me-2" /> Dashboard
-                </NavLink>
-
-                <NavLink
-                    to="/student/quizzes"
-                    onClick={onClose}
-                    className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                >
-                    <FaBook className="me-2" /> My Quizzes
-                </NavLink>
-
-                <NavLink
-                    to="/student/analytics"
-                    onClick={onClose}
-                    className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                >
-                    <FaChartBar className="me-2" /> Analytics
-                </NavLink>
-            </nav>
-
-            <hr className="border-secondary my-3" />
-
-            {/* Settings */}
-            <NavLink
-                to="/student/settings"
-                onClick={onClose}
-                className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-            >
-                <FaCog className="me-2" /> Settings
-            </NavLink>
-        </div>
+        </>
     );
-};
+}
+
 export default Sidebar;

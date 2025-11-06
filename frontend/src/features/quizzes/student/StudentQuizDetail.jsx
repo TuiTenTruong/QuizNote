@@ -206,7 +206,7 @@ const StudentQuizDetail = () => {
                             {quiz.highestScore && (
                                 <>
                                     <h6 className="fw-bold mb-2">Điểm cao nhất:</h6>
-                                    <h3 className="text-success fw-bold mb-3">{quiz.highestScore}%</h3>
+                                    <h3 className="text-success fw-bold mb-3">{quiz.highestScore}đ</h3>
                                 </>
                             )}
                             <div className="d-flex flex-column gap-2">

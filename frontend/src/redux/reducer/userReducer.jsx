@@ -1,6 +1,7 @@
 import { FETCH_USER_SUCCESS } from '../action/userAction';
 const INITIAL_STATE = {
     account: {
+        id: '',
         access_token: '',
         refresh_token: '',
         username: '',
@@ -14,6 +15,7 @@ const userReducer = (state = INITIAL_STATE, action) => {
         case FETCH_USER_SUCCESS:
             return {
                 ...state, account: {
+                    id: action.payload.user.id,
                     access_token: action.payload.access_token,
                     refresh_token: action.payload.refreshToken,
                     username: action.payload.user.name,

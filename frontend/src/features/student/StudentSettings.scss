@@ -1,0 +1,40 @@
+.student-settings {
+    .card {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #ec4899);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    form label {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+
+    .form-control,
+    .form-select {
+        &:focus {
+            border-color: #9333ea;
+            box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+        }
+    }
+
+    .form-check-input:checked {
+        background-color: #9333ea;
+        border-color: #9333ea;
+    }
+}

@@ -3,7 +3,8 @@ import App from "./App";
 import HomePage from "./features/home/HomePage";
 import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
-import Dashboard from "./features/student/Dashboard";
+import DashboardStudent from "./features/student/Dashboard";
+import DashboardSeller from "./features/seller/Dashboard";
 import SellerDashboard from "./features/seller/SellerDashboardPage";
 import SellerQuizzes from "./features/seller/SellerQuizzes";
 import SellerOrders from "./features/seller/SellerOrders";
@@ -18,7 +19,10 @@ import QuizPayment from "./features/payment/QuizPayment";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
-
+import StudentMyQuizzes from "./features/student/StudentMyQuizzes";
+import StudentHistory from "./features/student/StudentHistory";
+import StudentQuizHistoryDetail from "./features/student/StudentQuizHistoryDetail";
+import StudentAnalytics from "./features/student/StudentAnalytics";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -37,21 +41,26 @@ const router = createBrowserRouter([
     },
     {
         path: "/student",
-        element: <Dashboard />,
+        element: <DashboardStudent />,
         children: [
             { index: true, element: <StudentDashboard /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
             { path: "quiz-payment", element: <QuizPayment /> },
-            { path: "quiz/:quizId/mode-select", element: <QuizModeSelect /> },
-            { path: "quiz/:quizId/exam", element: <ExamQuiz /> },
-            { path: "quiz/:quizId/practice", element: <QuizPracticePage /> },
+            { path: "quizzes/:quizId/mode-select", element: <QuizModeSelect /> },
+            { path: "quizzes/:quizId/exam", element: <ExamQuiz /> },
+            { path: "quizzes/:quizId/practice", element: <QuizPracticePage /> },
+            { path: "quizzes/my", element: <StudentMyQuizzes /> },
+            { path: "history", element: <StudentHistory /> },
+            { path: "history/quiz/:quizId", element: <StudentQuizHistoryDetail /> },
+            { path: "analytics", element: <StudentAnalytics /> },
+            { path: "settings", element: <SettingsPage /> }
         ]
     },
     {
         path: "/seller",
-        element: <Dashboard />,
+        element: <DashboardSeller />,
         children: [
-            { path: "dashboard", element: <SellerDashboard /> },
+            { index: true, element: <SellerDashboard /> },
             { path: "quizzes", element: <SellerQuizzes /> },
             { path: 'orders', element: <SellerOrders /> },
             { path: 'analytics', element: <SellerAnalytics /> },

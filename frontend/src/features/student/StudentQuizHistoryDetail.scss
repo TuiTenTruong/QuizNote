@@ -1,0 +1,43 @@
+.quiz-history-detail {
+    background-color: #0b0b0f;
+    color: #fff;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .option-review {
+        background: #1a1a1f;
+        border: 1px solid #333;
+        border-radius: 8px;
+        transition: 0.3s;
+
+        &.correct {
+            border-color: #22c55e;
+            background: #22c55e22;
+        }
+
+        &.wrong {
+            border-color: #ef4444;
+            background: #ef444422;
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #ec4899);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .feedback {
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #9333ea;
+    }
+}

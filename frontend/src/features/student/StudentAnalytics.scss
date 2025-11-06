@@ -1,0 +1,29 @@
+.student-analytics {
+    .card {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.25);
+        }
+    }
+
+    h4,
+    h6 {
+        color: #fff;
+    }
+
+    .recharts-default-legend {
+        color: #ccc !important;
+    }
+
+    .recharts-tooltip-wrapper {
+        color: #fff;
+        font-size: 0.85rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+    }
+}
