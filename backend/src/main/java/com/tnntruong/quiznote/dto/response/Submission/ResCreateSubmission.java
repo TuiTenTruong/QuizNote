@@ -4,32 +4,34 @@ import java.time.Instant;
 import com.tnntruong.quiznote.util.constant.SubmissionStatus;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResCreateSubmission {
-    private long id;
+    private Long id;
     private CurrentUser student;
     private CurrentSubject subject;
-    private Boolean isPractice = false;
+    private Long duration; // thời gian làm bài (phút)
     private SubmissionStatus status;
     private Instant startedAt;
+    private Instant endTime;
 
-    @Getter
-    @Setter
+    @Data
+    @NoArgsConstructor
     @AllArgsConstructor
-    public static class CurrentSubject {
-        private long id;
+    public static class CurrentUser {
+        private Long id;
         private String name;
     }
 
-    @Getter
-    @Setter
+    @Data
+    @NoArgsConstructor
     @AllArgsConstructor
-    public static class CurrentUser {
-        private long id;
+    public static class CurrentSubject {
+        private Long id;
         private String name;
     }
 }

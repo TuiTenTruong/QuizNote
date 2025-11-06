@@ -1,6 +1,9 @@
 package com.tnntruong.quiznote.dto.response;
 
 import java.time.Instant;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +14,7 @@ public class ResPurchaseDTO {
 
     private Long id;
     private CurrentUser student;
-    private CurrentSubject subject;
+    private List<CurrentSubject> subjectList;
     private Instant purchasedAt;
 
     @Getter
@@ -25,7 +28,13 @@ public class ResPurchaseDTO {
     @Setter
     public static class CurrentSubject {
         private long id;
-        private String subjectname;
+        private String name;
+        private String description;
+        private String imageUrl;
+        private int questionCount;
+        private double averageRating;
+        @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss a", timezone = "Asia/Ho_Chi_Minh")
+        private Instant purchasedAt;
     }
 
 }

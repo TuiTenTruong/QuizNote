@@ -69,6 +69,13 @@ public class QuestionController {
         return ResponseEntity.ok(this.questionService.handleGetQuestionBySubjectId(subjectId, spec, page));
     }
 
+    @GetMapping("/questions/subject/{subjectId}/random")
+    public ResponseEntity<?> getRandomQuestionBySubjectId(@PathVariable String subjectId,
+            @Filter Specification<Question> spec,
+            Pageable page) throws InvalidException {
+        return ResponseEntity.ok(this.questionService.handleGetRandomQuestionBySubjectId(subjectId, spec, page));
+    }
+
     @GetMapping("/questions/chapter/{chapterId}")
     public ResponseEntity<?> getQuestionByChapterId(@PathVariable String chapterId) throws InvalidException {
         return ResponseEntity.ok(this.questionService.handleGetQuestionByChapterId(chapterId));

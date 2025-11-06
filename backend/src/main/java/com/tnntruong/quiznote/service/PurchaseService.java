@@ -67,15 +67,21 @@ public class PurchaseService {
         if (purchase.getSubject() != null) {
             Optional<Subject> subjecOptional = this.subjectRepository.findById(purchase.getSubject().getId());
             subject.setId(subjecOptional.get().getId());
-            subject.setSubjectname(subjecOptional.get().getName());
+            subject.setName(subjecOptional.get().getName());
+            subject.setDescription(subjecOptional.get().getDescription());
+            subject.setImageUrl(subjecOptional.get().getImageUrl());
+            subject.setPurchasedAt(purchase.getPurchasedAt());
+            subject.setAverageRating(subjecOptional.get().getAverageRating());
+
+            subject.setQuestionCount(subjecOptional.get().getQuestions().size());
         }
 
         res.setStudent(student);
-        res.setSubject(subject);
+        res.setSubjectList(List.of(subject));
         return res;
     }
 
-    public List<ResPurchaseDTO> hanldeGetPurchaseByUserId(String id) throws InvalidException {
+    public List<ResPurchaseDTO.CurrentSubject> hanldeGetPurchaseByUserId(String id) throws InvalidException {
         try {
             Long idUser = Long.parseLong(id);
             boolean isExistById = this.userRepository.existsById(idUser);
@@ -83,8 +89,23 @@ public class PurchaseService {
                 throw new InvalidException("User with id = " + idUser + " now found");
             }
             List<Purchase> purchasesList = this.purchaseRepository.findByStudentId(idUser);
-            List<ResPurchaseDTO> res = purchasesList.stream().map((item) -> this.convertResPurchaseDTO(item))
-                    .collect(Collectors.toList());
+            List<ResPurchaseDTO.CurrentSubject> res = purchasesList.stream().map((item) -> {
+                ResPurchaseDTO.CurrentSubject subject = new ResPurchaseDTO.CurrentSubject();
+                if (item.getSubject() != null) {
+                    Long subjectId = item.getSubject().getId();
+                    Optional<Subject> subjectOptional = this.subjectRepository.findById(subjectId);
+                    subjectOptional.ifPresent(s -> {
+                        subject.setId(s.getId());
+                        subject.setName(s.getName());
+                        subject.setDescription(s.getDescription());
+                        subject.setImageUrl(s.getImageUrl());
+                        subject.setPurchasedAt(item.getPurchasedAt());
+                        subject.setQuestionCount(s.getQuestions().size());
+                        subject.setAverageRating(s.getAverageRating());
+                    });
+                }
+                return subject;
+            }).collect(Collectors.toList());
             return res;
         } catch (NumberFormatException e) {
             throw new InvalidException("invalid id");

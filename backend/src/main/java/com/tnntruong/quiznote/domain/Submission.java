@@ -45,7 +45,10 @@ public class Submission {
     private Double score = 0.0;
     private Integer correctCount = 0;
     private Integer totalQuestions = 0;
-    private Boolean isPractice = false;
+    // tổng thời gian làm bài (phút)
+    private Long duration;
+    // thời gian đã làm bài (giây)
+    private Long timeSpent;
 
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status = SubmissionStatus.IN_PROGRESS;

@@ -24,6 +24,7 @@ public class ResSubjectDTO {
     private Integer ratingCount;
     private Integer purchaseCount;
     private Double highestScore;
+    private int questionCount;
     private String imageUrl;
     private CreateUser createUser;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")

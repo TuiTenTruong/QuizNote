@@ -8,6 +8,5 @@ import lombok.Setter;
 public class ReqStartSubmissionDTO {
     private Long userId;
     private Long subjectId;
-    private Boolean isPractice = true;
-    // private Long examId;
+    private Long duration; // thời gian làm bài tối đa (phút)
 }

@@ -80,6 +80,7 @@ public class SubjectService {
         res.setAverageRating(subject.getAverageRating());
         res.setRatingCount(subject.getRatingCount());
         res.setPurchaseCount(subject.getPurchaseCount());
+        res.setQuestionCount(subject.getQuestions().size());
         res.setImageUrl(subject.getImageUrl());
         res.setHighestScore(subject.getHighestScore());
         res.setCreatedAt(subject.getCreatedAt());

@@ -1,5 +1,7 @@
 package com.tnntruong.quiznote.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -148,6 +150,34 @@ public class QuestionService {
         }
     }
 
+    public List<ResQuestionDTO> handleGetRandomQuestionBySubjectId(String id, Specification<Question> spec,
+            Pageable page) throws InvalidException {
+        try {
+            Long idSubject = Long.parseLong(id);
+            boolean isExistById = this.subjectRepository.existsById(idSubject);
+            if (!isExistById) {
+                throw new InvalidException("subject with id = " + idSubject + " not found");
+            }
+            Specification<Question> finalSpec = (root, query, cb) -> cb.equal(root.get("subject").get("id"), idSubject);
+            if (spec != null) {
+                finalSpec = finalSpec.and(spec);
+            }
+            Page<Question> questions = this.questionRepository.findAll(finalSpec, page);
+
+            // Convert to DTO with shuffled options
+            List<ResQuestionDTO> res = questions.getContent().stream()
+                    .map((ques) -> convertToDTOWithShuffledOptions(ques))
+                    .collect(Collectors.toList());
+
+            // Shuffle the questions list
+            Collections.shuffle(res);
+
+            return res;
+        } catch (NumberFormatException e) {
+            throw new InvalidException("invalid id");
+        }
+    }
+
     public List<ResQuestionDTO> handleGetQuestionByChapterId(String id) throws InvalidException {
         try {
             Long idChapter = Long.parseLong(id);
@@ -167,6 +197,7 @@ public class QuestionService {
 
     private ResQuestionDTO convertToDTO(Question q) {
         List<ResOptionDTO> optionDTOs = q.getOptions().stream()
+                .sorted((o1, o2) -> Integer.compare(o1.getOptionOrder(), o2.getOptionOrder())) // sort by order
                 .map(o -> new ResOptionDTO(o.getId(), o.getContent(), o.getIsCorrect(), o.getOptionOrder()))
                 .collect(Collectors.toList());
 
@@ -175,7 +206,28 @@ public class QuestionService {
                 q.getContent(),
                 q.getExplanation(),
                 q.getSubject().getId(),
-                q.getChapter() != null ? q.getChapter().getId() : null,
+                q.getChapter() != null ? new ResQuestionDTO.ChapterDTO(q.getChapter().getId(), q.getChapter().getName())
+                        : null,
+                optionDTOs,
+                q.getCorrectnessPercentage());
+    }
+
+    private ResQuestionDTO convertToDTOWithShuffledOptions(Question q) {
+        // Create a mutable list and shuffle options
+        List<QuestionOption> shuffledOptions = new ArrayList<>(q.getOptions());
+        Collections.shuffle(shuffledOptions);
+
+        List<ResOptionDTO> optionDTOs = shuffledOptions.stream()
+                .map(o -> new ResOptionDTO(o.getId(), o.getContent(), o.getIsCorrect(), o.getOptionOrder()))
+                .collect(Collectors.toList());
+
+        return new ResQuestionDTO(
+                q.getId(),
+                q.getContent(),
+                q.getExplanation(),
+                q.getSubject().getId(),
+                q.getChapter() != null ? new ResQuestionDTO.ChapterDTO(q.getChapter().getId(), q.getChapter().getName())
+                        : null,
                 optionDTOs,
                 q.getCorrectnessPercentage());
     }
