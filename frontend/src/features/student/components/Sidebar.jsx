@@ -1,7 +1,6 @@
 import { Nav, NavbarBrand } from "react-bootstrap";
 import { FaHome, FaBook, FaShoppingCart, FaChartLine, FaWallet, FaCog, FaTimes } from "react-icons/fa";
 import { NavLink, Link } from "react-router-dom";
-import "./Appbar.scss";
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     return (

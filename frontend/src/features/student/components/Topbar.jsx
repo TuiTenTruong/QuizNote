@@ -1,6 +1,6 @@
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { FaSearch, FaPlus } from "react-icons/fa";
-import "./Appbar.scss";
+import "./StudentAppbar.scss";
 
 const Topbar = () => {
     return (

@@ -3,6 +3,7 @@ import { useState } from "react";
 import Topbar from "./components/Topbar";
 import { Outlet } from "react-router-dom";
 import { FaBars } from "react-icons/fa";
+import "./components/StudentAppbar.scss";
 
 const Dashboard = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -12,7 +13,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="container-fluid p-0">
+        <div className="container-fluid p-0 student_layout">
             <div className="row g-0">
                 <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
