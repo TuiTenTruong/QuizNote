@@ -61,4 +61,12 @@ public class SubmissionController {
         return ResponseEntity.ok(this.submissionService.getUserSubmissionHistory(userId));
     }
 
+    @GetMapping("/analytics/user/{userId}")
+    @ApiMessage("Get user analytics")
+    public ResponseEntity<?> getUserAnalytics(
+            @PathVariable Long userId,
+            @RequestParam(required = false) Integer days) {
+        return ResponseEntity.ok(this.submissionService.getUserAnalytics(userId, days));
+    }
+
 }

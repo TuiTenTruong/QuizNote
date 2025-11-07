@@ -21,6 +21,10 @@ import com.tnntruong.quiznote.dto.request.ReqSubmitAnswerDTO;
 import com.tnntruong.quiznote.dto.response.Submission.ResCreateSubmission;
 import com.tnntruong.quiznote.dto.response.Submission.ResSubmissionDTO;
 import com.tnntruong.quiznote.dto.response.Submission.ResSubmissionDTO.ResSubmissionAnswerDTO;
+import com.tnntruong.quiznote.dto.response.Submission.ResStudentAnalytics;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import com.tnntruong.quiznote.repository.QuestionOptionRepository;
 import com.tnntruong.quiznote.repository.SubmissionAnswerRepository;
 import com.tnntruong.quiznote.repository.QuestionRepository;
@@ -268,5 +272,97 @@ public class SubmissionService {
         return submissions.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public ResStudentAnalytics getUserAnalytics(Long userId, Integer days) {
+        List<Submission> allSubmissions = submissionRepository.findByStudentIdOrderBySubmittedAtDesc(userId);
+
+        // Filter submissions by time range if days is specified
+        List<Submission> filteredSubmissions = allSubmissions;
+        if (days != null && days > 0) {
+            Instant cutoffDate = Instant.now().minus(days, java.time.temporal.ChronoUnit.DAYS);
+            filteredSubmissions = allSubmissions.stream()
+                    .filter(s -> s.getSubmittedAt() != null && s.getSubmittedAt().isAfter(cutoffDate))
+                    .collect(Collectors.toList());
+        }
+
+        // Total quizzes completed
+        int totalQuizzes = (int) filteredSubmissions.stream()
+                .filter(submit -> submit.getStatus() == SubmissionStatus.SUBMITTED)
+                .count();
+
+        // Average accuracy
+        double avgAccuracy = filteredSubmissions.stream()
+                .filter(submit -> submit.getStatus() == SubmissionStatus.SUBMITTED)
+                .mapToDouble(submit -> submit.getScore() != null ? submit.getScore() : 0.0)
+                .average()
+                .orElse(0.0);
+
+        // Active days
+        long activeDays = filteredSubmissions.stream()
+                .filter(submit -> submit.getSubmittedAt() != null)
+                .map(submit -> LocalDate.ofInstant(submit.getSubmittedAt(), ZoneId.systemDefault()))
+                .distinct()
+                .count();
+
+        // Total time spent (in seconds)
+        long totalTimeSpent = filteredSubmissions.stream()
+                .filter(s -> s.getTimeSpent() != null)
+                .mapToLong(Submission::getTimeSpent)
+                .sum();
+
+        // Subject statistics
+        Map<String, Long> subjectCounts = filteredSubmissions.stream()
+                .filter(s -> s.getStatus() == SubmissionStatus.SUBMITTED)
+                .collect(Collectors.groupingBy(
+                        s -> s.getSubject().getName(),
+                        Collectors.counting()));
+
+        List<ResStudentAnalytics.SubjectStats> subjectStats = subjectCounts.entrySet().stream()
+                .map(e -> new ResStudentAnalytics.SubjectStats(e.getKey(), e.getValue().intValue()))
+                .collect(Collectors.toList());
+
+        // Accuracy by subject
+        Map<String, Double> subjectAccuracy = filteredSubmissions.stream()
+                .filter(s -> s.getStatus() == SubmissionStatus.SUBMITTED)
+                .collect(Collectors.groupingBy(
+                        s -> s.getSubject().getName(),
+                        Collectors.averagingDouble(s -> s.getScore() != null ? s.getScore() : 0.0)));
+
+        List<ResStudentAnalytics.AccuracyBySubject> accuracyBySubject = subjectAccuracy.entrySet().stream()
+                .map(e -> new ResStudentAnalytics.AccuracyBySubject(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+
+        // Recent activity (daily)
+        Map<LocalDate, List<Submission>> dailySubmissions = filteredSubmissions.stream()
+                .filter(s -> s.getSubmittedAt() != null && s.getStatus() == SubmissionStatus.SUBMITTED)
+                .collect(Collectors.groupingBy(
+                        s -> LocalDate.ofInstant(s.getSubmittedAt(), ZoneId.systemDefault()),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        List<ResStudentAnalytics.DailyActivity> recentActivity = dailySubmissions.entrySet().stream()
+                .sorted(Map.Entry.<LocalDate, List<Submission>>comparingByKey().reversed())
+                .limit(30)
+                .map(e -> {
+                    LocalDate date = e.getKey();
+                    List<Submission> submissions = e.getValue();
+                    int count = submissions.size();
+                    double avgScore = submissions.stream()
+                            .mapToDouble(s -> s.getScore() != null ? s.getScore() : 0.0)
+                            .average()
+                            .orElse(0.0);
+                    return new ResStudentAnalytics.DailyActivity(date.toString(), count, avgScore);
+                })
+                .collect(Collectors.toList());
+
+        return new ResStudentAnalytics(
+                totalQuizzes,
+                avgAccuracy,
+                (int) activeDays,
+                totalTimeSpent,
+                subjectStats,
+                accuracyBySubject,
+                recentActivity);
     }
 }
