@@ -31,13 +31,22 @@ public class PurchaseService {
     }
 
     public ResPurchaseDTO handleCreatePurchase(ReqCreatePurchaseDTO dto) throws InvalidException {
+        System.out.println("📦 Creating purchase - StudentId: " + dto.getStudentId() + ", SubjectId: " + dto.getSubjectId());
+
         User student = userRepository.findById(dto.getStudentId())
-                .orElseThrow(() -> new InvalidException("User not found"));
+                .orElseThrow(() -> {
+                    System.err.println("❌ User not found with id: " + dto.getStudentId());
+                    return new InvalidException("User not found");
+                });
 
         Subject subject = subjectRepository.findById(dto.getSubjectId())
-                .orElseThrow(() -> new InvalidException("Subject not found"));
+                .orElseThrow(() -> {
+                    System.err.println("❌ Subject not found with id: " + dto.getSubjectId());
+                    return new InvalidException("Subject not found");
+                });
 
         if (purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
+            System.out.println("⚠️ User already purchased this subject");
             throw new InvalidException("User already purchased this subject");
         }
 
@@ -45,10 +54,14 @@ public class PurchaseService {
         purchase.setStudent(student);
         purchase.setSubject(subject);
 
-        subject.setPurchaseCount(subject.getPurchaseCount() + 1);
+        // Xử lý null cho purchaseCount
+        Integer currentCount = subject.getPurchaseCount();
+        subject.setPurchaseCount(currentCount != null ? currentCount + 1 : 1);
         subjectRepository.save(subject);
 
-        return convertResPurchaseDTO(purchaseRepository.save(purchase));
+        ResPurchaseDTO result = convertResPurchaseDTO(purchaseRepository.save(purchase));
+        System.out.println("✅ Purchase created successfully");
+        return result;
     }
 
     public ResPurchaseDTO convertResPurchaseDTO(Purchase purchase) {

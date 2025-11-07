@@ -22,10 +22,12 @@ import com.tnntruong.quiznote.domain.PaymentTransaction;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.request.ReqCreatePurchaseDTO;
 import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -36,15 +38,17 @@ public class VNPayService {
     private UserRepository userRepository;
     private SubjectRepository subjectRepository;
     private SellerProfileRepository sellerProfileRepository;
+    private PurchaseService purchaseService;
 
     public VNPayService(VNPayConfig vnPayConfig, PaymentTransactionRepository paymentRepo,
             UserRepository userRepository, SubjectRepository subjectRepository,
-            SellerProfileRepository sellerProfileRepository) {
+            SellerProfileRepository sellerProfileRepository, PurchaseService purchaseService) {
         this.vnPayConfig = vnPayConfig;
         this.paymentRepo = paymentRepo;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
         this.sellerProfileRepository = sellerProfileRepository;
+        this.purchaseService = purchaseService;
     }
 
     public String createOrder(int total, String orderInfor, String urlReturn) {
@@ -68,8 +72,16 @@ public class VNPayService {
         String locate = "vn";
         vnp_Params.put("vnp_Locale", locate);
 
-        urlReturn += vnPayConfig.vnp_ReturnUrl;
-        vnp_Params.put("vnp_ReturnUrl", urlReturn);
+        // Xử lý return URL đúng cách
+        String finalReturnUrl;
+        if (vnPayConfig.vnp_ReturnUrl.startsWith("http://") || vnPayConfig.vnp_ReturnUrl.startsWith("https://")) {
+            // Nếu vnp_ReturnUrl đã là full URL, dùng trực tiếp
+            finalReturnUrl = vnPayConfig.vnp_ReturnUrl;
+        } else {
+            // Nếu là relative path, nối với baseUrl
+            finalReturnUrl = urlReturn + vnPayConfig.vnp_ReturnUrl;
+        }
+        vnp_Params.put("vnp_ReturnUrl", finalReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -150,7 +162,12 @@ public class VNPayService {
     }
 
     public void handleSuccessfulPayment(String orderInfo, String transactionNo,
-            String paymentTime, long totalPrice) {
+            String paymentTime, long totalPrice) throws InvalidException {
+
+        System.out.println("Processing payment - TransactionNo: " + transactionNo);
+        System.out.println("OrderInfo: " + orderInfo);
+        System.out.println("Amount: " + totalPrice);
+        System.out.println("PaymentTime: " + paymentTime);
 
         if (paymentRepo.existsByTransactionNo(transactionNo)) {
             System.out.println("Transaction already exists, skip saving...");
@@ -158,13 +175,29 @@ public class VNPayService {
         }
 
         Map<String, String> infoMap = parseOrderInfo(orderInfo);
-        Long buyerId = Long.parseLong(infoMap.get("buyer"));
-        Long subjectId = Long.parseLong(infoMap.get("subject"));
+        String buyerIdStr = infoMap.get("buyer");
+        String subjectIdStr = infoMap.get("subject");
+
+        if (buyerIdStr == null || subjectIdStr == null) {
+            System.err.println("Invalid orderInfo format: " + orderInfo);
+            throw new InvalidException("Invalid order information");
+        }
+
+        Long buyerId = Long.parseLong(buyerIdStr);
+        Long subjectId = Long.parseLong(subjectIdStr);
+
+        System.out.println("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
 
         User buyer = userRepository.findById(buyerId)
-                .orElseThrow(() -> new RuntimeException("Buyer not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Buyer not found with id: " + buyerId);
+                    return new RuntimeException("Buyer not found");
+                });
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new RuntimeException("Subject not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Subject not found with id: " + subjectId);
+                    return new RuntimeException("Subject not found");
+                });
         User seller = subject.getSeller();
 
         PaymentTransaction tx = new PaymentTransaction();
@@ -191,7 +224,9 @@ public class VNPayService {
         profile.setTotalRevenue(profile.getTotalRevenue() + totalPrice);
         sellerProfileRepository.save(profile);
 
-        System.out.println("✅ Payment saved successfully for order " + orderInfo);
+        this.purchaseService.handleCreatePurchase(new ReqCreatePurchaseDTO(buyerId, subjectId));
+
+        System.out.println("Payment saved successfully for order " + orderInfo);
     }
 
     private Map<String, String> parseOrderInfo(String orderInfo) {

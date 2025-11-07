@@ -44,11 +44,20 @@ const QuizPayment = () => {
         try {
             // Gọi API backend (Spring Boot) để tạo link VNPay
             const response = await VNPayCreateOrder(quizData.price || 0, `buyer:${user.id};subject:${quizData.id}`);
-            const url = response.data;
-            window.location.href = url; // chuyển đến sandbox VNPay
+            // Axios interceptor đã unwrap response.data, nên response chính là URL string
+            const url = response.data || response;
+
+            console.log("VNPay URL:", url);
+
+            if (url && typeof url === 'string' && url.startsWith('http')) {
+                window.location.href = url; // chuyển đến sandbox VNPay
+            } else {
+                console.error("Invalid payment URL:", url);
+                throw new Error("Invalid payment URL received");
+            }
         } catch (error) {
             console.error("Error creating VNPay order:", error);
-            alert("Lỗi khi tạo đơn hàng VNPay.");
+            alert("Lỗi khi tạo đơn hàng VNPay. Vui lòng thử lại!");
         } finally {
             setLoading(false);
         }
