@@ -22,6 +22,11 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axiosCustomize";
 import ReviewItem from "./ReviewItem"; // Import component mới
 import { getQuizDetail, getQuizDemo, getQuizReviews } from "../../../services/apiService";
+import { useLocation } from "react-router-dom";
+import { navigateToSelectMode } from "../../../utils/quizNavigation";
+import { useNavigate } from "react-router-dom";
+
+
 const StudentQuizDetail = () => {
     const [quiz, setQuiz] = useState(null);
     const [quizDemo, setQuizDemo] = useState(null);
@@ -31,11 +36,13 @@ const StudentQuizDetail = () => {
     const [countReviews, setCountReviews] = useState(0);
     const [hasMoreReviews, setHasMoreReviews] = useState(true);
     const [reviewsLoading, setReviewsLoading] = useState(false);
-
     const { quizId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
     const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
     const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
-
+    const hasPurchased = location.state?.hasPurchased;
+    console.log("Has purchased:", hasPurchased);
     useEffect(() => {
         // Fetch quiz detail from API
         const fetchQuizDetail = async () => {
@@ -123,15 +130,15 @@ const StudentQuizDetail = () => {
                                     ? `${quiz.price.toLocaleString("vi-VN")} ₫`
                                     : "Miễn phí"}
                             </h4>
-                            <Button className="btn-gradient w-100">
-                                {quiz.price > 0 ? (
-                                    <>
-                                        <FaShoppingCart className="me-2" /> Mua Quiz
-                                    </>
-                                ) : (
-                                    "Bắt đầu làm bài"
-                                )}
-                            </Button>
+
+                            {quiz.price == 0 || hasPurchased ? (
+                                <Button className="btn-gradient w-100" onClick={() => navigateToSelectMode(navigate, quiz)}>Bắt đầu làm bài</Button>
+                            ) : (
+                                <>
+                                    <Button className="btn-gradient w-100" onClick={() => navigate(`/student/quiz-payment/${quiz.id}`, { state: { quiz: quiz } })}><FaShoppingCart className="me-2" /> Mua Quiz</Button>
+                                </>
+                            )}
+
                         </Col>
                     </Row>
                 </Container>

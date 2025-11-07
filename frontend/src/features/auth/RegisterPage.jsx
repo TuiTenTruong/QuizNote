@@ -9,7 +9,7 @@ import { IoMdEyeOff } from "react-icons/io";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { postCreateNewUser } from "../../services/apiService";
-
+import NavigateHomeButton from "./components/NavigateHomeButton";
 const RegisterPage = () => {
     const [name, setName] = useState("");
     const [gender, setGender] = useState("");
@@ -49,7 +49,8 @@ const RegisterPage = () => {
     }
 
     return (
-        <section className="register-page">
+        <section className="register-page position-relative">
+            <div className="position-absolute top-1 start-1 m-3" ><NavigateHomeButton /></div>
             <Container fluid className="g-0">
                 <Row className="min-vh-100 g-0">
                     {/* LEFT SIDE */}

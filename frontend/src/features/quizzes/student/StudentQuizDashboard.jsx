@@ -21,59 +21,10 @@ import {
 } from "react-icons/fa";
 import "./StudentQuizDashboard.scss";
 import { useEffect } from "react";
-import { getAllSubjects } from "../../../services/apiService";
+import { getAllSubjects, fetchMyQuizzes } from "../../../services/apiService";
 import axiosInstance from "../../../utils/axiosCustomize";
 import { Link } from "react-router-dom";
-// const quizData = [
-//     {
-//         title: "Hàm số và Đồ thị - Toán 10",
-//         category: "Math",
-//         difficulty: "Hard",
-//         author: "Trần Thị B",
-//         time: "30 min",
-//         price: 0,
-//         rating: 4.9,
-//         questions: 40,
-//         enrolled: 570,
-//         thumbnail: "https://i.imgur.com/rFs9O0u.jpg",
-//     },
-//     {
-//         title: "Phân loại động vật - Sinh học 7",
-//         category: "Biology",
-//         difficulty: "Medium",
-//         author: "Nguyễn Văn A",
-//         time: "20 min",
-//         price: 49000,
-//         rating: 4.7,
-//         questions: 50,
-//         enrolled: 320,
-//         thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
-//     },
-//     {
-//         title: "Ngữ pháp tiếng Anh cơ bản",
-//         category: "Language",
-//         difficulty: "Easy",
-//         author: "Phạm Mỹ Duyên",
-//         time: "25 min",
-//         price: 0,
-//         rating: 4.8,
-//         questions: 35,
-//         enrolled: 1050,
-//         thumbnail: "https://i.imgur.com/LDpRgTk.jpg",
-//     },
-//     {
-//         title: "Lịch sử Việt Nam hiện đại",
-//         category: "History",
-//         difficulty: "Easy",
-//         author: "Lê Quốc Cường",
-//         time: "15 min",
-//         price: 25000,
-//         rating: 4.6,
-//         questions: 30,
-//         enrolled: 220,
-//         thumbnail: "https://i.imgur.com/8VTEhW2.jpg",
-//     },
-// ];
+import { useSelector } from "react-redux";
 
 const categories = ["All", "Math", "Biology", "Language", "History", "Chemistry"];
 
@@ -83,8 +34,11 @@ const StudentQuizDashboard = () => {
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("Popular");
     const [subjectsData, setSubjectsData] = useState([]);
+    const [myQuizzes, setMyQuizzes] = useState([]);
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
 
+    const user = useSelector((state) => state.user.account);
+    console.log("User in Dashboard:", user);
     useEffect(() => {
         const fetchSubjectsData = async () => {
             const response = await getAllSubjects();
@@ -96,6 +50,29 @@ const StudentQuizDashboard = () => {
         };
         fetchSubjectsData();
     }, []);
+
+    if (user !== null) {
+        useEffect(() => {
+            const getMyQuizzes = async () => {
+                try {
+                    const response = await fetchMyQuizzes(user.id);
+                    setMyQuizzes(response.data);
+                } catch (err) {
+                    console.error("Error fetching my quizzes:", err);
+                }
+            };
+            getMyQuizzes();
+        }, [user]);
+    }
+
+    // Helper function to check if user has purchased a quiz
+    const hasPurchased = (subjectId) => {
+        if (!myQuizzes || !Array.isArray(myQuizzes)) return false;
+        return myQuizzes.some(quiz => quiz.id === subjectId);
+    };
+
+    console.log("My Quizzes in Dashboard:", myQuizzes);
+    console.log("Subjects Data in Dashboard:", subjectsData);
 
     const filtered = subjectsData
         .filter(
@@ -126,7 +103,7 @@ const StudentQuizDashboard = () => {
                                 <div className="hero-content">
                                     <h2 className="fw-bold mb-2">{subject.name}</h2>
                                     <p className="mb-3">{subject.createUser?.username}</p>
-                                    <Button className="btn-gradient">
+                                    <Button className="btn-gradient" as={Link} to={`/student/quizzes/${subject.id}`}>
                                         <FaPlay className="me-2" /> Start Now
                                     </Button>
                                 </div>
@@ -196,7 +173,8 @@ const StudentQuizDashboard = () => {
                 <Row className="g-4">
                     {filtered.map((subject) => (
                         <Col xs={12} sm={6} lg={4} xl={3} key={subject.id}>
-                            <Card className="quiz-card bg-dark border-0 shadow-sm h-100 overflow-hidden" as={Link} to={`/student/quizzes/${subject.id}`}>
+                            <Card className="quiz-card bg-dark border-0 shadow-sm h-100 overflow-hidden" as={Link}
+                                to={`/student/quizzes/${subject.id}`} state={{ hasPurchased: hasPurchased(subject.id) || subject.price === 0 }}>
                                 <div
                                     className="quiz-thumbnail"
                                     style={{ backgroundImage: `url(${backendBaseURL + subject.imageUrl})` }}
@@ -244,7 +222,7 @@ const StudentQuizDashboard = () => {
                                     )}
 
                                     <Button className="btn-gradient w-100">
-                                        {subject.price > 0 ? "Mua Quiz" : "Bắt đầu"}
+                                        {hasPurchased(subject.id) || subject.price === 0 ? "Bắt đầu" : "Mua Ngay"}
                                     </Button>
                                 </Card.Body>
                             </Card>

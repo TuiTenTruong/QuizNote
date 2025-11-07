@@ -11,6 +11,7 @@ import { postLogin } from "../../services/apiService";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { doLogin } from "../../redux/action/userAction";
+import NavigateHomeButton from "./components/NavigateHomeButton";
 const LoginPage = () => {
     const [type, setType] = useState('password');
     const [email, setEmail] = useState("");
@@ -41,7 +42,8 @@ const LoginPage = () => {
         }
     }
     return (
-        <section className="login-page">
+        <section className="login-page position-relative">
+            <div className="position-absolute top-1 start-1 m-3" ><NavigateHomeButton /></div>
             <Container fluid className="g-0">
                 <Row className="min-vh-100 g-0">
                     <Col

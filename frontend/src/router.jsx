@@ -45,7 +45,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <StudentDashboard /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
-            { path: "quiz-payment", element: <QuizPayment /> },
+            { path: "quiz-payment/:quizId", element: <QuizPayment /> },
             { path: "quizzes/:quizId/mode-select", element: <QuizModeSelect /> },
             { path: "quizzes/:quizId/exam", element: <ExamQuiz /> },
             { path: "quizzes/:quizId/practice", element: <QuizPracticePage /> },

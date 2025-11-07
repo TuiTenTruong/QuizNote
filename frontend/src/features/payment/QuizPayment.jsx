@@ -3,30 +3,48 @@ import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import { FaShoppingCart, FaLock, FaCreditCard } from "react-icons/fa";
 import "./QuizPayment.scss";
-
-function QuizPayment() {
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { getQuizDetail, VNPayCreateOrder } from "../../services/apiService";
+import axiosInstance from "../../utils/axiosCustomize"
+import { useSelector } from "react-redux";
+const QuizPayment = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-
-    // 👉 Giả lập quiz được mua (khi student chọn quiz)
-    const quiz = {
-        id: 5,
-        title: "Phân loại động vật - Sinh học 7",
-        author: "Nguyễn Văn A",
-        price: 49000,
-        thumbnail: "https://i.imgur.com/sbTQ0jR.jpg",
-        description:
-            "Bộ câu hỏi trắc nghiệm sinh học lớp 7 - phân loại động vật, ôn tập cuối kỳ.",
-    };
+    const [quizData, setQuizData] = useState(null);
+    const location = useLocation();
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    const user = useSelector((state) => state.user.account);
+    useEffect(() => {
+        const state = location.state;
+        if (state?.quiz) {
+            setQuizData(state.quiz);
+        } else {
+            const quizId = location.pathname.split("/").pop();
+            const fetchQuizById = async (quizId) => {
+                const response = await getQuizDetail(quizId);
+                return response.data;
+            };
+            fetchQuizById(quizId).then((data) => {
+                if (data) {
+                    setQuizData(data);
+                } else {
+                    console.error("Failed to fetch quiz:", data);
+                }
+            }).catch((error) => {
+                console.error("Error fetching quiz:", error);
+            });
+        }
+    }, [location]);
 
     const handleVNPayPayment = async () => {
+        if (!quizData) return;
+
         setLoading(true);
         try {
             // Gọi API backend (Spring Boot) để tạo link VNPay
-            const res = await fetch(
-                `http://localhost:8080/api/v1/payments/vnpay/pay?amount=${quiz.price}&orderInfo=buyer:1;subject:${quiz.id}`
-            );
-            const url = await res.text();
+            const response = await VNPayCreateOrder(quizData.price || 0, `buyer:${user.id};subject:${quizData.id}`);
+            const url = response.data;
             window.location.href = url; // chuyển đến sandbox VNPay
         } catch (error) {
             console.error("Error creating VNPay order:", error);
@@ -35,6 +53,18 @@ function QuizPayment() {
             setLoading(false);
         }
     };
+
+    // Hiển thị loading khi chưa có dữ liệu
+    if (!quizData) {
+        return (
+            <div className="payment-page">
+                <Container className="py-5 text-center">
+                    <Spinner animation="border" variant="light" />
+                    <p className="text-light mt-3">Đang tải thông tin...</p>
+                </Container>
+            </div>
+        );
+    }
 
     return (
         <div className="payment-page">
@@ -53,7 +83,7 @@ function QuizPayment() {
                             {/* Quiz Info */}
                             <div className="d-flex gap-3 align-items-center border-bottom border-secondary pb-3 mb-3">
                                 <img
-                                    src={quiz.thumbnail}
+                                    src={backendBaseURL + quizData.imageUrl}
                                     alt="quiz"
                                     className="rounded-3"
                                     width={100}
@@ -61,8 +91,10 @@ function QuizPayment() {
                                     style={{ objectFit: "cover" }}
                                 />
                                 <div>
-                                    <h6 className="fw-semibold mb-1">{quiz.title}</h6>
-                                    <small className="text-secondary">{quiz.author}</small>
+                                    <h6 className="fw-semibold mb-1">{quizData.name}</h6>
+                                    <small className="text-secondary">
+                                        {quizData.createUser?.username || "Unknown"}
+                                    </small>
                                 </div>
                             </div>
 
@@ -70,7 +102,7 @@ function QuizPayment() {
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between">
                                     <span>Giá quiz</span>
-                                    <span>{quiz.price.toLocaleString("vi-VN")} ₫</span>
+                                    <span>{(quizData.price || 0).toLocaleString("vi-VN")} ₫</span>
                                 </div>
                                 <div className="d-flex justify-content-between">
                                     <span>Phí giao dịch</span>
@@ -80,7 +112,7 @@ function QuizPayment() {
                                 <div className="d-flex justify-content-between fw-bold">
                                     <span>Tổng thanh toán</span>
                                     <span className="text-gradient">
-                                        {quiz.price.toLocaleString("vi-VN")} ₫
+                                        {(quizData.price || 0).toLocaleString("vi-VN")} ₫
                                     </span>
                                 </div>
                             </div>
@@ -110,7 +142,7 @@ function QuizPayment() {
 
                         <div className="text-center mt-4">
                             <Button
-                                variant="outline-light"
+                                variant="outline-light btn-gradient p-2"
                                 size="sm"
                                 onClick={() => navigate(-1)}
                             >

@@ -57,8 +57,21 @@ const submitQuizResult = async (submissionId, answers) => {
 const getHistoryUser = async (userId) => {
     return Axios.get(`/api/v1/submissions/history/user/${userId}`);
 }
+const getStudentAnalytics = async (userId, days = null) => {
+    const params = days ? `?days=${days}` : '';
+    return Axios.get(`/api/v1/submissions/analytics/user/${userId}${params}`);
+}
+const getSellerAnalytics = async (sellerId, months = null) => {
+    const params = months ? `?months=${months}` : '';
+    return Axios.get(`/api/v1/seller/analytics/${sellerId}${params}`);
+}
+
+const VNPayCreateOrder = async (amount, orderInfo) => {
+    return Axios.post(`/api/v1/payments/vnpay/submitOrder?amount=${amount}&orderInfo=${orderInfo}`);
+}
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
-    getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser
+    getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
+    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder
 };

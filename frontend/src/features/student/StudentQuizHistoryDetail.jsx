@@ -9,7 +9,6 @@ const StudentQuizHistoryDetail = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const submissionHistory = location.state?.item;
-    console.log("Submission History from state:", submissionHistory);
     const [questionData, setQuestionData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -41,9 +40,10 @@ const StudentQuizHistoryDetail = () => {
                         return indexA - indexB;
                     });
 
+                const filteredQuestions = sortedQuestions.filter(q => q.isCorrect !== undefined);
                 setQuestionData({
                     ...submissionHistory,
-                    questions: sortedQuestions,
+                    questions: filteredQuestions,
                 });
             } catch (error) {
                 console.error("Error fetching questions:", error);
@@ -68,7 +68,7 @@ const StudentQuizHistoryDetail = () => {
                 Không tìm thấy dữ liệu làm bài.
             </Container>
         );
-
+    console.log("questionData:", questionData);
     const { quizTitle, startedAt, score, totalQuestions, correctCount, questions, currentSubject } =
         questionData;
 
