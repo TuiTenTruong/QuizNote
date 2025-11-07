@@ -46,9 +46,14 @@ public class SubjectController {
     // create subject with image
     public ResponseEntity<?> createSubject(@Valid @RequestPart("subject") Subject subject,
             @RequestPart("image") MultipartFile image) throws InvalidException, URISyntaxException, IOException {
-        this.fileService.createDirectory(baseURI + "/subjects");
-        String stored = this.fileService.store(image, "/subjects");
+        this.fileService.createDirectory(baseURI + "subjects");
+        String stored = this.fileService.store(image, "subjects");
         return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateSubject(subject, stored));
+    }
+
+    @PostMapping("/subjects/draft")
+    public ResponseEntity<?> saveDraftSubject(@RequestBody Subject subject) throws InvalidException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateDraftSubject(subject));
     }
 
     @PutMapping("/subjects")
@@ -70,6 +75,13 @@ public class SubjectController {
     @GetMapping("/subjects")
     public ResponseEntity<?> getALlSubject(@Filter Specification<Subject> spec, Pageable page) {
         return ResponseEntity.ok().body(this.subjectService.handleGetAllSubject(spec, page));
+    }
+
+    @GetMapping("/subjects/seller/{sellerId}")
+    public ResponseEntity<?> getSubjectBySellerId(@PathVariable long sellerId,
+            @Filter Specification<Subject> spec,
+            Pageable page) {
+        return ResponseEntity.ok().body(this.subjectService.handleGetSubjectBySellerId(sellerId, spec, page));
     }
 
 }

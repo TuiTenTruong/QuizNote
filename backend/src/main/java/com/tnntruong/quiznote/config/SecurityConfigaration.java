@@ -81,7 +81,8 @@ public class SecurityConfigaration {
                         authz -> authz
                                 .requestMatchers(generalPermitAllPaths).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/companies/**", "/api/v1/subjects/**",
-                                        "/api/v1/questions/**", "/api/v1/comments/**")
+                                        "/api/v1/questions/**", "/api/v1/comments/**",
+                                        "/api/v1/seller/analytics/{sellerId}")
                                 .permitAll()
                                 .anyRequest().authenticated())
 

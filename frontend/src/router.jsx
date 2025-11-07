@@ -16,6 +16,7 @@ import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
 import StudentDashboard from "./features/quizzes/student/StudentQuizDashboard";
 import StudentQuizDetail from "./features/quizzes/student/StudentQuizDetail";
 import QuizPayment from "./features/payment/QuizPayment";
+import PaymentResult from "./features/payment/PaymentResult";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
             { index: true, element: <StudentDashboard /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
             { path: "quiz-payment/:quizId", element: <QuizPayment /> },
+            { path: "payment-result", element: <PaymentResult /> },
             { path: "quizzes/:quizId/mode-select", element: <QuizModeSelect /> },
             { path: "quizzes/:quizId/exam", element: <ExamQuiz /> },
             { path: "quizzes/:quizId/practice", element: <QuizPracticePage /> },

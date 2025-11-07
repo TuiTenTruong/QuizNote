@@ -82,7 +82,7 @@ public class SellerService {
 
 		// Average rating across all subjects
 		double averageRating = subjects.stream()
-				.filter(s -> s.getAverageRating() != null)
+				.filter(s -> s.getAverageRating() != null && s.getAverageRating() > 0.0)
 				.mapToDouble(Subject::getAverageRating)
 				.average()
 				.orElse(0.0);

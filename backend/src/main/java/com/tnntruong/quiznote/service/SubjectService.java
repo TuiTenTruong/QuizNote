@@ -14,6 +14,7 @@ import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -40,6 +41,19 @@ public class SubjectService {
 
         }
         savedSubject = this.subjectRepository.save(savedSubject);
+        return this.convertSubjectToDTO(savedSubject);
+    }
+
+    public ResSubjectDTO handleCreateDraftSubject(Subject subject) throws InvalidException {
+        User currentUser = this.userService.handleGetCurrentUser();
+        if (currentUser == null) {
+            throw new InvalidException("user create subject invalid");
+        }
+        subject.setSeller(currentUser);
+        if (subject.getStatus() == null) {
+            subject.setStatus(SubjectStatus.DRAFT);
+        }
+        Subject savedSubject = this.subjectRepository.save(subject);
         return this.convertSubjectToDTO(savedSubject);
     }
 
@@ -109,6 +123,30 @@ public class SubjectService {
     public ResResultPagination handleGetAllSubject(Specification<Subject> spec, Pageable page) {
         Page<Subject> subjectPage = this.subjectRepository.findAll(spec, page);
         List<ResSubjectDTO> subjectList = subjectPage.stream().map((item) -> this.convertSubjectToDTO(item))
+                .collect(Collectors.toList());
+
+        ResResultPagination res = new ResResultPagination();
+        ResResultPagination.Meta mt = new ResResultPagination.Meta();
+        mt.setPage(subjectPage.getNumber() + 1);
+        mt.setPageSize(subjectPage.getSize());
+        mt.setPages(subjectPage.getTotalPages());
+        mt.setTotal(subjectPage.getTotalElements());
+
+        res.setMeta(mt);
+        res.setResult(subjectList);
+
+        return res;
+    }
+
+    public ResResultPagination handleGetSubjectBySellerId(long sellerId, Specification<Subject> spec, Pageable page) {
+        Specification<Subject> sellerSpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                .equal(root.get("seller").get("id"), sellerId);
+
+        Specification<Subject> combinedSpec = spec == null ? sellerSpec : spec.and(sellerSpec);
+
+        Page<Subject> subjectPage = this.subjectRepository.findAll(combinedSpec, page);
+        List<ResSubjectDTO> subjectList = subjectPage.stream()
+                .map(this::convertSubjectToDTO)
                 .collect(Collectors.toList());
 
         ResResultPagination res = new ResResultPagination();

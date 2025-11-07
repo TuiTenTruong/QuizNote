@@ -69,9 +69,22 @@ const getSellerAnalytics = async (sellerId, months = null) => {
 const VNPayCreateOrder = async (amount, orderInfo) => {
     return Axios.post(`/api/v1/payments/vnpay/submitOrder?amount=${amount}&orderInfo=${orderInfo}`);
 }
+const createQuiz = async (formData) => {
+    return Axios.post('/api/v1/subjects', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+const createQuestion = async (data) => {
+    return Axios.post('/api/v1/questions', data);
+}
+const saveDraftQuiz = async (quizData) => {
+    return Axios.post('/api/v1/subjects/draft', quizData);
+}
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
     getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
-    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder
+    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz, createQuestion, saveDraftQuiz
 };

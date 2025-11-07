@@ -8,11 +8,11 @@ import {
     Button,
     InputGroup,
     Dropdown,
+    Alert,
+    Spinner,
 } from "react-bootstrap";
 import {
-    FaClock,
-    FaListAlt,
-    FaEye,
+    FaImage,
     FaSave,
     FaArrowRight,
     FaArrowLeft,
@@ -20,20 +20,16 @@ import {
     FaTrash,
 } from "react-icons/fa";
 import "./CreateQuiz.scss";
+import { createQuiz, createQuestion, saveDraftQuiz } from "../../services/apiService";
 
 function CreateQuiz() {
     const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const [imageFile, setImageFile] = useState(null);
     const [quiz, setQuiz] = useState({
         title: "",
         description: "",
-        category: "",
-        difficulty: "Medium",
-        timeLimit: 15,
-        passingScore: 70,
-        randomizeQuestions: true,
-        randomizeAnswers: true,
-        immediateResults: false,
-        visibility: "Public",
         price: 0,
         questions: [
             {
@@ -53,6 +49,15 @@ function CreateQuiz() {
     const handleChange = (e) =>
         setQuiz({ ...quiz, [e.target.name]: e.target.value });
 
+
+
+    const handleFileChange = (e) => {
+        setQuiz({ ...quiz, [e.target.name]: e.target.files[0] });
+        setImageFile(e.target.files[0]);
+    }
+
+
+
     const handleToggle = (key) =>
         setQuiz({ ...quiz, [key]: !quiz[key] });
 
@@ -63,8 +68,6 @@ function CreateQuiz() {
                 ...quiz.questions,
                 {
                     text: "",
-                    type: "Multiple Answers",
-                    points: 10,
                     answers: [
                         { text: "", isCorrect: false },
                         { text: "", isCorrect: false },
@@ -105,9 +108,142 @@ function CreateQuiz() {
         setQuiz({ ...quiz, questions: updated });
     };
 
+    const validateQuiz = () => {
+        if (!quiz.title.trim()) {
+            setMessage({ type: 'danger', text: 'Quiz title is required' });
+            return false;
+        }
+        if (!quiz.description.trim()) {
+            setMessage({ type: 'danger', text: 'Quiz description is required' });
+            return false;
+        }
+        if (quiz.price < 0) {
+            setMessage({ type: 'danger', text: 'Price must be greater than 0' });
+            return false;
+        }
+        if (quiz.questions.length === 0) {
+            setMessage({ type: 'danger', text: 'At least one question is required' });
+            return false;
+        }
+
+        for (let i = 0; i < quiz.questions.length; i++) {
+            const q = quiz.questions[i];
+            if (!q.text.trim()) {
+                setMessage({ type: 'danger', text: `Question ${i + 1} text is required` });
+                return false;
+            }
+            if (q.answers.length < 2) {
+                setMessage({ type: 'danger', text: `Question ${i + 1} must have at least 2 answers` });
+                return false;
+            }
+            const hasCorrect = q.answers.some(a => a.isCorrect);
+            if (!hasCorrect) {
+                setMessage({ type: 'danger', text: `Question ${i + 1} must have at least one correct answer` });
+                return false;
+            }
+            for (let j = 0; j < q.answers.length; j++) {
+                if (!q.answers[j].text.trim()) {
+                    setMessage({ type: 'danger', text: `Question ${i + 1}, Answer ${j + 1} text is required` });
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
+    const handlePublishQuiz = async () => {
+        if (!validateQuiz()) {
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Create subject/quiz
+            const formData = new FormData();
+            const subjectData = {
+                name: quiz.title,
+                description: quiz.description,
+                price: parseFloat(quiz.price),
+            };
+            formData.append('subject', JSON.stringify(subjectData));
+
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            submitQuiz(formData);
+        } catch (error) {
+            console.error('Error creating quiz:', error);
+            setMessage({
+                type: 'danger',
+                text: error.response?.data?.message || 'Error creating quiz. Please try again.'
+            });
+            setLoading(false);
+        }
+    };
+
+    const submitQuiz = async (formData) => {
+        try {
+            const quizRes = await createQuiz(formData);
+            const quizId = quizRes.data.id;
+
+            // Create questions
+            for (const question of quiz.questions) {
+                const questionData = {
+                    subjectId: quizId,
+                    content: question.text,
+                    options: question.answers.map((answer, index) => ({
+                        content: answer.text,
+                        isCorrect: answer.isCorrect,
+                        optionOrder: index + 1
+                    }))
+                };
+                await createQuestion(questionData);
+            }
+
+            setMessage({ type: 'success', text: 'Quiz created successfully!' });
+            setTimeout(() => {
+                // Reset form or redirect
+                window.location.href = '/seller-dashboard';
+            }, 2000);
+        } catch (error) {
+            console.error('Error creating quiz:', error);
+            setMessage({
+                type: 'danger',
+                text: error.response?.data?.message || 'Error creating quiz. Please try again.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleSaveDraft = async () => {
+        setLoading(true);
+        try {
+            await saveDraftQuiz({
+                ...quiz,
+                status: 'DRAFT'
+            });
+            setMessage({ type: 'success', text: 'Quiz draft saved successfully!' });
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            setMessage({
+                type: 'danger',
+                text: error.response?.data?.message || 'Error saving draft. Please try again.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="create-quiz-page">
             <Container fluid="sm">
+                {message.text && (
+                    <Alert variant={message.type} dismissible onClose={() => setMessage({ type: '', text: '' })}>
+                        {message.text}
+                    </Alert>
+                )}
+
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h3 className="fw-bold text-gradient">Create New Quiz</h3>
@@ -116,11 +252,13 @@ function CreateQuiz() {
                         </p>
                     </div>
                     <div className="d-flex gap-2">
-                        <Button variant="outline-light  hover-gradient">
-                            <FaSave className="me-2" /> Save Draft
-                        </Button>
-                        <Button className="btn-gradient">
-                            <FaEye className="me-2" /> Preview
+                        <Button
+                            className="btn-gradient"
+                            onClick={handleSaveDraft}
+                            disabled={loading}
+                        >
+                            {loading ? <Spinner size="sm" className="me-2" /> : <FaSave className="me-2" />}
+                            Save Draft
                         </Button>
                     </div>
                 </div>
@@ -128,7 +266,7 @@ function CreateQuiz() {
                 {step === 1 && (
                     <Row className="g-4">
                         {/* QUIZ DETAILS */}
-                        <Col md={7}>
+                        <Col>
                             <Card className="bg-dark border-0 p-4 shadow-sm">
                                 <h5 className="fw-semibold text-white mb-3">Quiz Details</h5>
 
@@ -157,36 +295,6 @@ function CreateQuiz() {
                                     />
                                 </Form.Group>
 
-                                <Row>
-                                    <Col md={6}>
-                                        <Form.Label className="text-light">Category</Form.Label>
-                                        <Form.Select
-                                            name="category"
-                                            className="bg-dark text-light border-secondary"
-                                            onChange={handleChange}
-                                        >
-                                            <option>Science</option>
-                                            <option>Math</option>
-                                            <option>Language</option>
-                                            <option>History</option>
-                                        </Form.Select>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Label className="text-light">Difficulty</Form.Label>
-                                        <Form.Select
-                                            name="difficulty"
-                                            value={quiz.difficulty}
-                                            onChange={handleChange}
-                                            className="bg-dark text-light border-secondary"
-                                        >
-                                            <option>Easy</option>
-                                            <option>Medium</option>
-                                            <option>Hard</option>
-                                        </Form.Select>
-                                    </Col>
-
-                                </Row>
-
                                 <Form.Group className="mt-3">
                                     <Form.Label className="text-light">Price (₫)</Form.Label>
                                     <InputGroup>
@@ -202,74 +310,31 @@ function CreateQuiz() {
                                         />
                                     </InputGroup>
                                 </Form.Group>
-                            </Card>
-                        </Col>
-
-                        {/* QUIZ SETTINGS */}
-                        <Col md={5}>
-                            <Card className="bg-dark border-0 p-4 shadow-sm">
-                                <h5 className="fw-semibold text-white mb-3">Quiz Settings</h5>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="text-light">
-                                        Time Limit (minutes)
-                                    </Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        name="timeLimit"
-                                        value={quiz.timeLimit}
-                                        onChange={handleChange}
-                                        className="bg-dark text-light border-secondary"
-                                    />
+                                <Form.Group className="mt-3">
+                                    <Form.Label className="text-light">Background Image</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text className="bg-dark border-secondary text-light">
+                                            <FaImage />
+                                        </InputGroup.Text>
+                                        <Form.Control
+                                            type="file"
+                                            name="imageUrl"
+                                            onChange={handleFileChange}
+                                            className="bg-dark text-light border-secondary"
+                                        />
+                                    </InputGroup>
                                 </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="text-light">
-                                        Passing Score (%)
-                                    </Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        name="passingScore"
-                                        value={quiz.passingScore}
-                                        onChange={handleChange}
-                                        className="bg-dark text-light border-secondary"
-                                    />
-                                </Form.Group>
-
-                                <Form.Check
-                                    type="switch"
-                                    label="Randomize Questions"
-                                    checked={quiz.randomizeQuestions}
-                                    onChange={() => handleToggle("randomizeQuestions")}
-                                    className="text-light mb-2"
-                                />
-                                <Form.Check
-                                    type="switch"
-                                    label="Randomize Answers"
-                                    checked={quiz.randomizeAnswers}
-                                    onChange={() => handleToggle("randomizeAnswers")}
-                                    className="text-light mb-2"
-                                />
-                                <Form.Check
-                                    type="switch"
-                                    label="Immediate Results"
-                                    checked={quiz.immediateResults}
-                                    onChange={() => handleToggle("immediateResults")}
-                                    className="text-light mb-2"
-                                />
-                                <Form.Check
-                                    type="switch"
-                                    label="Private Quiz"
-                                    checked={quiz.visibility === "Private"}
-                                    onChange={() =>
-                                        setQuiz({
-                                            ...quiz,
-                                            visibility:
-                                                quiz.visibility === "Public" ? "Private" : "Public",
-                                        })
-                                    }
-                                    className="text-light"
-                                />
+                                {/* image preview */}
+                                {quiz.imageUrl && (
+                                    <div className="mt-3 mx-auto">
+                                        <img
+                                            width={250}
+                                            src={URL.createObjectURL(quiz.imageUrl)}
+                                            alt="Background Preview"
+                                            className="img-fluid rounded"
+                                        />
+                                    </div>
+                                )}
                             </Card>
                         </Col>
                     </Row>
@@ -284,30 +349,7 @@ function CreateQuiz() {
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <h6 className="text-light mb-0">Question {qIndex + 1}</h6>
                                     <div className=" d-flex gap-2">
-                                        <Form.Control
-                                            type="number"
-                                            value={q.points}
-                                            onChange={(e) => {
-                                                const updated = [...quiz.questions];
-                                                updated[qIndex].points = e.target.value;
-                                                setQuiz({ ...quiz, questions: updated });
-                                            }}
-                                            className="bg-dark text-light border-secondary small"
-                                            style={{ width: "80px" }}
-                                        />
-                                        <Form.Select
-                                            value={q.type}
-                                            className="bg-dark text-light border-secondary small"
-                                            onChange={(e) => {
-                                                const updated = [...quiz.questions];
-                                                updated[qIndex].type = e.target.value;
-                                                setQuiz({ ...quiz, questions: updated });
-                                            }}
-                                        >
-                                            <option>Multiple Answers</option>
-                                            <option>Single Choice</option>
-                                            <option>True / False</option>
-                                        </Form.Select>
+
                                         <Button variant="outline-light" onClick={() => removeQuestion(qIndex)}>
                                             <FaTrash />
                                         </Button>
@@ -371,6 +413,7 @@ function CreateQuiz() {
                         <Button
                             variant="outline-light hover-gradient"
                             onClick={() => setStep(step - 1)}
+                            disabled={loading}
                         >
                             <FaArrowLeft className="me-2" /> Prev
                         </Button>
@@ -379,11 +422,20 @@ function CreateQuiz() {
                     )}
 
                     {step < 2 ? (
-                        <Button className="btn-gradient" onClick={() => setStep(step + 1)}>
+                        <Button
+                            className="btn-gradient"
+                            onClick={() => setStep(step + 1)}
+                            disabled={loading}
+                        >
                             Next <FaArrowRight className="ms-2" />
                         </Button>
                     ) : (
-                        <Button className="btn-gradient">
+                        <Button
+                            className="btn-gradient"
+                            onClick={handlePublishQuiz}
+                            disabled={loading}
+                        >
+                            {loading ? <Spinner size="sm" className="me-2" /> : null}
                             Preview & Publish
                         </Button>
                     )}
