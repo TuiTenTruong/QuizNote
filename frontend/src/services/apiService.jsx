@@ -1,10 +1,13 @@
 import Axios from '../utils/axiosCustomize';
-const postCreateNewUser = async (email, password, username, gender) => {
+const postCreateNewUser = async (email, password, username, gender, role = 'STUDENT', bankName = null, bankAccount = null) => {
     const data = {
         email: email,
         password: password,
         name: username,
-        gender: gender
+        gender: gender,
+        role: role,
+        bankName: bankName,
+        bankAccount: bankAccount
     };
     return Axios.post('api/v1/auth/register', data);
 }
@@ -82,9 +85,13 @@ const createQuestion = async (data) => {
 const saveDraftQuiz = async (quizData) => {
     return Axios.post('/api/v1/subjects/draft', quizData);
 }
+const getSubjectBySellerId = async (sellerId, spec, page) => {
+    return Axios.get(`/api/v1/subjects/seller/${sellerId}?spec=${spec}&page=${page}`);
+}
+
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
     getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
-    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz, createQuestion, saveDraftQuiz
+    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz, createQuestion, saveDraftQuiz, getSubjectBySellerId
 };

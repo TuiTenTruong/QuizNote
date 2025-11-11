@@ -110,40 +110,40 @@ function CreateQuiz() {
 
     const validateQuiz = () => {
         if (!quiz.title.trim()) {
-            setMessage({ type: 'danger', text: 'Quiz title is required' });
+            setMessage({ type: 'danger', text: 'Tên môn học không được để trống' });
             return false;
         }
         if (!quiz.description.trim()) {
-            setMessage({ type: 'danger', text: 'Quiz description is required' });
+            setMessage({ type: 'danger', text: 'Mô tả bài kiểm tra không được để trống' });
             return false;
         }
         if (quiz.price < 0) {
-            setMessage({ type: 'danger', text: 'Price must be greater than 0' });
+            setMessage({ type: 'danger', text: 'Giá phải lớn hơn 0' });
             return false;
         }
         if (quiz.questions.length === 0) {
-            setMessage({ type: 'danger', text: 'At least one question is required' });
+            setMessage({ type: 'danger', text: 'Ít nhất một câu hỏi là bắt buộc' });
             return false;
         }
 
         for (let i = 0; i < quiz.questions.length; i++) {
             const q = quiz.questions[i];
             if (!q.text.trim()) {
-                setMessage({ type: 'danger', text: `Question ${i + 1} text is required` });
+                setMessage({ type: 'danger', text: `Nội dung câu hỏi ${i + 1} không được để trống` });
                 return false;
             }
             if (q.answers.length < 2) {
-                setMessage({ type: 'danger', text: `Question ${i + 1} must have at least 2 answers` });
+                setMessage({ type: 'danger', text: `Câu hỏi ${i + 1} phải có ít nhất 2 đáp án` });
                 return false;
             }
             const hasCorrect = q.answers.some(a => a.isCorrect);
             if (!hasCorrect) {
-                setMessage({ type: 'danger', text: `Question ${i + 1} must have at least one correct answer` });
+                setMessage({ type: 'danger', text: `Câu hỏi ${i + 1} phải có ít nhất một đáp án đúng` });
                 return false;
             }
             for (let j = 0; j < q.answers.length; j++) {
                 if (!q.answers[j].text.trim()) {
-                    setMessage({ type: 'danger', text: `Question ${i + 1}, Answer ${j + 1} text is required` });
+                    setMessage({ type: 'danger', text: `Câu hỏi ${i + 1}, Đáp án ${j + 1} không được để trống` });
                     return false;
                 }
             }
@@ -192,6 +192,7 @@ function CreateQuiz() {
                 const questionData = {
                     subjectId: quizId,
                     content: question.text,
+                    explanation: question.explanation || '',
                     options: question.answers.map((answer, index) => ({
                         content: answer.text,
                         isCorrect: answer.isCorrect,
@@ -201,16 +202,16 @@ function CreateQuiz() {
                 await createQuestion(questionData);
             }
 
-            setMessage({ type: 'success', text: 'Quiz created successfully!' });
+            setMessage({ type: 'success', text: 'Tạo bài kiểm tra thành công!' });
             setTimeout(() => {
                 // Reset form or redirect
                 window.location.href = '/seller-dashboard';
             }, 2000);
         } catch (error) {
-            console.error('Error creating quiz:', error);
+            console.error('Lỗi khi tạo bài kiểm tra:', error);
             setMessage({
                 type: 'danger',
-                text: error.response?.data?.message || 'Error creating quiz. Please try again.'
+                text: error.response?.data?.message || 'Tạo bài kiểm tra thất bại. Vui lòng thử lại.'
             });
         } finally {
             setLoading(false);
@@ -223,12 +224,12 @@ function CreateQuiz() {
                 ...quiz,
                 status: 'DRAFT'
             });
-            setMessage({ type: 'success', text: 'Quiz draft saved successfully!' });
+            setMessage({ type: 'success', text: 'Lưu nháp bài kiểm tra thành công!' });
         } catch (error) {
-            console.error('Error saving draft:', error);
+            console.error('Lỗi khi lưu nháp:', error);
             setMessage({
                 type: 'danger',
-                text: error.response?.data?.message || 'Error saving draft. Please try again.'
+                text: error.response?.data?.message || 'Lỗi khi lưu nháp. Vui lòng thử lại.'
             });
         } finally {
             setLoading(false);
@@ -246,9 +247,9 @@ function CreateQuiz() {
 
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h3 className="fw-bold text-gradient">Create New Quiz</h3>
+                        <h3 className="fw-bold text-gradient">Tạo Môn Học Mới</h3>
                         <p className="text-secondary mb-0">
-                            Add questions, set answers and configure quiz settings.
+                            Thêm câu hỏi, đặt đáp án và cấu hình cài đặt bài kiểm tra.
                         </p>
                     </div>
                     <div className="d-flex gap-2">
@@ -258,7 +259,7 @@ function CreateQuiz() {
                             disabled={loading}
                         >
                             {loading ? <Spinner size="sm" className="me-2" /> : <FaSave className="me-2" />}
-                            Save Draft
+                            Lưu Nháp
                         </Button>
                     </div>
                 </div>
@@ -268,14 +269,14 @@ function CreateQuiz() {
                         {/* QUIZ DETAILS */}
                         <Col>
                             <Card className="bg-dark border-0 p-4 shadow-sm">
-                                <h5 className="fw-semibold text-white mb-3">Quiz Details</h5>
+                                <h5 className="fw-semibold text-white mb-3">Chi Tiết</h5>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-light">Quiz Title</Form.Label>
+                                    <Form.Label className="text-light">Tên Môn Học</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="title"
-                                        placeholder="Enter quiz title"
+                                        placeholder="Nhập tên môn học"
                                         value={quiz.title}
                                         onChange={handleChange}
                                         className="bg-dark text-light border-secondary"
@@ -283,12 +284,12 @@ function CreateQuiz() {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-light">Description</Form.Label>
+                                    <Form.Label className="text-light">Mô tả</Form.Label>
                                     <Form.Control
                                         as="textarea"
                                         rows={3}
                                         name="description"
-                                        placeholder="Describe what this quiz covers..."
+                                        placeholder="Mô tả nội dung của môn học này..."
                                         value={quiz.description}
                                         onChange={handleChange}
                                         className="bg-dark text-light border-secondary"
@@ -296,7 +297,7 @@ function CreateQuiz() {
                                 </Form.Group>
 
                                 <Form.Group className="mt-3">
-                                    <Form.Label className="text-light">Price (₫)</Form.Label>
+                                    <Form.Label className="text-light">Giá (₫)</Form.Label>
                                     <InputGroup>
                                         <InputGroup.Text className="bg-dark border-secondary text-light">
                                             <FaDollarSign />
@@ -311,7 +312,7 @@ function CreateQuiz() {
                                     </InputGroup>
                                 </Form.Group>
                                 <Form.Group className="mt-3">
-                                    <Form.Label className="text-light">Background Image</Form.Label>
+                                    <Form.Label className="text-light">Hình Ảnh Nền</Form.Label>
                                     <InputGroup>
                                         <InputGroup.Text className="bg-dark border-secondary text-light">
                                             <FaImage />
@@ -342,12 +343,12 @@ function CreateQuiz() {
 
                 {step === 2 && (
                     <Card className="bg-dark border-0 p-4 shadow-sm">
-                        <h5 className="fw-semibold text-white mb-3">Quiz Questions</h5>
+                        <h5 className="fw-semibold text-white mb-3">Câu Hỏi Môn Học</h5>
 
                         {quiz.questions.map((q, qIndex) => (
                             <Card key={qIndex} className="bg-secondary bg-opacity-10 border-0 p-3 mb-3">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 className="text-light mb-0">Question {qIndex + 1}</h6>
+                                    <h6 className="text-light mb-0">Câu Hỏi {qIndex + 1}</h6>
                                     <div className=" d-flex gap-2">
 
                                         <Button variant="outline-light" onClick={() => removeQuestion(qIndex)}>
@@ -359,7 +360,7 @@ function CreateQuiz() {
 
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter your question here"
+                                    placeholder="Nhập câu hỏi của bạn ở đây"
                                     value={q.text}
                                     onChange={(e) => {
                                         const updated = [...quiz.questions];
@@ -374,11 +375,11 @@ function CreateQuiz() {
                                         key={aIndex}
                                         className={`answer-option p-2 rounded mb-2 ${a.isCorrect ? "correct" : ""
                                             }`}
-                                        onClick={() => toggleCorrect(qIndex, aIndex)}
+                                        onDoubleClick={() => toggleCorrect(qIndex, aIndex)}
                                     >
                                         <Form.Control
                                             type="text"
-                                            placeholder={`Answer option ${aIndex + 1}`}
+                                            placeholder={`Đáp án ${aIndex + 1}`}
                                             value={a.text}
                                             onChange={(e) =>
                                                 handleAnswerChange(qIndex, aIndex, e.target.value)
@@ -387,12 +388,30 @@ function CreateQuiz() {
                                         />
                                     </div>
                                 ))}
+                                {/* // Add explanation textearea */}
+                                <Form.Group className="mt-3">
+                                    <Form.Label className="text-light">Giải thích (Tùy chọn)</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={3}
+                                        name={`explanation-${qIndex}`}
+                                        placeholder="Giải thích đáp án đúng..."
+                                        value={q.explanation || ''}
+                                        onChange={(e) => {
+                                            const updated = [...quiz.questions];
+                                            updated[qIndex].explanation = e.target.value;
+                                            setQuiz({ ...quiz, questions: updated });
+                                        }}
+                                        className="bg-dark text-light border-secondary"
+                                    />
+                                </Form.Group>
+
                                 <Button
                                     variant="outline-light"
                                     className="w-50 py-2 mt-2 mx-auto hover-gradient"
                                     onClick={addAnswer.bind(this, qIndex)}
                                 >
-                                    + Add Option
+                                    + Thêm Đáp Án
                                 </Button>
                             </Card>
                         ))}
@@ -402,7 +421,7 @@ function CreateQuiz() {
                             className="w-100 py-2 mt-2 hover-gradient"
                             onClick={addQuestion}
                         >
-                            + Add Question
+                            + Thêm Câu Hỏi
                         </Button>
                     </Card>
                 )}
@@ -415,7 +434,7 @@ function CreateQuiz() {
                             onClick={() => setStep(step - 1)}
                             disabled={loading}
                         >
-                            <FaArrowLeft className="me-2" /> Prev
+                            <FaArrowLeft className="me-2" /> Trở Lại
                         </Button>
                     ) : (
                         <div />
@@ -427,7 +446,8 @@ function CreateQuiz() {
                             onClick={() => setStep(step + 1)}
                             disabled={loading}
                         >
-                            Next <FaArrowRight className="ms-2" />
+                            Kế Tiếp
+                            <FaArrowRight className="ms-2" />
                         </Button>
                     ) : (
                         <Button
@@ -436,7 +456,7 @@ function CreateQuiz() {
                             disabled={loading}
                         >
                             {loading ? <Spinner size="sm" className="me-2" /> : null}
-                            Preview & Publish
+                            Xét Duyệt
                         </Button>
                     )}
                 </div>

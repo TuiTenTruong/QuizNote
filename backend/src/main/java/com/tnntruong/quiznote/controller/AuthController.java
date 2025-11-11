@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.request.ReqLoginDTO;
+import com.tnntruong.quiznote.dto.request.ReqRegisterDTO;
 import com.tnntruong.quiznote.dto.response.ResLoginDTO;
 import com.tnntruong.quiznote.service.UserService;
 import com.tnntruong.quiznote.util.SecurityUtil;
@@ -105,14 +106,14 @@ public class AuthController {
             @CookieValue(name = "refreshCookie", defaultValue = "abc") String refreshCookie)
             throws InvalidException {
         if (refreshCookie.equals("abc")) {
-            throw new InvalidException("ban khong co refresh token o cookie");
+            throw new InvalidException("Bạn không có token hợp lệ");
         }
         Jwt decodedToken = this.securityUtil.checkValidRefreshToken(refreshCookie);
         String email = decodedToken.getSubject();
 
         User currentUser = this.userService.getUserByRefreshTokenAndEmail(refreshCookie, email);
         if (currentUser == null) {
-            throw new InvalidException("Refresh token khong hop le");
+            throw new InvalidException("Refresh token không hợp lệ");
         }
         ResLoginDTO res = new ResLoginDTO();
         User currentUserDB = this.userService.handleGetUserByUsername(email);
@@ -144,7 +145,7 @@ public class AuthController {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true ? SecurityUtil.getCurrentUserLogin().get()
                 : null;
         if (email.equals("")) {
-            throw new InvalidException("access token khoong hop le");
+            throw new InvalidException("access token không hợp lệ");
         }
 
         this.userService.updateUserToken(null, email);
@@ -160,18 +161,32 @@ public class AuthController {
 
     @PostMapping("/auth/register")
     @ApiMessage("register success")
-    public ResponseEntity<?> register(@Valid @RequestBody User newUser) throws InvalidException {
+    public ResponseEntity<?> register(@Valid @RequestBody ReqRegisterDTO registerDTO) throws InvalidException {
         // check email exist
-        User existingUser = this.userService.handleGetUserByUsername(newUser.getEmail());
+        User existingUser = this.userService.handleGetUserByUsername(registerDTO.getEmail());
         if (existingUser != null) {
-            throw new InvalidException("email da ton tai");
+            throw new InvalidException("Email đã tồn tại");
         }
+
+        // Convert DTO to User entity
+        User newUser = new User();
+        newUser.setName(registerDTO.getName());
+        newUser.setEmail(registerDTO.getEmail());
+        newUser.setGender(registerDTO.getGender());
+
         // ma hoa password
-        String encodedPassword = passwordEncoder.encode(newUser.getPassword());
+        String encodedPassword = passwordEncoder.encode(registerDTO.getPassword());
         newUser.setPassword(encodedPassword);
-        // them role mac dinh
-        newUser.setRole(this.userService.getDefaultRole());
-        this.userService.handleCreateUser(newUser, null);
+
+        // Set role based on registration type
+        if ("SELLER".equalsIgnoreCase(registerDTO.getRole())) {
+            newUser.setRole(this.userService.getRoleByName("SELLER"));
+        } else {
+            newUser.setRole(this.userService.getDefaultRole());
+        }
+
+        // Create user with seller profile if needed
+        this.userService.handleCreateUser(newUser, null, registerDTO.getBankName(), registerDTO.getBankAccount());
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 

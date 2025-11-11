@@ -26,11 +26,8 @@ import axiosInstance from "../../../utils/axiosCustomize";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const categories = ["All", "Math", "Biology", "Language", "History", "Chemistry"];
-
 const StudentQuizDashboard = () => {
     const [activeTab, setActiveTab] = useState("All Quizzes");
-    const [filterCategory, setFilterCategory] = useState("All");
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("Popular");
     const [subjectsData, setSubjectsData] = useState([]);
@@ -74,16 +71,52 @@ const StudentQuizDashboard = () => {
     console.log("My Quizzes in Dashboard:", myQuizzes);
     console.log("Subjects Data in Dashboard:", subjectsData);
 
+    // Filter by search term and active tab
     const filtered = subjectsData
-        .filter(
-            (q) =>
-                (filterCategory === "All" || q.category === filterCategory) &&
-                q.name.toLowerCase().includes(search.toLowerCase())
-        )
+        .filter((subject) => {
+            // Search filter
+            const matchesSearch =
+                subject.name.toLowerCase().includes(search.toLowerCase()) ||
+                subject.description?.toLowerCase().includes(search.toLowerCase()) ||
+                subject.createUser?.username?.toLowerCase().includes(search.toLowerCase());
+
+            // Tab filter
+            let matchesTab = true;
+            if (activeTab === "Free") {
+                matchesTab = subject.price === 0;
+            } else if (activeTab === "Purchased") {
+                matchesTab = hasPurchased(subject.id);
+            } else if (activeTab === "Popular") {
+                matchesTab = (subject.purchaseCount || 0) > 0 || (subject.ratingCount || 0) > 0;
+            }
+            // "All Quizzes" tab shows everything
+
+            return matchesSearch && matchesTab;
+        })
         .sort((a, b) => {
-            if (sortBy === "Popular") return b.ratingCount - a.ratingCount; // Assuming ratingCount can represent popularity
-            if (sortBy === "Rating") return b.averageRating - a.averageRating;
-            if (sortBy === "Newest") return a.name.localeCompare(b.name);
+            if (sortBy === "Popular") {
+                // Sort by purchase count first, then rating count
+                const popularityA = (a.purchaseCount || 0) * 2 + (a.ratingCount || 0);
+                const popularityB = (b.purchaseCount || 0) * 2 + (b.ratingCount || 0);
+                return popularityB - popularityA;
+            }
+            if (sortBy === "Rating") {
+                // Sort by average rating, then by rating count
+                if (b.averageRating !== a.averageRating) {
+                    return (b.averageRating || 0) - (a.averageRating || 0);
+                }
+                return (b.ratingCount || 0) - (a.ratingCount || 0);
+            }
+            if (sortBy === "Newest") {
+                // Sort by creation date (newest first)
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+            if (sortBy === "Price: Low to High") {
+                return (a.price || 0) - (b.price || 0);
+            }
+            if (sortBy === "Price: High to Low") {
+                return (b.price || 0) - (a.price || 0);
+            }
             return 0;
         });
 
@@ -112,29 +145,20 @@ const StudentQuizDashboard = () => {
                     ))}
                 </Carousel>
 
-                {/* CATEGORY TAGS */}
-                <div className="category-scroll mb-4">
-                    {categories.map((cat) => (
-                        <Button
-                            key={cat}
-                            variant={filterCategory === cat ? "gradient-active" : "outline-light"}
-                            className="rounded-pill me-2"
-                            onClick={() => setFilterCategory(cat)}
-                        >
-                            {cat}
-                        </Button>
-                    ))}
-                </div>
-
                 {/* NAV TABS */}
                 <Nav variant="tabs" className="quiz-tabs mb-4">
-                    {["All Quizzes", "Free", "Purchased", "Popular"].map((tab) => (
-                        <Nav.Item key={tab}>
+                    {[
+                        { key: "All Quizzes", label: "Tất cả" },
+                        { key: "Free", label: "Miễn phí" },
+                        { key: "Purchased", label: "Đã mua" },
+                        { key: "Popular", label: "Phổ biến" }
+                    ].map((tab) => (
+                        <Nav.Item key={tab.key}>
                             <Nav.Link
-                                active={activeTab === tab}
-                                onClick={() => setActiveTab(tab)}
+                                active={activeTab === tab.key}
+                                onClick={() => setActiveTab(tab.key)}
                             >
-                                {tab}
+                                {tab.label}
                             </Nav.Link>
                         </Nav.Item>
                     ))}
@@ -148,7 +172,7 @@ const StudentQuizDashboard = () => {
                         </InputGroup.Text>
                         <Form.Control
                             type="text"
-                            placeholder="Search quizzes..."
+                            placeholder="Tìm kiếm môn học theo tên, mô tả hoặc tác giả..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="bg-dark text-light border-secondary"
@@ -157,12 +181,25 @@ const StudentQuizDashboard = () => {
 
                     <Dropdown>
                         <Dropdown.Toggle variant="outline-light">
-                            Sort by: {sortBy}
+                            Sắp xếp: {
+                                sortBy === "Popular" ? "Phổ biến" :
+                                    sortBy === "Rating" ? "Đánh giá cao" :
+                                        sortBy === "Newest" ? "Mới nhất" :
+                                            sortBy === "Price: Low to High" ? "Giá: Thấp → Cao" :
+                                                sortBy === "Price: High to Low" ? "Giá: Cao → Thấp" :
+                                                    sortBy
+                            }
                         </Dropdown.Toggle>
                         <Dropdown.Menu variant="dark">
-                            {["Popular", "Rating", "Newest"].map((s) => (
-                                <Dropdown.Item key={s} onClick={() => setSortBy(s)}>
-                                    {s}
+                            {[
+                                { key: "Popular", label: "Phổ biến" },
+                                { key: "Rating", label: "Đánh giá cao" },
+                                { key: "Newest", label: "Mới nhất" },
+                                { key: "Price: Low to High", label: "Giá: Thấp → Cao" },
+                                { key: "Price: High to Low", label: "Giá: Cao → Thấp" }
+                            ].map((s) => (
+                                <Dropdown.Item key={s.key} onClick={() => setSortBy(s.key)}>
+                                    {s.label}
                                 </Dropdown.Item>
                             ))}
                         </Dropdown.Menu>
@@ -231,7 +268,7 @@ const StudentQuizDashboard = () => {
 
                     {filtered.length === 0 && (
                         <p className="text-center text-secondary mt-5">
-                            No quizzes found matching your filters.
+                            Không tìm thấy môn học nào phù hợp với bộ lọc của bạn.
                         </p>
                     )}
                 </Row>

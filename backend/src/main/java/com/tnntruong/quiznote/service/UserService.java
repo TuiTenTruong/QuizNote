@@ -11,11 +11,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Role;
+import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.user.ResCreateUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResGetUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResUpdateUserDTO;
+import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
@@ -24,12 +26,15 @@ import com.tnntruong.quiznote.util.error.InvalidException;
 public class UserService {
     private UserRepository userRepository;
     private RoleService roleService;
+    private SellerProfileRepository sellerProfileRepository;
     @Value("${quiznote.upload-file.base-uri}")
     private String baseURI;
 
-    public UserService(UserRepository userRepository, RoleService roleService) {
+    public UserService(UserRepository userRepository, RoleService roleService,
+            SellerProfileRepository sellerProfileRepository) {
         this.userRepository = userRepository;
         this.roleService = roleService;
+        this.sellerProfileRepository = sellerProfileRepository;
     }
 
     public boolean isEmailExist(String email) {
@@ -37,6 +42,10 @@ public class UserService {
     }
 
     public ResCreateUserDTO handleCreateUser(User user, String fileUrl) {
+        return handleCreateUser(user, fileUrl, null, null);
+    }
+
+    public ResCreateUserDTO handleCreateUser(User user, String fileUrl, String bankName, String bankAccount) {
         if (user.getRole() != null) {
             Optional<Role> role = this.roleService.findById(user.getRole().getId());
             user.setRole(role.isPresent() ? role.get() : null);
@@ -45,6 +54,19 @@ public class UserService {
             user.setAvatarUrl(baseURI + "/users/" + fileUrl);
         }
         User savedUser = this.userRepository.save(user);
+
+        // Create seller profile if user is a seller
+        if (savedUser.getRole() != null && "SELLER".equalsIgnoreCase(savedUser.getRole().getName())) {
+            SellerProfile sellerProfile = new SellerProfile();
+            sellerProfile.setUser(savedUser);
+            sellerProfile.setBankName(bankName != null ? bankName : "");
+            sellerProfile.setBankAccount(bankAccount != null ? bankAccount : "");
+            sellerProfile.setTotalRevenue(0L);
+            sellerProfile.setPendingBalance(0L);
+            sellerProfile.setAvailableBalance(0L);
+            sellerProfileRepository.save(sellerProfile);
+        }
+
         ResCreateUserDTO res = new ResCreateUserDTO();
         res.setId(savedUser.getId());
         res.setName(savedUser.getName());
@@ -172,6 +194,10 @@ public class UserService {
 
     public Role getDefaultRole() {
         return this.roleService.findById(2).orElseThrow(() -> new RuntimeException("Default USER role not found"));
+    }
+
+    public Role getRoleByName(String name) {
+        return this.roleService.findByName(name);
     }
 
     public User handleGetCurrentUser() {

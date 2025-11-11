@@ -1,6 +1,7 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap";
-import { FaClock, FaBookOpen, FaTrophy, FaBrain, FaUser } from "react-icons/fa";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { FaClock, FaBookOpen, FaTrophy, FaBrain } from "react-icons/fa";
+import { CiCircleQuestion } from "react-icons/ci";
 import "./QuizModeSelect.scss";
 import { useEffect, useState } from "react";
 import { getQuizDetail } from "../../../services/apiService";
@@ -71,21 +72,10 @@ const QuizModeSelect = () => {
                                     />
                                 </Col>
                                 <Col xs={12} md={8}>
-                                    <h4 className="fw-bold text-gradient mb-2">{quiz.title}</h4>
+                                    <h4 className="fw-bold text-gradient mb-2">{quiz.name}</h4>
                                     <p className="text-secondary small mb-3">
                                         {quiz.createUser?.username ? quiz.createUser.username : quiz.username} • {quiz.questionCount} câu hỏi
                                     </p>
-                                    <div className="d-flex flex-wrap gap-3 text-white-50 small">
-                                        <span>
-                                            <FaUser className="me-1" /> Lần làm: {quiz.attempts}
-                                        </span>
-                                        <span>
-                                            <FaTrophy className="me-1" /> Điểm cao nhất:{" "}
-                                            <span className="text-success fw-semibold">
-                                                {quiz.topScore}%
-                                            </span>
-                                        </span>
-                                    </div>
                                 </Col>
                             </Row>
                         </Card>
@@ -146,6 +136,8 @@ const QuizModeSelect = () => {
                                         <Form.Group controlId="formNumberOfQuestions" className="mb-3">
                                             <Form.Label>Số câu hỏi</Form.Label>
                                             <Form.Control className="bg-dark text-white"
+                                                min={1}
+                                                max={quiz.questionCount}
                                                 type="number"
                                                 placeholder="Nhập số câu hỏi"
                                                 value={quiz.numberOfQuestions > quiz.questions ? quiz.questions : quiz.numberOfQuestions}

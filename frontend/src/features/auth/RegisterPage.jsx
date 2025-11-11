@@ -17,6 +17,9 @@ const RegisterPage = () => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [type, setType] = useState('password');
+    const [role, setRole] = useState('STUDENT'); // STUDENT or SELLER
+    const [bankName, setBankName] = useState("");
+    const [bankAccount, setBankAccount] = useState("");
     const navigate = useNavigate()
     const handleToggle = () => {
         if (type === 'password') {
@@ -29,22 +32,30 @@ const RegisterPage = () => {
         e.preventDefault();
         // validate
         if (!name || !gender || !email || !password || !confirmPassword) {
-            toast.error("Please fill in all fields.");
+            toast.error("Hãy điền đầy đủ thông tin.");
             return;
         }
         if (password !== confirmPassword) {
-            toast.error("Passwords do not match.");
+            toast.error("Mật khẩu không khớp.");
             return;
         }
 
-        let res = await postCreateNewUser(email, password, name, gender);
+        // Validate seller fields
+        if (role === 'SELLER') {
+            if (!bankName || !bankAccount) {
+                toast.error("Hãy điền đầy đủ thông tin ngân hàng cho tài khoản người bán.");
+                return;
+            }
+        }
+
+        let res = await postCreateNewUser(email, password, name, gender, role, bankName, bankAccount);
         console.log(res);
         if (res.data && (res.statusCode === 200 || res.statusCode === 201)) {
 
             toast.success(res.data.message);
             navigate("/login");
         } else {
-            toast.error(res.data.message);
+            toast.error(res.message);
         }
     }
 
@@ -64,22 +75,31 @@ const RegisterPage = () => {
                     {/* RIGHT SIDE */}
                     <Col xs={12} md={6} className="register-right d-flex align-items-center justify-content-center">
                         <div className="form-box p-4 p-sm-5 rounded-4 shadow">
-                            <h3 className="fw-bold mb-2">Create Account</h3>
+                            <h3 className="fw-bold mb-2">Đăng kí tài khoản</h3>
                             <p className="text-muted mb-4">
-                                Choose your account type and start your journey with us
+                                Chọn loại tài khoản của bạn và bắt đầu hành trình với chúng tôi
                             </p>
 
                             {/* ROLE SELECTION */}
                             <div className="d-flex gap-3 mb-4 flex-column flex-sm-row">
-                                <div className="role-card active flex-fill text-center p-3 rounded-3">
+                                <div
+                                    className={`role-card ${role === 'STUDENT' ? 'active' : ''} flex-fill text-center p-3 rounded-3 w-50`}
+                                    onClick={() => setRole('STUDENT')}
+                                    style={{ cursor: 'pointer' }}
+
+                                >
                                     <FaGraduationCap className="fs-4 mb-2" />
                                     <p className="fw-semibold mb-0">Student</p>
-                                    <small className="text-muted">Take quizzes and track progress</small>
+                                    <small className="text-muted">Tham gia các bài kiểm tra và theo dõi tiến trình</small>
                                 </div>
-                                <div className="role-card flex-fill text-center p-3 rounded-3">
+                                <div
+                                    className={`role-card ${role === 'SELLER' ? 'active' : ''} flex-fill text-center p-3 rounded-3 w-50`}
+                                    onClick={() => setRole('SELLER')}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <FaChalkboardTeacher className="fs-4 mb-2" />
-                                    <p className="fw-semibold mb-0">Teacher</p>
-                                    <small className="text-muted">Create and manage quizzes</small>
+                                    <p className="fw-semibold mb-0">Seller</p>
+                                    <small className="text-muted">Tạo và bán các bài kiểm tra</small>
                                 </div>
                             </div>
 
@@ -107,10 +127,10 @@ const RegisterPage = () => {
                                     <Col xs={12} sm={6}>
                                         <Form.Group controlId="gender">
                                             <Form.Control type="select" as="select" value={gender} onChange={(e) => setGender(e.target.value)}>
-                                                <option value="" disabled>Select Gender</option>
-                                                <option value="MALE">Male</option>
-                                                <option value="FEMALE">Female</option>
-                                                <option value="OTHER">Other</option>
+                                                <option value="" disabled>Giới tính</option>
+                                                <option value="MALE">Nam</option>
+                                                <option value="FEMALE">Nữ</option>
+                                                <option value="OTHER">Khác</option>
                                             </Form.Control>
                                         </Form.Group>
                                     </Col>
@@ -121,7 +141,7 @@ const RegisterPage = () => {
                                     </Col>
                                     <Col xs={12}>
                                         <Form.Group controlId="password" className="position-relative">
-                                            <Form.Control type={type} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                            <Form.Control type={type} placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} />
                                             <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
                                                 {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
                                             </span>
@@ -129,12 +149,38 @@ const RegisterPage = () => {
                                     </Col>
                                     <Col xs={12}>
                                         <Form.Group controlId="confirmPassword" className="position-relative">
-                                            <Form.Control type={type} placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                                            <Form.Control type={type} placeholder="Xác nhận lại mật khẩu" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                                             <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
                                                 {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
                                             </span>
                                         </Form.Group>
                                     </Col>
+
+                                    {/* SELLER BANK INFO */}
+                                    {role === 'SELLER' && (
+                                        <>
+                                            <Col xs={12}>
+                                                <Form.Group controlId="bankName">
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="Tên ngân hàng (ví dụ: Vietcombank, BIDV)"
+                                                        value={bankName}
+                                                        onChange={(e) => setBankName(e.target.value)}
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col xs={12}>
+                                                <Form.Group controlId="bankAccount">
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="Số tài khoản ngân hàng"
+                                                        value={bankAccount}
+                                                        onChange={(e) => setBankAccount(e.target.value)}
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </>
+                                    )}
                                 </Row>
 
                                 <Button
@@ -142,14 +188,14 @@ const RegisterPage = () => {
                                     className="w-100 mt-4 btn-gradient fw-semibold py-2"
                                     type="submit"
                                 >
-                                    Sign Up
+                                    Đăng ký
                                 </Button>
                             </Form>
 
                             <p className="text-center mt-4 text-muted">
-                                Already have an account?{" "}
+                                Bạn đã có tài khoản?{" "}
                                 <a href="/login" className="text-gradient fw-semibold text-decoration-none">
-                                    Sign In
+                                    Đăng nhập
                                 </a>
                             </p>
                         </div>

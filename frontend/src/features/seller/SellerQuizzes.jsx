@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Container,
     Row,
@@ -6,6 +6,7 @@ import {
     Card,
     Button,
     Badge,
+    Pagination,
     Dropdown,
     Form,
 } from "react-bootstrap";
@@ -17,49 +18,49 @@ import {
 } from "react-icons/fa";
 import "./SellerQuizzes.scss";
 import { FaEllipsisV } from "react-icons/fa";
-
-const quizList = [
-    {
-        title: "Introduction to Biology",
-        desc: "Basic concepts of biology for beginners",
-        questions: 15,
-        duration: "20 min",
-        completions: 32,
-        status: "Published",
-        category: "Biology",
-        createdAt: "Just now",
-    },
-    {
-        title: "Advanced Mathematics",
-        desc: "Algebra and calculus problems for university level",
-        questions: 20,
-        duration: "30 min",
-        completions: 58,
-        status: "Published",
-        category: "Math",
-        createdAt: "2 days ago",
-    },
-    {
-        title: "Chemistry Fundamentals",
-        desc: "Learn basic chemical reactions and formulas",
-        questions: 18,
-        duration: "25 min",
-        completions: 12,
-        status: "Draft",
-        category: "Chemistry",
-        createdAt: "5 days ago",
-    },
-];
-
-function SellerQuizzes() {
+import { useSelector } from "react-redux";
+import { getSubjectBySellerId } from "../../services/apiService";
+const SellerQuizzes = () => {
+    const [quizList, setQuizList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filter, setFilter] = useState("All");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch] = useState("");
+    const seller = useSelector(state => state.user.account);
 
+    useEffect(() => {
+        const fetchQuizzes = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await getSubjectBySellerId(seller.id, currentPage);
+                setQuizList(response.data.result);
+                setTotalPages(response.data.meta.pages);
+            } catch (err) {
+                setError(err.response?.data?.message || "Failed to load quizzes.");
+                setQuizList([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (seller?.id) {
+            fetchQuizzes();
+        }
+    }, [seller?.id, currentPage, search, filter]);
     const filteredQuizzes = quizList.filter(
         (quiz) =>
             (filter === "All" || quiz.status === filter) &&
-            quiz.title.toLowerCase().includes(search.toLowerCase())
+            quiz.name.toLowerCase().includes(search.toLowerCase())
     );
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+        setCurrentPage(1); // Reset to first page on filter change
+    };
+
+    const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div className="seller-quizzes">
@@ -77,8 +78,8 @@ function SellerQuizzes() {
                         <Button
                             key={tab}
                             variant={filter === tab ? "gradient-active" : "outline-light"}
-                            className="flex-fill"
-                            onClick={() => setFilter(tab)}
+                            className="flex-fill text-capitalize"
+                            onClick={() => handleFilterChange(tab)}
                         >
                             {tab}
                         </Button>
@@ -113,7 +114,15 @@ function SellerQuizzes() {
 
             {/* QUIZ LIST */}
             <Row className="g-3">
-                {filteredQuizzes.map((quiz, i) => (
+                {loading && (
+                    <p className="text-center text-secondary mt-4">Loading quizzes...</p>
+                )}
+
+                {error && (
+                    <p className="text-center text-danger mt-4">Error: {error}</p>
+                )}
+
+                {!loading && quizList.map((quiz, i) => (
                     <Col xs={12} key={i}>
                         <Card className="quiz-item bg-dark border-light p-3 p-sm-4">
                             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
@@ -124,18 +133,18 @@ function SellerQuizzes() {
                                     </div>
                                     <div className="quiz-info flex-grow-1">
                                         <h6 className="fw-semibold mb-1 text-white">
-                                            {quiz.title}
+                                            {quiz.name}
                                         </h6>
-                                        <p className="text-secondary small mb-2">{quiz.desc}</p>
+                                        <p className="text-secondary small mb-2">{quiz.description}</p>
                                         <div className="quiz-meta d-flex flex-wrap gap-3 small text-white-50">
                                             <span>
-                                                <FaUser className="me-1" /> {quiz.completions} users
+                                                <FaUser className="me-1" /> {quiz.completions || 0} users
                                             </span>
                                             <span>
-                                                <FaClock className="me-1" /> {quiz.duration}
+                                                <FaClock className="me-1" /> {quiz.duration || 'N/A'}
                                             </span>
-                                            <span>{quiz.questions} questions</span>
-                                            <span>{quiz.createdAt}</span>
+                                            <span>{quiz.questionCount || 0} questions</span>
+                                            <span>{new Date(quiz.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -143,14 +152,14 @@ function SellerQuizzes() {
                                 {/* RIGHT */}
                                 <div className="quiz-actions d-flex justify-content-end align-items-center gap-1">
                                     <Badge className="m-0 p-2"
-                                        bg={
-                                            quiz.status === "Published" ? "success" : "warning"
-                                        }
+                                        bg={quiz.status === "ACTIVE" ? "success"
+                                            : quiz.status === "PENDING" ? "warning"
+                                                : "secondary"}
                                         text={
-                                            quiz.status === "Published" ? "light" : "dark"
+                                            quiz.status === "PENDING" ? "dark" : "light"
                                         }
                                     >
-                                        {quiz.status}
+                                        {quiz.status?.toLowerCase()}
                                     </Badge>
                                     <Button
                                         size="sm"
@@ -181,12 +190,34 @@ function SellerQuizzes() {
                     </Col>
                 ))}
 
-                {filteredQuizzes.length === 0 && (
+                {!loading && !error && quizList.length === 0 && (
                     <p className="text-center text-secondary mt-4">
                         No quizzes found for this filter.
                     </p>
                 )}
             </Row>
+
+            {/* PAGINATION */}
+            {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-4">
+                    <Pagination>
+                        <Pagination.Prev
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        />
+                        {[...Array(totalPages).keys()].map((page) => (
+                            <Pagination.Item
+                                key={page + 1}
+                                active={page + 1 === currentPage}
+                                onClick={() => handlePageChange(page + 1)}
+                            >
+                                {page + 1}
+                            </Pagination.Item>
+                        ))}
+                        <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                    </Pagination>
+                </div>
+            )}
         </div>
     );
 }

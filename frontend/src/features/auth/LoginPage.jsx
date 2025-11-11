@@ -28,7 +28,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email || !password) {
-            toast.error("Please fill in all fields.");
+            toast.error("Hãy điền đầy đủ thông tin!");
             return;
         }
         const response = await postLogin(email, password);
@@ -38,7 +38,7 @@ const LoginPage = () => {
             toast.success("Login successful!");
             navigate("/");
         } else {
-            toast.error("Login failed. Please check your credentials.");
+            toast.error("Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập của bạn.");
         }
     }
     return (
@@ -56,9 +56,9 @@ const LoginPage = () => {
                     {/* RIGHT SIDE */}
                     <Col xs={12} md={6} className="login-right d-flex align-items-center justify-content-center">
                         <div className="form-box p-4 p-sm-5 rounded-4 shadow">
-                            <h3 className="fw-bold mb-2">Welcome back</h3>
+                            <h3 className="fw-bold mb-2">Chào mừng bạn trở lại</h3>
                             <p className="text-muted mb-4">
-                                Enter your credentials to access your account
+                                Nhập thông tin xác thực của bạn để truy cập tài khoản
                             </p>
 
                             {/* SOCIAL LOGIN */}
@@ -71,7 +71,7 @@ const LoginPage = () => {
                                 </Button>
                             </div>
 
-                            <div className="text-center text-muted mb-3">OR</div>
+                            <div className="text-center text-muted mb-3">HOẶC</div>
 
                             {/* FORM */}
                             <Form onSubmit={handleSubmit}>
@@ -83,7 +83,7 @@ const LoginPage = () => {
                                     </Col>
                                     <Col xs={12}>
                                         <Form.Group controlId="password" className="position-relative">
-                                            <Form.Control type={type} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                            <Form.Control type={type} placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} />
                                             <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
                                                 {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
                                             </span>
@@ -96,14 +96,14 @@ const LoginPage = () => {
                                     className="w-100 mt-4 btn-gradient fw-semibold py-2"
                                     type="submit"
                                 >
-                                    Sign In
+                                    Đăng nhập
                                 </Button>
                             </Form>
 
                             <p className="text-center mt-4 text-muted">
-                                Don’t have an account?{" "}
+                                Bạn chưa có tài khoản?{" "}
                                 <a href="/register" className="text-gradient fw-semibold text-decoration-none">
-                                    Sign Up
+                                    Đăng ký
                                 </a>
                             </p>
                         </div>

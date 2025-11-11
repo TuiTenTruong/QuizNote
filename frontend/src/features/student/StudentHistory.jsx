@@ -64,7 +64,7 @@ const StudentHistory = () => {
     const filtered = historyData.filter((h) => {
         const statusText = getStatusText(h.status);
         const matchesFilter = filter === "Tất cả" || statusText === filter;
-        const quizTitle = h.quiz?.title || h.title || "";
+        const quizTitle = h.currentSubject?.name || h.name || "";
         const matchesSearch = quizTitle.toLowerCase().includes(search.toLowerCase());
         return matchesFilter && matchesSearch;
     });
@@ -91,7 +91,7 @@ const StudentHistory = () => {
     return (
         <div fluid className="student-history py-4">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <h4 className="fw-bold text-light m-0">Lịch sử học tập</h4>
+                <h4 className="fw-bold m-0 text-gradient">Lịch sử học tập</h4>
 
                 <div className="d-flex gap-3 ">
                     <Form.Control

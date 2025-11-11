@@ -110,7 +110,7 @@ const StudentQuizHistoryDetail = () => {
                             <p className="mb-1 text-white">Kết quả</p>
                             <p>
                                 <span className={score >= 5 ? "text-success" : "text-danger"}>
-                                    {correctCount}/{totalQuestions} câu đúng ({score}%)
+                                    {correctCount}/{totalQuestions} câu đúng ({score}đ)
                                 </span>
                             </p>
                         </Col>
