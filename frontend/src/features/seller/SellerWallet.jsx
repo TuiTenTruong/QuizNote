@@ -1,37 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Row, Col, Card, Button, Badge, Form, Table } from "react-bootstrap";
 import { FaWallet, FaArrowUp, FaMoneyBillWave, FaCheckCircle, FaClock, FaTimesCircle } from "react-icons/fa";
 import "./SellerWallet.scss";
-
-const withdrawals = [
-    {
-        id: "#WD-101",
-        date: "2025-10-15",
-        amount: 250000,
-        method: "Bank Transfer",
-        status: "Completed",
-    },
-    {
-        id: "#WD-102",
-        date: "2025-10-10",
-        amount: 150000,
-        method: "Momo Wallet",
-        status: "Pending",
-    },
-    {
-        id: "#WD-103",
-        date: "2025-09-29",
-        amount: 200000,
-        method: "Bank Transfer",
-        status: "Failed",
-    },
-];
-
+import { getWalletofSeller } from "../../services/apiService";
+import { useSelector } from "react-redux";
+import { GiReceiveMoney } from "react-icons/gi";
+import { withdrawFromSellerWallet } from "../../services/apiService";
 function SellerWallet() {
     const [balance] = useState(1320000);
     const [inputAmount, setInputAmount] = useState("");
-    const [method, setMethod] = useState("Bank Transfer");
+    const [withdrawals, setWithdrawals] = useState([]);
+    const seller = useSelector((state) => state.user.account);
+    const fetchWithdrawals = async () => {
+        const response = await getWalletofSeller(seller.id);
+        setWithdrawals(response.data);
+    };
+    useEffect(() => {
 
+        fetchWithdrawals();
+    }, [seller.id]);
+
+    const withdraw = async (sellerId, amount) => {
+        try {
+            const response = await withdrawFromSellerWallet(sellerId, amount);
+            setWithdrawals(response.data);
+            await fetchWithdrawals();
+        } catch (error) {
+            console.log(error);
+        }
+    };
     return (
         <div className="seller-wallet">
             <div fluid="sm">
@@ -42,26 +39,36 @@ function SellerWallet() {
 
                 {/* SUMMARY CARDS */}
                 <Row className="g-3 mb-4">
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={3}>
                         <Card className="wallet-card p-4 text-center bg-dark border-0 shadow-sm">
-                            <FaWallet className="icon text-gradient mb-2" />
+                            <GiReceiveMoney className="icon text-warning mb-2" />
                             <h5 className="fw-bold text-white mb-1">
-                                {balance.toLocaleString("vi-VN")} ₫
+                                {withdrawals?.totalEarnings?.toLocaleString("vi-VN")} ₫
+                            </h5>
+                            <p className="text-secondary small mb-0">Total Balance</p>
+                        </Card>
+                    </Col>
+
+                    <Col xs={12} md={3}>
+                        <Card className="wallet-card p-4 text-center bg-dark border-0 shadow-sm">
+                            <FaMoneyBillWave className="icon text-success mb-2" />
+                            <h5 className="fw-bold text-white mb-1">{withdrawals?.earnThisMonth?.toLocaleString("vi-VN")} ₫</h5>
+                            <p className="text-secondary small mb-0">Earnings This Month</p>
+                        </Card>
+                    </Col>
+                    <Col xs={12} md={3}>
+                        <Card className="wallet-card p-4 text-center bg-dark border-0 shadow-sm">
+                            <FaWallet className="icon text-info mb-2" />
+                            <h5 className="fw-bold text-white mb-1">
+                                {withdrawals?.availableBalance?.toLocaleString("vi-VN")} ₫
                             </h5>
                             <p className="text-secondary small mb-0">Available Balance</p>
                         </Card>
                     </Col>
-                    <Col xs={12} md={4}>
-                        <Card className="wallet-card p-4 text-center bg-dark border-0 shadow-sm">
-                            <FaMoneyBillWave className="icon text-success mb-2" />
-                            <h5 className="fw-bold text-white mb-1">420,000 ₫</h5>
-                            <p className="text-secondary small mb-0">Earnings This Month</p>
-                        </Card>
-                    </Col>
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={3}>
                         <Card className="wallet-card p-4 text-center bg-dark border-0 shadow-sm">
                             <FaClock className="icon text-warning mb-2" />
-                            <h5 className="fw-bold text-white mb-1">150,000 ₫</h5>
+                            <h5 className="fw-bold text-white mb-1">{withdrawals?.pendingBalance?.toLocaleString("vi-VN")} ₫</h5>
                             <p className="text-secondary small mb-0">Pending Payouts</p>
                         </Card>
                     </Col>
@@ -71,36 +78,23 @@ function SellerWallet() {
                 <Card className="bg-dark border-0 p-4 mb-4 shadow-sm">
                     <h5 className="fw-semibold text-white mb-3">Request Withdrawal</h5>
                     <Form className="row g-3 align-items-end">
-                        <Col xs={12} md={6}>
+                        <Col xs={12} md={10}>
                             <Form.Group>
                                 <Form.Label className="text-light">Amount (₫)</Form.Label>
                                 <Form.Control
                                     type="number"
+                                    min={0}
+                                    max={withdrawals?.availableBalance}
                                     placeholder="Enter amount to withdraw"
                                     value={inputAmount}
-                                    onChange={(e) => setInputAmount(e.target.value)}
+                                    onChange={(e) => setInputAmount(e.target.value > withdrawals?.availableBalance ? withdrawals?.availableBalance : e.target.value)}
                                     className="bg-dark text-light border-secondary"
                                 />
                             </Form.Group>
                         </Col>
 
-                        <Col xs={12} md={4}>
-                            <Form.Group>
-                                <Form.Label className="text-light">Method</Form.Label>
-                                <Form.Select
-                                    value={method}
-                                    onChange={(e) => setMethod(e.target.value)}
-                                    className="bg-dark text-light border-secondary"
-                                >
-                                    <option>Bank Transfer</option>
-                                    <option>Momo Wallet</option>
-                                    <option>ZaloPay</option>
-                                </Form.Select>
-                            </Form.Group>
-                        </Col>
-
                         <Col xs={12} md={2} className="d-grid">
-                            <Button className="btn-gradient py-2 fw-semibold">
+                            <Button className="btn-gradient py-2 fw-semibold" onClick={() => withdraw(seller.id, inputAmount)}>
                                 <FaArrowUp className="me-2" /> Withdraw
                             </Button>
                         </Col>
@@ -108,7 +102,7 @@ function SellerWallet() {
                 </Card>
 
                 {/* WITHDRAWAL HISTORY */}
-                <Card className="bg-dark border-0 p-4 shadow-sm">
+                {withdrawals.withdrawHistories != [] && withdrawals.withdrawHistories !== undefined ? <Card className="bg-dark border-0 p-4 shadow-sm">
                     <h5 className="fw-semibold text-white mb-3">Withdrawal History</h5>
                     <div className="table-responsive">
                         <Table hover borderless variant="dark" className="align-middle">
@@ -117,17 +111,16 @@ function SellerWallet() {
                                     <th>ID</th>
                                     <th>Date</th>
                                     <th>Amount</th>
-                                    <th>Method</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {withdrawals.map((wd) => (
+                                {withdrawals.withdrawHistories.map((wd) => (
                                     <tr key={wd.id}>
                                         <td>{wd.id}</td>
-                                        <td>{wd.date}</td>
+                                        <td>{new Date(wd.requestedAt).toLocaleDateString("vi-VN")}</td>
                                         <td>{wd.amount.toLocaleString("vi-VN")} ₫</td>
-                                        <td>{wd.method}</td>
+
                                         <td>
                                             <Badge
                                                 bg={
@@ -156,7 +149,10 @@ function SellerWallet() {
                             </tbody>
                         </Table>
                     </div>
-                </Card>
+                </Card> : <>
+                    <div>Bạn chưa có lịch sử rút tiền</div>
+                </>}
+
             </div>
         </div>
     );

@@ -53,15 +53,6 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     </Nav.Item>
                     <Nav.Item>
                         <NavLink
-                            to="/seller/analytics"
-                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
-                        >
-                            <FaChartLine className="me-2" /> <span>Analytics</span>
-                        </NavLink>
-                    </Nav.Item>
-                    <Nav.Item>
-                        <NavLink
                             to="/seller/wallet"
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}

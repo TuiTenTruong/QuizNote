@@ -64,8 +64,8 @@ const SellerDashboard = () => {
         },
         {
             icon: <FaShoppingCart className="text-primary" />,
-            value: sellerAnalytics?.totalSales || 0,
-            label: "Total Sales",
+            value: sellerAnalytics?.totalSubjects || 0,
+            label: "Total Subjects",
         },
         {
             icon: <FaStar className="text-warning" />,

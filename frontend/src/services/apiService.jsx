@@ -88,10 +88,60 @@ const saveDraftQuiz = async (quizData) => {
 const getSubjectBySellerId = async (sellerId, spec, page) => {
     return Axios.get(`/api/v1/subjects/seller/${sellerId}?spec=${spec}&page=${page}`);
 }
+const getOrderOfSeller = async (sellerId, page, size) => {
+    return Axios.get(`/api/v1/orders/seller/${sellerId}?page=${page}&size=${size}`);
+}
+const getWalletofSeller = async (sellerId) => {
+    return Axios.get(`/api/v1/seller/getWallet/${sellerId}`);
+}
+const withdrawFromSellerWallet = async (sellerId, amount) => {
+    const data = {
+        sellerId: sellerId,
+        amount: amount
+    };
+    return Axios.post(`/api/v1/withdraw`, data);
+}
+
+// Settings API
+const getCurrentUser = async () => {
+    return Axios.get('/api/v1/users/me');
+}
+
+const updateUserProfile = async (profileData) => {
+    return Axios.put('/api/v1/users/profile', profileData);
+}
+
+const changePassword = async (currentPassword, newPassword) => {
+    const data = {
+        currentPassword: currentPassword,
+        newPassword: newPassword
+    };
+    return Axios.post('/api/v1/users/change-password', data);
+}
+
+const updateUserPreferences = async (preferences) => {
+    return Axios.put('/api/v1/users/preferences', preferences);
+}
+
+const uploadAvatar = async (email, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return Axios.post(`/api/v1/users/${email}/avatar`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+
+const deleteUserAccount = async (userId) => {
+    return Axios.delete(`/api/v1/users/${userId}`);
+}
 
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
     getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
-    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz, createQuestion, saveDraftQuiz, getSubjectBySellerId
+    getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz,
+    createQuestion, saveDraftQuiz, getSubjectBySellerId, getOrderOfSeller, getWalletofSeller, withdrawFromSellerWallet,
+    getCurrentUser, updateUserProfile, changePassword, updateUserPreferences, uploadAvatar, deleteUserAccount
 };
