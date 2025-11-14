@@ -20,6 +20,12 @@ public class ResGetUserDTO {
     private String address;
     private int age;
     private String avatarUrl;
+    private String bio;
+
+    // User preferences
+    private String theme;
+    private String accentColor;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GTM + 7")
     private Instant createdAt;
     private String createdBy;

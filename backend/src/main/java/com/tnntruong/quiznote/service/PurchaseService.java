@@ -31,7 +31,8 @@ public class PurchaseService {
     }
 
     public ResPurchaseDTO handleCreatePurchase(ReqCreatePurchaseDTO dto) throws InvalidException {
-        System.out.println("📦 Creating purchase - StudentId: " + dto.getStudentId() + ", SubjectId: " + dto.getSubjectId());
+        System.out.println(
+                "📦 Creating purchase - StudentId: " + dto.getStudentId() + ", SubjectId: " + dto.getSubjectId());
 
         User student = userRepository.findById(dto.getStudentId())
                 .orElseThrow(() -> {
@@ -45,6 +46,11 @@ public class PurchaseService {
                     return new InvalidException("Subject not found");
                 });
 
+        User seller = userRepository.findById(dto.getSellerId())
+                .orElseThrow(() -> {
+                    System.err.println("❌ Seller not found with id: " + dto.getSellerId());
+                    return new InvalidException("Seller not found");
+                });
         if (purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
             System.out.println("⚠️ User already purchased this subject");
             throw new InvalidException("User already purchased this subject");
@@ -53,6 +59,7 @@ public class PurchaseService {
         Purchase purchase = new Purchase();
         purchase.setStudent(student);
         purchase.setSubject(subject);
+        purchase.setSeller(seller);
 
         // Xử lý null cho purchaseCount
         Integer currentCount = subject.getPurchaseCount();

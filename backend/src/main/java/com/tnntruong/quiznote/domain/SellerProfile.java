@@ -23,9 +23,10 @@ public class SellerProfile {
     private String bankAccount;
     private Long totalRevenue = 0L;
     private Long pendingBalance = 0L;
+    private Long pendingWithdraw = 0L;
     private Long availableBalance = 0L;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user;
+    @JoinColumn(name = "seller_id", referencedColumnName = "id")
+    private User seller;
 }

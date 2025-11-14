@@ -55,6 +55,13 @@ public class User {
     private String refreshToken;
     private String avatarUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    // User preferences
+    private String theme; // dark, light
+    private String accentColor; // purple, blue, green, red, amber
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
@@ -76,7 +83,7 @@ public class User {
     @OneToMany(mappedBy = "seller")
     private List<PaymentTransaction> paymentsReceived;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "seller", cascade = CascadeType.ALL)
     private SellerProfile sellerProfile;
 
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)

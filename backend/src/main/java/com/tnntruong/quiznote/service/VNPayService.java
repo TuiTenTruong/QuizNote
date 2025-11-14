@@ -213,18 +213,18 @@ public class VNPayService {
         tx.setCreatedAt(Instant.now());
         paymentRepo.save(tx);
 
-        SellerProfile profile = sellerProfileRepository.findByUser(seller)
+        SellerProfile profile = sellerProfileRepository.findBySeller(seller)
                 .orElseGet(() -> {
                     SellerProfile sp = new SellerProfile();
-                    sp.setUser(seller);
+                    sp.setSeller(seller);
                     return sp;
                 });
 
-        profile.setPendingBalance(profile.getPendingBalance() + totalPrice);
         profile.setTotalRevenue(profile.getTotalRevenue() + totalPrice);
+        profile.setPendingBalance(profile.getPendingBalance() + totalPrice);
         sellerProfileRepository.save(profile);
 
-        this.purchaseService.handleCreatePurchase(new ReqCreatePurchaseDTO(buyerId, subjectId));
+        this.purchaseService.handleCreatePurchase(new ReqCreatePurchaseDTO(buyerId, subjectId, seller.getId()));
 
         System.out.println("Payment saved successfully for order " + orderInfo);
     }

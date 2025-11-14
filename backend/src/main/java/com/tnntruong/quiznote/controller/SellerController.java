@@ -27,4 +27,10 @@ public class SellerController {
             @RequestParam(required = false) Integer months) throws InvalidException {
         return ResponseEntity.ok(this.sellerService.getSellerAnalytics(sellerId, months));
     }
+
+    @GetMapping("/getWallet/{sellerId}")
+    public ResponseEntity<?> getWalletSeller(@PathVariable Long sellerId) throws InvalidException {
+        return ResponseEntity.ok(this.sellerService.getWalletSeller(sellerId));
+    }
+
 }

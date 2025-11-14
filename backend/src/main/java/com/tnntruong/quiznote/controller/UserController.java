@@ -22,8 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.request.ReqChangePasswordDTO;
+import com.tnntruong.quiznote.dto.request.ReqUpdatePreferencesDTO;
+import com.tnntruong.quiznote.dto.request.ReqUpdateProfileDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.UserService;
+import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
 import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
@@ -94,6 +98,49 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<?> getAllUser(@Filter Specification<User> spec, Pageable page) {
         return ResponseEntity.ok().body(this.userService.handleGetAllUser(spec, page));
+    }
+
+    @PutMapping("/users/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody ReqUpdateProfileDTO req)
+            throws InvalidException {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new InvalidException("User not authenticated"));
+
+        return ResponseEntity.ok().body(this.userService.handleUpdateProfile(
+                email, req.getName(), req.getAge(), req.getAddress(), req.getGender(), req.getBio()));
+    }
+
+    @PostMapping("/users/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ReqChangePasswordDTO req)
+            throws InvalidException {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new InvalidException("User not authenticated"));
+
+        this.userService.handleChangePassword(email, req.getCurrentPassword(), req.getNewPassword(), passwordEncoder);
+        return ResponseEntity.ok().body("Password changed successfully");
+    }
+
+    @PutMapping("/users/preferences")
+    public ResponseEntity<?> updatePreferences(
+            @RequestBody ReqUpdatePreferencesDTO req)
+            throws InvalidException {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new InvalidException("User not authenticated"));
+
+        return ResponseEntity.ok().body(this.userService.handleUpdatePreferences(
+                email, req.getTheme(), req.getAccentColor()));
+    }
+
+    @GetMapping("/users/me")
+    public ResponseEntity<?> getCurrentUser() throws InvalidException {
+        String email = com.tnntruong.quiznote.util.SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new InvalidException("User not authenticated"));
+
+        User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            throw new InvalidException("User not found");
+        }
+        return ResponseEntity.ok().body(this.userService.convertUsertoDTO(currentUser));
     }
 
 }

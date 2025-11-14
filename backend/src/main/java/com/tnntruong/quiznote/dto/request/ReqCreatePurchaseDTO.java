@@ -10,4 +10,5 @@ import lombok.Setter;
 public class ReqCreatePurchaseDTO {
     private Long studentId;
     private Long subjectId;
+    private Long sellerId;
 }

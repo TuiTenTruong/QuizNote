@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ResSellerAnalytics {
     private Long totalRevenue;
-    private Long pendingBalance;
+    private Long pendingWithdraw;
     private Long availableBalance;
     private Integer totalQuizzesSold;
     private Integer totalSubjects;

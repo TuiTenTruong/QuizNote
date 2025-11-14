@@ -58,11 +58,11 @@ public class UserService {
         // Create seller profile if user is a seller
         if (savedUser.getRole() != null && "SELLER".equalsIgnoreCase(savedUser.getRole().getName())) {
             SellerProfile sellerProfile = new SellerProfile();
-            sellerProfile.setUser(savedUser);
+            sellerProfile.setSeller(savedUser);
             sellerProfile.setBankName(bankName != null ? bankName : "");
             sellerProfile.setBankAccount(bankAccount != null ? bankAccount : "");
             sellerProfile.setTotalRevenue(0L);
-            sellerProfile.setPendingBalance(0L);
+            sellerProfile.setPendingWithdraw(0L);
             sellerProfile.setAvailableBalance(0L);
             sellerProfileRepository.save(sellerProfile);
         }
@@ -133,7 +133,14 @@ public class UserService {
         res.setEmail(user.getEmail());
         res.setGender(user.getGender());
         res.setAge(user.getAge());
+        res.setAddress(user.getAddress());
         res.setAvatarUrl(user.getAvatarUrl());
+        res.setBio(user.getBio());
+
+        // Include preferences
+        res.setTheme(user.getTheme());
+        res.setAccentColor(user.getAccentColor());
+
         res.setCreatedAt(user.getCreatedAt());
         res.setCreatedBy(user.getCreatedBy());
         res.setUpdatedAt(user.getUpdatedAt());
@@ -203,5 +210,67 @@ public class UserService {
     public User handleGetCurrentUser() {
         String username = SecurityUtil.getCurrentUserLogin().get();
         return this.userRepository.findByEmail(username);
+    }
+
+    public ResUpdateUserDTO handleUpdateProfile(String email, String name, int age, String address,
+            com.tnntruong.quiznote.util.constant.GenderEnum gender, String bio) throws InvalidException {
+        User currentUser = this.userRepository.findByEmail(email);
+        if (currentUser == null) {
+            throw new InvalidException("User not found");
+        }
+        currentUser.setName(name);
+        currentUser.setAge(age);
+        currentUser.setAddress(address);
+        currentUser.setGender(gender);
+        currentUser.setBio(bio);
+
+        User savedUser = this.userRepository.save(currentUser);
+
+        ResUpdateUserDTO res = new ResUpdateUserDTO();
+        res.setId(savedUser.getId());
+        res.setName(savedUser.getName());
+        res.setEmail(savedUser.getEmail());
+        res.setGender(savedUser.getGender());
+        res.setAge(savedUser.getAge());
+        res.setAvatarUrl(savedUser.getAvatarUrl());
+        res.setUpdatedAt(savedUser.getUpdatedAt());
+        res.setUpdatedBy(savedUser.getUpdatedBy());
+        return res;
+    }
+
+    public void handleChangePassword(String email, String currentPassword, String newPassword,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) throws InvalidException {
+        User user = this.userRepository.findByEmail(email);
+        if (user == null) {
+            throw new InvalidException("User not found");
+        }
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new InvalidException("Current password is incorrect");
+        }
+
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(hashedPassword);
+        this.userRepository.save(user);
+    }
+
+    public ResUpdateUserDTO handleUpdatePreferences(String email, String theme, String accentColor)
+            throws InvalidException {
+        User currentUser = this.userRepository.findByEmail(email);
+        if (currentUser == null) {
+            throw new InvalidException("User not found");
+        }
+
+        currentUser.setTheme(theme);
+        currentUser.setAccentColor(accentColor);
+
+        User savedUser = this.userRepository.save(currentUser);
+
+        ResUpdateUserDTO res = new ResUpdateUserDTO();
+        res.setId(savedUser.getId());
+        res.setName(savedUser.getName());
+        res.setEmail(savedUser.getEmail());
+        res.setUpdatedAt(savedUser.getUpdatedAt());
+        return res;
     }
 }

@@ -11,18 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Purchase;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.domain.Withdraw;
+import com.tnntruong.quiznote.dto.response.ResWalletSellerDTO;
 import com.tnntruong.quiznote.dto.response.Seller.ResSellerAnalytics;
 import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.repository.WithdrawRepository;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -31,13 +33,16 @@ public class SellerService {
 	private final SubjectRepository subjectRepository;
 	private final PurchaseRepository purchaseRepository;
 	private final SellerProfileRepository sellerProfileRepository;
+	private final WithdrawRepository withdrawRepository;
 
 	public SellerService(UserRepository userRepository, SubjectRepository subjectRepository,
-			PurchaseRepository purchaseRepository, SellerProfileRepository sellerProfileRepository) {
+			PurchaseRepository purchaseRepository, SellerProfileRepository sellerProfileRepository,
+			WithdrawRepository withdrawRepository) {
 		this.userRepository = userRepository;
 		this.subjectRepository = subjectRepository;
 		this.purchaseRepository = purchaseRepository;
 		this.sellerProfileRepository = sellerProfileRepository;
+		this.withdrawRepository = withdrawRepository;
 	}
 
 	public ResSellerAnalytics getSellerAnalytics(long sellerId, Integer months) throws InvalidException {
@@ -45,7 +50,7 @@ public class SellerService {
 				.orElseThrow(() -> new InvalidException("Seller not found"));
 
 		// Get seller profile
-		Optional<SellerProfile> profileOpt = sellerProfileRepository.findByUser(seller);
+		Optional<SellerProfile> profileOpt = sellerProfileRepository.findBySeller(seller);
 		SellerProfile profile = profileOpt.orElse(new SellerProfile());
 
 		// Get all subjects by this seller
@@ -171,7 +176,7 @@ public class SellerService {
 
 		return new ResSellerAnalytics(
 				profile.getTotalRevenue() != null ? profile.getTotalRevenue() : totalRevenue,
-				profile.getPendingBalance() != null ? profile.getPendingBalance() : 0L,
+				profile.getPendingWithdraw() != null ? profile.getPendingWithdraw() : 0L,
 				profile.getAvailableBalance() != null ? profile.getAvailableBalance() : 0L,
 				totalQuizzesSold,
 				totalSubjects,
@@ -180,5 +185,32 @@ public class SellerService {
 				topSubjects,
 				recentOrders,
 				monthlyRevenue);
+	}
+
+	public ResWalletSellerDTO getWalletSeller(long sellerId) throws InvalidException {
+		User seller = userRepository.findById(sellerId).orElseThrow(() -> new InvalidException("Seller not found"));
+
+		SellerProfile profile = sellerProfileRepository.findBySeller(seller)
+				.orElseThrow(() -> new InvalidException("Seller profile not found"));
+
+		ResWalletSellerDTO res = new ResWalletSellerDTO();
+		res.setSellerId(sellerId);
+		res.setAvailableBalance(profile.getAvailableBalance());
+		res.setPendingWithdraw(profile.getPendingWithdraw());
+		res.setEarnThisMonth(profile.getTotalRevenue());
+		res.setTotalEarnings(profile.getTotalRevenue());
+		res.setPendingBalance(profile.getPendingBalance());
+
+		List<Withdraw> withdraw = withdrawRepository.findAllBySellerId(seller.getId());
+		res.setWithdrawHistories(withdraw.stream().map((w) -> {
+			ResWalletSellerDTO.WithdrawHistoryDTO withdrawDTO = new ResWalletSellerDTO.WithdrawHistoryDTO();
+			withdrawDTO.setId(w.getId());
+			withdrawDTO.setAmount(w.getAmount());
+			withdrawDTO.setStatus(w.getStatus().name());
+			withdrawDTO.setRequestedAt(w.getRequestedAt());
+			withdrawDTO.setProcessedAt(w.getProcessedAt());
+			return withdrawDTO;
+		}).collect(Collectors.toList()));
+		return res;
 	}
 }

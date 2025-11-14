@@ -31,6 +31,10 @@ public class Purchase {
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
+
     private Instant purchasedAt;
 
     @PrePersist
