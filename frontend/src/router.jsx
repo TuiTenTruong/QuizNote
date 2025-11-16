@@ -5,6 +5,7 @@ import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import DashboardStudent from "./features/student/Dashboard";
 import DashboardSeller from "./features/seller/Dashboard";
+import DashboardAdmin from "./features/admin/Dashboard";
 import SellerDashboard from "./features/seller/SellerDashboardPage";
 import SellerQuizzes from "./features/seller/SellerQuizzes";
 import SellerOrders from "./features/seller/SellerOrders";
@@ -24,6 +25,8 @@ import StudentMyQuizzes from "./features/student/StudentMyQuizzes";
 import StudentHistory from "./features/student/StudentHistory";
 import StudentQuizHistoryDetail from "./features/student/StudentQuizHistoryDetail";
 import StudentAnalytics from "./features/student/StudentAnalytics";
+import AdminDashboard from "./features/admin/AdminDashboard";
+import AdminUsersPage from "./features/admin/AdminUsersPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -72,6 +75,14 @@ const router = createBrowserRouter([
             { path: 'quizzes/:quizId', element: <SellerQuizDetail /> },
         ]
     },
+    {
+        path: "/admin",
+        element: <DashboardAdmin />,
+        children: [
+            { index: true, element: <AdminDashboard /> },
+            { path: "users", element: <AdminUsersPage /> },
+        ]
+    }
 
 ]);
 export default router;
