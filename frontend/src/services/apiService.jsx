@@ -137,11 +137,44 @@ const deleteUserAccount = async (userId) => {
     return Axios.delete(`/api/v1/users/${userId}`);
 }
 
+const AdminAnalytics = async () => {
+    return Axios.get(`/api/v1/admin/analysis`);
+}
+
+const GetAllUsers = async (page) => {
+    return Axios.get(`/api/v1/users?page=${page}&size=10`);
+}
+
+const UpdateUser = async (userId, data) => {
+    return Axios.put(`/api/v1/users`, data);
+}
+
+const CreateUser = async (data) => {
+    return Axios.post(`/api/v1/users`, data);
+}
+
+const DeleteUser = async (userId) => {
+    return Axios.delete(`/api/v1/users/${userId}`);
+}
+
+const getAllRoles = async () => {
+    return Axios.get(`/api/v1/roles`);
+}
+
+const changeStatusUser = async (id, status) => {
+    const data = {
+        id: id,
+        status: status
+    };
+    return Axios.post(`/api/v1/users/changeStatus`, data);
+}
+
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
     getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
     getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz,
     createQuestion, saveDraftQuiz, getSubjectBySellerId, getOrderOfSeller, getWalletofSeller, withdrawFromSellerWallet,
-    getCurrentUser, updateUserProfile, changePassword, updateUserPreferences, uploadAvatar, deleteUserAccount
+    getCurrentUser, updateUserProfile, changePassword, updateUserPreferences, uploadAvatar, deleteUserAccount,
+    AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser
 };

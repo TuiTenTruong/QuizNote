@@ -38,7 +38,9 @@ const LoginPage = () => {
             toast.success("Login successful!");
             navigate("/");
         } else {
-            toast.error("Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập của bạn.");
+            response.message !== null ?
+                toast.error(response.message) :
+                toast.error("Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập của bạn.");
         }
     }
     return (
