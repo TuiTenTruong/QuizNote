@@ -23,11 +23,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.request.ReqChangePasswordDTO;
-import com.tnntruong.quiznote.dto.request.ReqUpdatePreferencesDTO;
+import com.tnntruong.quiznote.dto.request.ReqChangeStatusUserDTO;
 import com.tnntruong.quiznote.dto.request.ReqUpdateProfileDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.UserService;
 import com.tnntruong.quiznote.util.SecurityUtil;
+import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
 import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
@@ -51,6 +52,7 @@ public class UserController {
     }
 
     @PostMapping("/users")
+    @ApiMessage("User created successfully")
     public ResponseEntity<?> postCreateUser(@RequestBody @Valid User newUser)
             throws InvalidException, URISyntaxException {
         boolean isEmailExist = this.userService.isEmailExist(newUser.getEmail());
@@ -63,6 +65,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/users/{email}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiMessage("Avatar uploaded successfully")
     public ResponseEntity<?> uploadAvatar(@PathVariable String email,
             @RequestPart(name = "file", required = true) MultipartFile file)
             throws InvalidException, StorageException, IOException, URISyntaxException {
@@ -80,17 +83,20 @@ public class UserController {
     }
 
     @PutMapping("/users")
+    @ApiMessage("User updated successfully")
     public ResponseEntity<?> putUpdateUser(@RequestBody User updateUser) throws InvalidException {
         return ResponseEntity.ok().body(this.userService.handleUpdateUser(updateUser));
     }
 
     @DeleteMapping("/users/{id}")
+    @ApiMessage("User deleted successfully")
     public ResponseEntity<?> deleteUser(@PathVariable String id) throws InvalidException {
         this.userService.handleDeleteUser(id);
         return ResponseEntity.ok("deleted");
     }
 
     @GetMapping("/users/{id}")
+    @ApiMessage("Get user by id")
     public ResponseEntity<?> getUserById(@PathVariable String id) throws InvalidException {
         return ResponseEntity.ok().body(this.userService.handleGetUserById(id));
     }
@@ -101,6 +107,7 @@ public class UserController {
     }
 
     @PutMapping("/users/profile")
+    @ApiMessage("Update profile successfully")
     public ResponseEntity<?> updateProfile(@RequestBody ReqUpdateProfileDTO req)
             throws InvalidException {
         String email = SecurityUtil.getCurrentUserLogin()
@@ -111,6 +118,7 @@ public class UserController {
     }
 
     @PostMapping("/users/change-password")
+    @ApiMessage("Password changed successfully")
     public ResponseEntity<?> changePassword(@RequestBody ReqChangePasswordDTO req)
             throws InvalidException {
         String email = SecurityUtil.getCurrentUserLogin()
@@ -120,18 +128,8 @@ public class UserController {
         return ResponseEntity.ok().body("Password changed successfully");
     }
 
-    @PutMapping("/users/preferences")
-    public ResponseEntity<?> updatePreferences(
-            @RequestBody ReqUpdatePreferencesDTO req)
-            throws InvalidException {
-        String email = SecurityUtil.getCurrentUserLogin()
-                .orElseThrow(() -> new InvalidException("User not authenticated"));
-
-        return ResponseEntity.ok().body(this.userService.handleUpdatePreferences(
-                email, req.getTheme(), req.getAccentColor()));
-    }
-
     @GetMapping("/users/me")
+    @ApiMessage("Get current user")
     public ResponseEntity<?> getCurrentUser() throws InvalidException {
         String email = com.tnntruong.quiznote.util.SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new InvalidException("User not authenticated"));
@@ -143,4 +141,10 @@ public class UserController {
         return ResponseEntity.ok().body(this.userService.convertUsertoDTO(currentUser));
     }
 
+    @PostMapping("/users/changeStatus")
+    @ApiMessage("User status changed successfully")
+    public ResponseEntity<?> changeStatusUser(@RequestBody ReqChangeStatusUserDTO req) throws InvalidException {
+
+        return ResponseEntity.ok().body(this.userService.changeStatusUser(req));
+    }
 }

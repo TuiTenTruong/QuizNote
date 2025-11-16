@@ -33,7 +33,7 @@ public class Chapter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "name cannot be blank")
+    @NotBlank(message = "tên chương không được để trống")
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

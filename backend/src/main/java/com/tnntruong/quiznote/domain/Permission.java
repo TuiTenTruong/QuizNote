@@ -30,16 +30,16 @@ public class Permission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotBlank(message = "name cannot be empty")
+    @NotBlank(message = "tên không được để trống")
     private String name;
 
-    @NotBlank(message = "apiPath cannot be empty")
+    @NotBlank(message = "đường dẫn api không được để trống")
     private String apiPath;
 
-    @NotBlank(message = "method cannot be empty")
+    @NotBlank(message = "phương thức không được để trống")
     private String method;
 
-    @NotBlank(message = "module cannot be empty")
+    @NotBlank(message = "module không được để trống")
     private String module;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "permissions")

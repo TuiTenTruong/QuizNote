@@ -37,13 +37,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotBlank(message = "name cannot be empty")
+    @NotBlank(message = "tên không được để trống")
     private String name;
 
-    @NotBlank(message = "email cannot be empty")
+    @NotBlank(message = "email không được để trống")
     private String email;
 
-    @NotBlank(message = "password cannot be empty")
+    @NotBlank(message = "mật khẩu không được để trống")
     private String password;
 
     private int age;
@@ -57,10 +57,7 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String bio;
-
-    // User preferences
-    private String theme; // dark, light
-    private String accentColor; // purple, blue, green, red, amber
+    private boolean isActive = true;
 
     private Instant createdAt;
     private Instant updatedAt;

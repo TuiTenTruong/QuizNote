@@ -31,7 +31,7 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @NotBlank(message = "name cannot be empty")
+    @NotBlank(message = "tên không được để trống")
     private String name;
     private String description;
     private boolean active;

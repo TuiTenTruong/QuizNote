@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDto) {
+    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDto) throws InvalidException {
         // Nạp input gồm username/password vào Security
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDto.getUsername(), loginDto.getPassword());
@@ -59,6 +59,9 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         ResLoginDTO res = new ResLoginDTO();
         User currentUser = this.userService.handleGetUserByUsername(loginDto.getUsername());
+        if (currentUser.isActive() == false) {
+            throw new InvalidException("Tài khoản đã bị vô hiệu hóa");
+        }
         if (currentUser != null) {
             ResLoginDTO.UserLogin user = new ResLoginDTO.UserLogin(currentUser.getId(), currentUser.getName(),
                     currentUser.getEmail(), currentUser.getAvatarUrl(), currentUser.getRole());

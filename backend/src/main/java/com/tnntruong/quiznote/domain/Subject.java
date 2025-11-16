@@ -36,15 +36,15 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "subject name cannot be empty")
+    @NotBlank(message = "tên không được để trống")
     private String name;
 
     private String imageUrl;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
-    @NotNull(message = "Price must not be null")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+    @NotNull(message = "Giá không được để trống")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Giá phải lớn hơn hoặc bằng 0")
     private double price;
 
     @Enumerated(EnumType.STRING)

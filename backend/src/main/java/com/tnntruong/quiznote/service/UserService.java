@@ -13,9 +13,11 @@ import org.springframework.stereotype.Service;
 import com.tnntruong.quiznote.domain.Role;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.request.ReqChangeStatusUserDTO;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.user.ResCreateUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResGetUserDTO;
+import com.tnntruong.quiznote.dto.response.user.ResUpdateStatusDTO;
 import com.tnntruong.quiznote.dto.response.user.ResUpdateUserDTO;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
@@ -136,10 +138,7 @@ public class UserService {
         res.setAddress(user.getAddress());
         res.setAvatarUrl(user.getAvatarUrl());
         res.setBio(user.getBio());
-
-        // Include preferences
-        res.setTheme(user.getTheme());
-        res.setAccentColor(user.getAccentColor());
+        res.setActive(user.isActive());
 
         res.setCreatedAt(user.getCreatedAt());
         res.setCreatedBy(user.getCreatedBy());
@@ -254,23 +253,14 @@ public class UserService {
         this.userRepository.save(user);
     }
 
-    public ResUpdateUserDTO handleUpdatePreferences(String email, String theme, String accentColor)
-            throws InvalidException {
-        User currentUser = this.userRepository.findByEmail(email);
-        if (currentUser == null) {
-            throw new InvalidException("User not found");
-        }
-
-        currentUser.setTheme(theme);
-        currentUser.setAccentColor(accentColor);
-
-        User savedUser = this.userRepository.save(currentUser);
-
-        ResUpdateUserDTO res = new ResUpdateUserDTO();
-        res.setId(savedUser.getId());
-        res.setName(savedUser.getName());
-        res.setEmail(savedUser.getEmail());
-        res.setUpdatedAt(savedUser.getUpdatedAt());
+    public ResUpdateStatusDTO changeStatusUser(ReqChangeStatusUserDTO req) throws InvalidException {
+        User user = this.userRepository.findById(req.getId())
+                .orElseThrow(() -> new InvalidException("User not found"));
+        user.setActive(req.getStatus());
+        this.userRepository.save(user);
+        ResUpdateStatusDTO res = new ResUpdateStatusDTO();
+        res.setId(user.getId());
+        res.setStatus(user.isActive());
         return res;
     }
 }
