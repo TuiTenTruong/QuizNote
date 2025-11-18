@@ -19,4 +19,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Long>, JpaSpec
 
     @Query("SELECT s FROM Subject s WHERE s.status = 'ACTIVE' ORDER BY s.purchaseCount DESC LIMIT 6")
     List<Subject> findTop6ByStatusOrderByPurchaseCountDesc();
+
+    void deleteBySellerId(Long sellerId);
 }

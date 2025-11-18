@@ -52,7 +52,12 @@ const StudentAnalytics = () => {
             setError(null);
             const days = timeRange === "all" ? null : parseInt(timeRange);
             const response = await getStudentAnalytics(user.id, days);
-            setAnalytics(response.data);
+            if (response && response.statusCode === 200) {
+                setAnalytics(response.data);
+            } else {
+                setError(response.message || "Không thể tải dữ liệu phân tích. Vui lòng thử lại sau.");
+            }
+
         } catch (err) {
             console.error("Error fetching analytics:", err);
             setError("Không thể tải dữ liệu phân tích. Vui lòng thử lại sau.");

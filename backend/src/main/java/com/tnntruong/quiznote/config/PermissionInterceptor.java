@@ -40,6 +40,17 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         if (email != null && !email.isEmpty()) {
             User user = this.userService.handleGetUserByUsername(email);
+
+            // Kiểm tra user có tồn tại không (đã bị xóa)
+            if (user == null) {
+                throw new PermissionException("Tài khoản không tồn tại hoặc đã bị xóa");
+            }
+
+            // Kiểm tra user có đang active không
+            if (!user.isActive()) {
+                throw new PermissionException("Tài khoản của bạn đã bị vô hiệu hóa");
+            }
+
             if (user != null) {
                 Role role = user.getRole();
                 if (role != null) {

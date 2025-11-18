@@ -19,24 +19,49 @@ import com.tnntruong.quiznote.dto.response.user.ResCreateUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResGetUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResUpdateStatusDTO;
 import com.tnntruong.quiznote.dto.response.user.ResUpdateUserDTO;
+import com.tnntruong.quiznote.repository.CommentRepository;
+import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
+import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
+import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.repository.SubmissionRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.repository.WithdrawRepository;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
     private UserRepository userRepository;
     private RoleService roleService;
     private SellerProfileRepository sellerProfileRepository;
+    private SubmissionRepository submissionRepository;
+    private PurchaseRepository purchaseRepository;
+    private CommentRepository commentRepository;
+    private PaymentTransactionRepository paymentTransactionRepository;
+    private SubjectRepository subjectRepository;
+    private WithdrawRepository withdrawRepository;
     @Value("${quiznote.upload-file.base-uri}")
     private String baseURI;
 
     public UserService(UserRepository userRepository, RoleService roleService,
-            SellerProfileRepository sellerProfileRepository) {
+            SellerProfileRepository sellerProfileRepository,
+            SubmissionRepository submissionRepository,
+            PurchaseRepository purchaseRepository,
+            CommentRepository commentRepository,
+            PaymentTransactionRepository paymentTransactionRepository,
+            SubjectRepository subjectRepository,
+            WithdrawRepository withdrawRepository) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.sellerProfileRepository = sellerProfileRepository;
+        this.submissionRepository = submissionRepository;
+        this.purchaseRepository = purchaseRepository;
+        this.commentRepository = commentRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
+        this.subjectRepository = subjectRepository;
+        this.withdrawRepository = withdrawRepository;
     }
 
     public boolean isEmailExist(String email) {
@@ -113,17 +138,41 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public void handleDeleteUser(String id) throws InvalidException {
         try {
             Long idUser = Long.parseLong(id);
             boolean isExistById = this.userRepository.existsById(idUser);
             if (!isExistById) {
-                throw new InvalidException("User with id = " + idUser + " now found");
+                throw new InvalidException("User with id = " + idUser + " not found");
             }
+
+            // Xóa các bản ghi liên quan theo thứ tự để tránh vi phạm khóa ngoại
+            // 1. Xóa submissions của user (student)
+            submissionRepository.deleteByStudentId(idUser);
+
+            // 2. Xóa comments của user
+            commentRepository.deleteByUserId(idUser);
+
+            // 3. Xóa payment transactions (as buyer và seller)
+            paymentTransactionRepository.deleteByBuyerId(idUser);
+            paymentTransactionRepository.deleteBySellerId(idUser);
+
+            // 4. Xóa purchases (as student và seller)
+            purchaseRepository.deleteByStudentId(idUser);
+            purchaseRepository.deleteBySellerId(idUser);
+
+            // 5. Xóa withdraws của seller
+            withdrawRepository.deleteBySellerId(idUser);
+
+            // 6. Xóa subjects của seller (sẽ xóa cascade questions, chapters)
+            subjectRepository.deleteBySellerId(idUser);
+
+            // 7. Cuối cùng xóa user (seller profile sẽ tự động xóa vì cascade =
+            // CascadeType.ALL)
             this.userRepository.deleteById(idUser);
         } catch (NumberFormatException e) {
             throw new InvalidException("invalid id");
-
         }
     }
 

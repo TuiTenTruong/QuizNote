@@ -11,4 +11,6 @@ import com.tnntruong.quiznote.domain.Withdraw;
 @Repository
 public interface WithdrawRepository extends JpaRepository<Withdraw, Long>, JpaSpecificationExecutor<Withdraw> {
     List<Withdraw> findAllBySellerId(Long sellerId);
+
+    void deleteBySellerId(Long sellerId);
 }

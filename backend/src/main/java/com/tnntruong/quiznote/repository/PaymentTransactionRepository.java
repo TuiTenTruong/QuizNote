@@ -8,4 +8,8 @@ import com.tnntruong.quiznote.domain.PaymentTransaction;
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
     boolean existsByTransactionNo(String no);
+
+    void deleteByBuyerId(Long buyerId);
+
+    void deleteBySellerId(Long sellerId);
 }

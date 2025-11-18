@@ -16,4 +16,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     Double findHighestScoreBySubjectId(@Param("subjectId") Long subjectId);
 
     List<Submission> findByStudentIdOrderBySubmittedAtDesc(Long studentId);
+
+    void deleteByStudentId(Long studentId);
 }

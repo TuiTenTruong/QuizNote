@@ -16,4 +16,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, JpaSpec
     Double findAverageRatingBySubjectId(@Param("subjectId") Long subjectId);
 
     List<Comment> findBySubjectIdAndParentCommentIsNull(Long subjectId);
+
+    void deleteByUserId(Long userId);
 }

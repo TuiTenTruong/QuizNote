@@ -30,7 +30,7 @@ const StudentMyQuizzes = () => {
         }
     }, [account, navigate]);
 
-    const filteredQuizzes = myQuizzes.filter((q) =>
+    const filteredQuizzes = myQuizzes?.filter((q) =>
         q.name.toLowerCase().includes(search.toLowerCase())
     );
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
@@ -42,8 +42,14 @@ const StudentMyQuizzes = () => {
             try {
                 const userId = account.id;
                 const response = await fetchMyQuizzes(userId);
-                setMyQuizzes(response.data);
+                if (response && response.statusCode === 200) {
+                    setMyQuizzes(response.data);
+                }
+                else {
+                    toast.error(response.message || "Đã xảy ra lỗi khi lấy quiz của bạn.");
+                }
             } catch (error) {
+                toast.error("Đã xảy ra lỗi khi lấy quiz của bạn.");
                 console.error("Lỗi khi lấy quiz của tôi:", error);
             }
         };
@@ -79,7 +85,7 @@ const StudentMyQuizzes = () => {
 
             {/* Quiz List */}
             <Row className="g-4">
-                {filteredQuizzes.map((quiz) => (
+                {filteredQuizzes?.map((quiz) => (
                     <Col xs={12} md={6} lg={4} key={quiz.id}>
                         <Card className="quiz-card h-100 bg-dark border-secondary text-light overflow-hidden">
                             <div
@@ -126,7 +132,7 @@ const StudentMyQuizzes = () => {
                 ))}
             </Row>
 
-            {filteredQuizzes.length === 0 && (
+            {filteredQuizzes?.length === 0 && (
                 <p className="text-center text-secondary mt-4">
                     Bạn chưa có quiz nào được mua.
                 </p>

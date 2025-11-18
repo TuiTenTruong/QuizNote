@@ -32,4 +32,8 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long>, JpaSp
     @Query("SELECT COALESCE(SUM(s.price), 0.0) FROM Purchase p JOIN p.subject s WHERE FUNCTION('YEAR', p.purchasedAt) = :year AND FUNCTION('MONTH', p.purchasedAt) = :month")
     Double sumPurchaseAmountByMonth(@Param("year") int year, @Param("month") int month);
 
+    void deleteByStudentId(Long studentId);
+
+    void deleteBySellerId(Long sellerId);
+
 }

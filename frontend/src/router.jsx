@@ -30,6 +30,7 @@ import AdminUsersPage from "./features/admin/AdminUsersPage";
 import AdminSubjectsPage from "./features/admin/AdminSubjectsPage";
 import AdminRolesPermissionsPage from "./features/admin/AdminRolesPermissionsPage";
 import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
     {
@@ -49,7 +50,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/student",
-        element: <DashboardStudent />,
+        element: <ProtectedRoute allowedRoles={['STUDENT']}><DashboardStudent /></ProtectedRoute>,
         children: [
             { index: true, element: <StudentDashboard /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
@@ -67,7 +68,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/seller",
-        element: <DashboardSeller />,
+        element: <ProtectedRoute allowedRoles={['SELLER']}><DashboardSeller /></ProtectedRoute>,
         children: [
             { index: true, element: <SellerDashboard /> },
             { path: "quizzes", element: <SellerQuizzes /> },
@@ -82,7 +83,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/admin",
-        element: <DashboardAdmin />,
+        element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']}><DashboardAdmin /></ProtectedRoute>,
         children: [
             { index: true, element: <AdminDashboard /> },
             { path: "users", element: <AdminUsersPage /> },
