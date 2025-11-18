@@ -1,4 +1,3 @@
-
 package com.tnntruong.quiznote.controller;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -74,7 +73,7 @@ public class PermissionController {
         return ResponseEntity.ok().body(this.permissionService.getALlPermission(spec, page));
     }
 
-    @DeleteMapping("/permission/{id}")
+    @DeleteMapping("/permissions/{id}")
     @ApiMessage("delete permission by id")
     public ResponseEntity<?> deletePermission(@PathVariable("id") long id) throws InvalidException {
         Optional<Permission> currentPer = this.permissionService.findById(id);
@@ -82,9 +81,15 @@ public class PermissionController {
             throw new InvalidException("Permission với id = " + id + " không tồn tại");
         }
 
-        currentPer.get().getRoles().forEach(role -> this.roleService.deleteRole(role.getId()));
+        // Xóa permission khỏi tất cả các role có chứa nó
+        currentPer.get().getRoles().forEach(role -> {
+            role.getPermissions().remove(currentPer.get());
+            this.roleService.updateRole(role);
+        });
+
+        // Xóa permission
         this.permissionService.deletePermission(id);
 
-        return ResponseEntity.ok().body(null);
+        return ResponseEntity.ok().body("Deleted permission with id = " + id);
     }
 }

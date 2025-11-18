@@ -23,10 +23,10 @@ const postLogout = async () => {
     return Axios.post('api/v1/auth/logout');
 }
 const getExploreData = async () => {
-    return Axios.get(`/api/v1/subjects?filter=id<=6`);
+    return Axios.get(`/api/v1/subjects/demo`);
 }
-const getAllSubjects = async () => {
-    return Axios.get('/api/v1/subjects');
+const getAllActiveSubjects = async () => {
+    return Axios.get(`/api/v1/subjects?filter=status='ACTIVE'`);
 }
 const getQuizDetail = async (subjectId) => {
     return Axios.get(`/api/v1/subjects/${subjectId}`);
@@ -169,12 +169,82 @@ const changeStatusUser = async (id, status) => {
     return Axios.post(`/api/v1/users/changeStatus`, data);
 }
 
+// Roles API
+const createRole = async (roleData) => {
+    return Axios.post('/api/v1/roles', roleData);
+}
+
+const updateRole = async (roleData) => {
+    return Axios.put('/api/v1/roles', roleData);
+}
+
+const deleteRole = async (roleId) => {
+    return Axios.delete(`/api/v1/roles/${roleId}`);
+}
+
+const getRolesPaginated = async (page = 0, size = 10) => {
+    return Axios.get(`/api/v1/roles?page=${page}&size=${size}`);
+}
+
+// Permissions API
+const getAllPermissions = async (page = 0, size = 100) => {
+    return Axios.get(`/api/v1/permissions?page=${page}&size=${size}`);
+}
+
+const createPermission = async (permissionData) => {
+    return Axios.post('/api/v1/permissions', permissionData);
+}
+
+const updatePermission = async (permissionData) => {
+    return Axios.put('/api/v1/permissions', permissionData);
+}
+
+const deletePermission = async (permissionId) => {
+    return Axios.delete(`/api/v1/permissions/${permissionId}`);
+}
+
+const getAllSubjects = async () => {
+    return Axios.get(`/api/v1/subjects`);
+}
+
+const approveSubject = async (subjectId) => {
+    return Axios.put(`/api/v1/subjects/${subjectId}/approve`);
+}
+
+const rejectSubject = async (subjectId) => {
+    return Axios.put(`/api/v1/subjects/${subjectId}/reject`);
+}
+
+const updateSubject = async (formData) => {
+    return Axios.put(`/api/v1/subjects`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+const deleteQuestion = async (questionId) => {
+    return Axios.delete(`/api/v1/questions/${questionId}`);
+}
+
+const createQuestionsBatch = async (questions) => {
+    return Axios.post('/api/v1/questions/batch', questions);
+}
+
+const updateQuestion = async (questionData) => {
+    return Axios.put('/api/v1/questions', questionData);
+}
+
+const deleteSubject = async (subjectId) => {
+    return Axios.delete(`/api/v1/subjects/${subjectId}`);
+}
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
-    getAllSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
+    getAllActiveSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
     getQuizReviews, fetchMyQuizzes, startSubmission, submitQuizResult, getQuizRandom, getHistoryUser,
     getStudentAnalytics, getSellerAnalytics, VNPayCreateOrder, createQuiz,
     createQuestion, saveDraftQuiz, getSubjectBySellerId, getOrderOfSeller, getWalletofSeller, withdrawFromSellerWallet,
     getCurrentUser, updateUserProfile, changePassword, updateUserPreferences, uploadAvatar, deleteUserAccount,
-    AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser
+    AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser,
+    createRole, updateRole, deleteRole, getRolesPaginated, getAllPermissions, createPermission, updatePermission, deletePermission, getAllSubjects,
+    approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion
 };

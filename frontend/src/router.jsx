@@ -27,6 +27,10 @@ import StudentQuizHistoryDetail from "./features/student/StudentQuizHistoryDetai
 import StudentAnalytics from "./features/student/StudentAnalytics";
 import AdminDashboard from "./features/admin/AdminDashboard";
 import AdminUsersPage from "./features/admin/AdminUsersPage";
+import AdminSubjectsPage from "./features/admin/AdminSubjectsPage";
+import AdminRolesPermissionsPage from "./features/admin/AdminRolesPermissionsPage";
+import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -73,6 +77,7 @@ const router = createBrowserRouter([
             { path: 'settings', element: <SettingsPage /> },
             { path: 'quizzes/create', element: <CreateQuiz /> },
             { path: 'quizzes/:quizId', element: <SellerQuizDetail /> },
+            { path: 'detail/:quizId', element: <SellerSubjectDetailPage /> }
         ]
     },
     {
@@ -81,6 +86,8 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <AdminDashboard /> },
             { path: "users", element: <AdminUsersPage /> },
+            { path: "permissions", element: <AdminRolesPermissionsPage /> },
+            { path: "subjects", element: <AdminSubjectsPage /> },
         ]
     }
 
