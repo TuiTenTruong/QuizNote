@@ -21,7 +21,7 @@ import {
 } from "react-icons/fa";
 import "./StudentQuizDashboard.scss";
 import { useEffect } from "react";
-import { getAllSubjects, fetchMyQuizzes } from "../../../services/apiService";
+import { getAllActiveSubjects, fetchMyQuizzes } from "../../../services/apiService";
 import axiosInstance from "../../../utils/axiosCustomize";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -38,7 +38,7 @@ const StudentQuizDashboard = () => {
     console.log("User in Dashboard:", user);
     useEffect(() => {
         const fetchSubjectsData = async () => {
-            const response = await getAllSubjects();
+            const response = await getAllActiveSubjects();
             if (response && response.statusCode === 200) {
                 setSubjectsData(response.data.result);
             } else {

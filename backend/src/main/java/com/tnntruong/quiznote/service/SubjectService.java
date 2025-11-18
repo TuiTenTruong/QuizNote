@@ -50,14 +50,12 @@ public class SubjectService {
             throw new InvalidException("user create subject invalid");
         }
         subject.setSeller(currentUser);
-        if (subject.getStatus() == null) {
-            subject.setStatus(SubjectStatus.DRAFT);
-        }
+        subject.setStatus(SubjectStatus.DRAFT);
         Subject savedSubject = this.subjectRepository.save(subject);
         return this.convertSubjectToDTO(savedSubject);
     }
 
-    public ResSubjectDTO handleUpdateSubject(Subject subject) throws InvalidException {
+    public ResSubjectDTO handleUpdateSubject(Subject subject, String fileUrl) throws InvalidException {
         if (subject.getId() == null) {
             throw new InvalidException("must have subject id");
         }
@@ -65,16 +63,17 @@ public class SubjectService {
         if (subjectOptional.isEmpty()) {
             throw new InvalidException("subject with id = " + subject.getId() + " not found");
         }
+        if (fileUrl != null) {
+            subject.setImageUrl(fileUrl);
+        }
         Subject currentSubject = subjectOptional.get();
-        currentSubject.setName(subject.getName());
-        currentSubject.setPrice(subject.getPrice());
-        currentSubject.setStatus(subject.getStatus());
-        currentSubject.setDescription(subject.getDescription());
-        currentSubject.setImageUrl(subject.getImageUrl());
-        currentSubject.setHighestScore(subject.getHighestScore());
-        currentSubject.setAverageRating(subject.getAverageRating());
-        currentSubject.setRatingCount(subject.getRatingCount());
-        currentSubject.setPurchaseCount(subject.getPurchaseCount());
+        currentSubject.setName(subject.getName() != null ? subject.getName() : currentSubject.getName());
+        currentSubject.setPrice(subject.getPrice() >= 0 ? subject.getPrice() : currentSubject.getPrice());
+        currentSubject.setStatus(subject.getStatus() != null ? subject.getStatus() : currentSubject.getStatus());
+        currentSubject.setDescription(
+                subject.getDescription() != null ? subject.getDescription() : currentSubject.getDescription());
+        currentSubject.setImageUrl(
+                subject.getImageUrl() != null ? subject.getImageUrl() : currentSubject.getImageUrl());
         Subject savedSubject = this.subjectRepository.save(currentSubject);
         return this.convertSubjectToDTO(savedSubject);
     }
@@ -105,11 +104,16 @@ public class SubjectService {
     }
 
     public void handleDeleteSubject(long id) throws InvalidException {
-        boolean isExist = this.subjectRepository.existsById(id);
-        if (!isExist) {
-            throw new InvalidException("subject with id = " + id + " not found");
+        Subject subject = this.subjectRepository.findById(id)
+                .orElseThrow(() -> new InvalidException("subject with id = " + id + " not found"));
+        // If subject is DRAFT, delete permanently (cascade will delete all questions)
+        if (subject.getStatus() == SubjectStatus.DRAFT) {
+            this.subjectRepository.delete(subject);
+        } else {
+            // For other statuses, just set to INACTIVE
+            subject.setStatus(SubjectStatus.INACTIVE);
+            this.subjectRepository.save(subject);
         }
-        this.subjectRepository.deleteById(id);
     }
 
     public ResSubjectDTO handleGetSubjectById(long id) throws InvalidException {
@@ -159,6 +163,40 @@ public class SubjectService {
         res.setMeta(mt);
         res.setResult(subjectList);
 
+        return res;
+    }
+
+    public ResSubjectDTO handleApproveSubject(long subjectId) throws InvalidException {
+        Subject subject = this.subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new InvalidException("Subject with id = " + subjectId + " not found"));
+        subject.setStatus(SubjectStatus.ACTIVE);
+        Subject savedSubject = this.subjectRepository.save(subject);
+        return this.convertSubjectToDTO(savedSubject);
+    }
+
+    public ResSubjectDTO handleRejectSubject(long subjectId) throws InvalidException {
+        Subject subject = this.subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new InvalidException("Subject with id = " + subjectId + " not found"));
+        subject.setStatus(SubjectStatus.REJECTED);
+        Subject savedSubject = this.subjectRepository.save(subject);
+        return this.convertSubjectToDTO(savedSubject);
+    }
+
+    public ResResultPagination getDemoSubject() {
+        // get 6 highest purchaseCount subjects and status ACTIVE
+        List<Subject> topSubjects = this.subjectRepository.findTop6ByStatusOrderByPurchaseCountDesc();
+        ResResultPagination res = new ResResultPagination();
+        if (!topSubjects.isEmpty()) {
+            res.setResult(topSubjects.stream()
+                    .map(this::convertSubjectToDTO)
+                    .collect(Collectors.toList()));
+        }
+        ResResultPagination.Meta mt = new ResResultPagination.Meta();
+        mt.setPage(1);
+        mt.setPageSize(topSubjects.size());
+        mt.setPages(1);
+        mt.setTotal(topSubjects.size());
+        res.setMeta(mt);
         return res;
     }
 }

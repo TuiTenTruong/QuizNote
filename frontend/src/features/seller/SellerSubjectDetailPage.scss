@@ -1,8 +1,8 @@
-.create-quiz-page {
-    background-color: #0b0b0f;
-    color: #fff;
+.seller-subject-detail-page {
+    background: #0b0b0f;
     min-height: 100vh;
     padding: 2rem 1rem;
+    color: #fff;
 
     .text-gradient {
         background: linear-gradient(90deg, #9333ea, #f97316);
@@ -14,15 +14,20 @@
         background: linear-gradient(90deg, #9333ea, #f97316);
         border: none;
         color: #fff;
+        font-weight: 600;
+        transition: opacity 0.3s;
 
         &:hover {
             opacity: 0.9;
         }
     }
 
-    .form-control {
-        &::placeholder {
-            color: #a5a5a5; // Changed placeholder color
+    .hover-gradient {
+        transition: all 0.3s;
+
+        &:hover {
+            background: linear-gradient(90deg, #9333ea, #f97316);
+            border-color: transparent;
         }
     }
 
@@ -52,11 +57,7 @@
         }
     }
 
-    .hover-gradient:hover {
-        background: linear-gradient(90deg, #9333ea, #f97316) !important;
-    }
-
-    @media (max-width: 768px) {
-        padding: 1rem;
+    @media (max-width: 991px) {
+        padding: 1rem 0.5rem;
     }
 }

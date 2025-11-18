@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -45,20 +44,39 @@ public class SubjectController {
     @PostMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     // create subject with image
     public ResponseEntity<?> createSubject(@Valid @RequestPart("subject") Subject subject,
-            @RequestPart("image") MultipartFile image) throws InvalidException, URISyntaxException, IOException {
-        this.fileService.createDirectory(baseURI + "subjects");
-        String stored = this.fileService.store(image, "subjects");
+            @RequestPart(name = "image", required = false) MultipartFile image)
+            throws InvalidException, URISyntaxException, IOException {
+        String stored = null;
+        if (image != null) {
+            this.fileService.createDirectory(baseURI + "subjects");
+            stored = this.fileService.store(image, "subjects");
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateSubject(subject, stored));
     }
 
-    @PostMapping("/subjects/draft")
-    public ResponseEntity<?> saveDraftSubject(@RequestBody Subject subject) throws InvalidException {
+    @PostMapping(value = "/subjects/draft", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    // create subject with image
+    public ResponseEntity<?> saveDraftSubject(@Valid @RequestPart("subject") Subject subject,
+            @RequestPart(name = "image", required = false) MultipartFile image)
+            throws InvalidException, URISyntaxException, IOException {
+        if (image != null) {
+            this.fileService.createDirectory(baseURI + "subjects");
+            String stored = this.fileService.store(image, "subjects");
+            subject.setImageUrl(stored);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateDraftSubject(subject));
     }
 
-    @PutMapping("/subjects")
-    public ResponseEntity<?> updateSubject(@RequestBody Subject subject) throws InvalidException {
-        return ResponseEntity.ok(this.subjectService.handleUpdateSubject(subject));
+    @PutMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> updateSubject(@Valid @RequestPart("subject") Subject subject,
+            @RequestPart(name = "image", required = false) MultipartFile image)
+            throws InvalidException, URISyntaxException, IOException {
+        String stored = null;
+        if (image != null) {
+            this.fileService.createDirectory(baseURI + "subjects");
+            stored = this.fileService.store(image, "subjects");
+        }
+        return ResponseEntity.ok(this.subjectService.handleUpdateSubject(subject, stored));
     }
 
     @DeleteMapping("/subjects/{id}")
@@ -82,6 +100,21 @@ public class SubjectController {
             @Filter Specification<Subject> spec,
             Pageable page) {
         return ResponseEntity.ok().body(this.subjectService.handleGetSubjectBySellerId(sellerId, spec, page));
+    }
+
+    @PutMapping("/subjects/{subjectId}/approve")
+    public ResponseEntity<?> approveSubject(@PathVariable long subjectId) throws InvalidException {
+        return ResponseEntity.ok().body(this.subjectService.handleApproveSubject(subjectId));
+    }
+
+    @PutMapping("/subjects/{subjectId}/reject")
+    public ResponseEntity<?> rejectSubject(@PathVariable long subjectId) throws InvalidException {
+        return ResponseEntity.ok().body(this.subjectService.handleRejectSubject(subjectId));
+    }
+
+    @GetMapping("/subjects/demo")
+    public ResponseEntity<?> getDemoSubject() {
+        return ResponseEntity.ok().body(this.subjectService.getDemoSubject());
     }
 
 }

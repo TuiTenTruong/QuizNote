@@ -7,7 +7,8 @@ import {
     FaChartLine,
     FaCog,
     FaTimes,
-    FaFileAlt
+    FaFileAlt,
+    FaShieldAlt
 } from "react-icons/fa";
 import { NavLink, Link } from "react-router-dom";
 import "./AdminAppbar.scss";
@@ -53,7 +54,16 @@ const SideBar = ({ isSidebarOpen, toggleSidebar }) => {
                     </Nav.Item>
                     <Nav.Item>
                         <NavLink
-                            to="/admin/quizzes"
+                            to="/admin/permissions"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaShieldAlt className="me-2" /> <span>Phân quyền</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
+                            to="/admin/subjects"
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >

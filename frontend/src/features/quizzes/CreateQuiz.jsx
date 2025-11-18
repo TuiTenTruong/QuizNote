@@ -218,13 +218,55 @@ function CreateQuiz() {
         }
     };
     const handleSaveDraft = async () => {
+        if (!validateQuiz()) {
+            return;
+        }
         setLoading(true);
         try {
-            await saveDraftQuiz({
-                ...quiz,
-                status: 'DRAFT'
-            });
-            setMessage({ type: 'success', text: 'Lưu nháp bài kiểm tra thành công!' });
+            // Create draft subject with DRAFT status
+            const formData = new FormData();
+            const draftData = {
+                name: quiz.title,
+                description: quiz.description,
+                price: parseFloat(quiz.price),
+            };
+            formData.append('subject', JSON.stringify(draftData));
+
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            const response = await saveDraftQuiz(formData);
+            const subjectId = response.data.id;
+
+            // Create questions for draft
+            if (quiz.questions && quiz.questions.length > 0) {
+                for (const question of quiz.questions) {
+                    if (question.text.trim()) { // Only save questions with content
+                        const questionData = {
+                            subjectId: subjectId,
+                            content: question.text,
+                            explanation: question.explanation || '',
+                            options: question.answers
+                                .filter(answer => answer.text.trim()) // Only save answers with content
+                                .map((answer, index) => ({
+                                    content: answer.text,
+                                    isCorrect: answer.isCorrect,
+                                    optionOrder: index + 1
+                                }))
+                        };
+                        // Only create question if it has at least one answer
+                        if (questionData.options.length > 0) {
+                            await createQuestion(questionData);
+                        }
+                    }
+                }
+            }
+
+            setMessage({ type: 'success', text: 'Lưu nháp thành công!' });
+            setTimeout(() => {
+                window.location.href = '/seller-dashboard';
+            }, 2000);
         } catch (error) {
             console.error('Lỗi khi lưu nháp:', error);
             setMessage({
