@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button, Badge, Dropdown, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Badge, Dropdown, Form, Pagination } from "react-bootstrap";
 import { FaUser, FaCalendarAlt, FaMoneyBillWave, FaFilter } from "react-icons/fa";
 import "./SellerOrders.scss";
 import { useSelector } from "react-redux";
@@ -12,7 +12,7 @@ const SellerOrders = () => {
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({
         page: 1,
-        pageSize: 20,
+        pageSize: 10,
         pages: 1,
         total: 0
     });
@@ -27,8 +27,8 @@ const SellerOrders = () => {
     const filteredOrders = statusFilteredOrders.filter((order) => {
         const searchLower = searchTerm.toLowerCase();
         return (
-            order.subjectName?.toLowerCase().includes(searchLower) ||
-            order.buyerName?.toLowerCase().includes(searchLower)
+            order.subject?.name?.toLowerCase().includes(searchLower) ||
+            order.buyer?.name?.toLowerCase().includes(searchLower)
         );
     });
 
@@ -37,16 +37,17 @@ const SellerOrders = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await getOrderOfSeller(seller.id);
+                const response = await getOrderOfSeller(seller.id, pagination.page - 1, pagination.pageSize);
 
-                // Handle the new API response structure
-                if (response.data) {
-                    setOrders(response.data.result || []);
-                    setPagination(response.data.meta || {
-                        page: 1,
-                        pageSize: 20,
-                        pages: 1,
-                        total: 0
+                // Handle the API response - backend returns nested structure
+                if (response && response.data) {
+                    const ordersData = Array.isArray(response.data.result) ? response.data.result : [];
+                    setOrders(ordersData);
+                    setPagination({
+                        page: response.data.meta.page,
+                        pageSize: response.data.meta.pageSize,
+                        pages: response.data.meta.pages,
+                        total: response.data.meta.total
                     });
                 } else {
                     setOrders([]);
@@ -59,11 +60,16 @@ const SellerOrders = () => {
             }
         };
 
-
         if (seller?.id) {
             fetchOrders();
         }
-    }, [seller?.id]);
+    }, [seller?.id, pagination.page, pagination.pageSize]);
+
+    const handlePageChange = (newPage) => {
+        setPagination(prev => ({ ...prev, page: newPage }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     console.log("Orders:", orders);
     return (
         <div className="seller-orders">
@@ -118,20 +124,20 @@ const SellerOrders = () => {
                     <>
                         <Row className="g-3">
                             {filteredOrders.map((order) => (
-                                <Col xs={12} key={order.purchaseId}>
+                                <Col xs={12} key={order.id}>
                                     <Card className="order-item p-3 bg-dark border-0 shadow-sm">
                                         <Row className="align-items-center g-3">
                                             <Col xs={12} md={4}>
-                                                <h6 className="fw-semibold text-white mb-1">{order.subjectName}</h6>
+                                                <h6 className="fw-semibold text-white mb-1">{order.subject?.name}</h6>
                                                 <p className="small text-secondary mb-1">
                                                     <FaUser className="me-2 text-muted" />
-                                                    {order.buyerName}
+                                                    {order.buyer?.name}
                                                 </p>
                                             </Col>
                                             <Col xs={6} md={3}>
                                                 <p className="small text-white-50 mb-1">
                                                     <FaCalendarAlt className="me-2 text-muted" />
-                                                    {new Date(order.purchasedAt).toLocaleDateString("vi-VN", {
+                                                    {new Date(order.createdAt).toLocaleDateString("vi-VN", {
                                                         year: "numeric",
                                                         month: "2-digit",
                                                         day: "2-digit",
@@ -143,13 +149,13 @@ const SellerOrders = () => {
                                             <Col xs={6} md={2}>
                                                 <p className="small fw-semibold text-white">
                                                     <FaMoneyBillWave className="me-1 text-success" />
-                                                    {order.price.toLocaleString("vi-VN")}₫
+                                                    {order.amount?.toLocaleString("vi-VN")}₫
                                                 </p>
                                             </Col>
                                             <Col xs={12} md={3} className="text-md-end">
                                                 <Badge
                                                     bg={
-                                                        order.status === "Completed"
+                                                        order.status === "SUCCESS"
                                                             ? "success"
                                                             : order.status === "Pending"
                                                                 ? "warning"
@@ -163,7 +169,7 @@ const SellerOrders = () => {
                                                     <Dropdown.Toggle
                                                         size="sm"
                                                         variant="outline-light"
-                                                        id={`dropdown-${order.purchaseId}`}
+                                                        id={`dropdown-${order.id}`}
                                                     >
                                                         Actions
                                                     </Dropdown.Toggle>
@@ -187,13 +193,56 @@ const SellerOrders = () => {
 
                         {/* PAGINATION INFO */}
                         {pagination.total > 0 && (
-                            <div className="d-flex justify-content-between align-items-center mt-4">
+                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
                                 <p className="text-secondary mb-0">
-                                    Showing {filteredOrders.length} of {pagination.total} orders
+                                    Showing {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} orders
                                 </p>
-                                <p className="text-secondary mb-0">
-                                    Page {pagination.page} of {pagination.pages}
-                                </p>
+
+                                <Pagination className="mb-0">
+                                    <Pagination.First
+                                        onClick={() => handlePageChange(1)}
+                                        disabled={pagination.page === 1}
+                                    />
+                                    <Pagination.Prev
+                                        onClick={() => handlePageChange(pagination.page - 1)}
+                                        disabled={pagination.page === 1}
+                                    />
+
+                                    {[...Array(pagination.pages)].map((_, index) => {
+                                        const pageNum = index + 1;
+                                        // Show first page, last page, current page, and adjacent pages
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === pagination.pages ||
+                                            (pageNum >= pagination.page - 1 && pageNum <= pagination.page + 1)
+                                        ) {
+                                            return (
+                                                <Pagination.Item
+                                                    key={pageNum}
+                                                    active={pageNum === pagination.page}
+                                                    onClick={() => handlePageChange(pageNum)}
+                                                >
+                                                    {pageNum}
+                                                </Pagination.Item>
+                                            );
+                                        } else if (
+                                            pageNum === pagination.page - 2 ||
+                                            pageNum === pagination.page + 2
+                                        ) {
+                                            return <Pagination.Ellipsis key={pageNum} disabled />;
+                                        }
+                                        return null;
+                                    })}
+
+                                    <Pagination.Next
+                                        onClick={() => handlePageChange(pagination.page + 1)}
+                                        disabled={pagination.page === pagination.pages}
+                                    />
+                                    <Pagination.Last
+                                        onClick={() => handlePageChange(pagination.pages)}
+                                        disabled={pagination.page === pagination.pages}
+                                    />
+                                </Pagination>
                             </div>
                         )}
                     </>

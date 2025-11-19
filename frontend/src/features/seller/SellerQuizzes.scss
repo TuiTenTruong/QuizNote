@@ -17,6 +17,17 @@
         color: #a5a5a5;
     }
 
+    .hover-gradient {
+        background-color: transparent;
+        border: 1px solid white;
+
+        &:hover {
+            opacity: 0.9;
+            background: linear-gradient(90deg, #9333ea, #f97316);
+            color: #fff;
+        }
+    }
+
     /* Filter Buttons */
     .btn-group {
         button {
@@ -83,6 +94,7 @@
             justify-content: center;
             color: #fff;
             font-size: 1.2rem;
+            flex-shrink: 0; // Ngăn icon bị co lại khi text dài
             box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
         }
 
@@ -94,6 +106,16 @@
         p {
             color: #bbb;
             font-size: 0.9rem;
+        }
+
+        .text-ellipsis {
+            display: -webkit-box;
+            line-clamp: 1;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 60%;
         }
 
         .small {

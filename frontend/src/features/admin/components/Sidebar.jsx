@@ -79,24 +79,6 @@ const SideBar = ({ isSidebarOpen, toggleSidebar }) => {
                             <FaShoppingCart className="me-2" /> <span>Đơn hàng</span>
                         </NavLink>
                     </Nav.Item>
-                    <Nav.Item>
-                        <NavLink
-                            to="/admin/reports"
-                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
-                        >
-                            <FaChartLine className="me-2" /> <span>Báo cáo</span>
-                        </NavLink>
-                    </Nav.Item>
-                    <Nav.Item>
-                        <NavLink
-                            to="/admin/content-review"
-                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
-                        >
-                            <FaFileAlt className="me-2" /> <span>Đánh giá nội dung</span>
-                        </NavLink>
-                    </Nav.Item>
                 </Nav>
 
                 <hr className="my-4 border-secondary" />

@@ -20,12 +20,12 @@ public class PaymentTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String transactionNo; // vnp_TransactionNo
-    private String orderInfo; // vnp_OrderInfo
-    private String paymentTime; // vnp_PayDate
-    private Long amount; // vnp_Amount / 100
-    private String status; // SUCCESS, FAILED
-    private String paymentMethod; // "VNPAY"
+    private String transactionNo;
+    private String orderInfo;
+    private String paymentTime;
+    private Long amount;
+    private String status;
+    private String paymentMethod;
 
     @ManyToOne
     @JoinColumn(name = "buyer_id")

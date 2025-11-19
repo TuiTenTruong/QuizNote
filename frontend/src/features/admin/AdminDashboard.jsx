@@ -79,9 +79,9 @@ const AdminDashboard = () => {
             var sellers = 0;
             var admins = 0;
             userRoleCounts.forEach(roleCount => {
-                if (roleCount.role === 'USER') {
+                if (roleCount.role === 'STUDENT') {
                     students = roleCount.count;
-                } else if (roleCount.role === 'Seller') {
+                } else if (roleCount.role === 'SELLER') {
                     sellers = roleCount.count;
                 } else if (roleCount.role === 'SUPER_ADMIN') {
                     admins = roleCount.count;
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
                                                     }
                                                 </h3>
                                                 <span className="stat-change">
-                                                    {cardData?.change ? `+${cardData.change}%` : '0%'}
+                                                    {cardData?.change ? `+${cardData.change.toFixed(2)}%` : '0%'}
                                                 </span>
                                             </div>
                                             <div className="stat-icon" style={{ background: `${stat.color}20`, color: stat.color }}>
@@ -242,7 +242,7 @@ const AdminDashboard = () => {
                                                         <td className="fw-semibold">{user.name}</td>
                                                         <td className="text-white">{user.email}</td>
                                                         <td>
-                                                            <Badge bg={user.role === 'Seller' ? 'warning' : 'info'}>
+                                                            <Badge bg={user.role === 'SELLER' ? 'warning' : user.role === 'SUPER_ADMIN' ? 'danger' : 'info'}>
                                                                 {user.role}
                                                             </Badge>
                                                         </td>

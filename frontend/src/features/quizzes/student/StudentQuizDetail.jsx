@@ -6,6 +6,8 @@ import {
     Badge,
     Card,
     ProgressBar,
+    Form,
+    Alert,
 } from "react-bootstrap";
 import {
     FaClock,
@@ -18,15 +20,14 @@ import {
 } from "react-icons/fa";
 import "./StudentQuizDetail.scss";
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axiosCustomize";
 import ReviewItem from "./ReviewItem"; // Import component mới
-import { getQuizDetail, getQuizDemo, getQuizReviews } from "../../../services/apiService";
+import { getQuizDetail, getQuizDemo, getQuizReviews, createComment, getMyRatings } from "../../../services/apiService";
 import { useLocation } from "react-router-dom";
 import { navigateToSelectMode } from "../../../utils/quizNavigation";
 import { useNavigate } from "react-router-dom";
-
-
+import { useSelector } from "react-redux";
 const StudentQuizDetail = () => {
     const [quiz, setQuiz] = useState(null);
     const [quizDemo, setQuizDemo] = useState(null);
@@ -36,13 +37,20 @@ const StudentQuizDetail = () => {
     const [countReviews, setCountReviews] = useState(0);
     const [hasMoreReviews, setHasMoreReviews] = useState(true);
     const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [rating, setRating] = useState(5);
+    const [reviewContent, setReviewContent] = useState("");
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState(null);
     const { quizId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const account = useSelector(state => state.user.account);
+    const [isRating, setIsRating] = useState(false);
     const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
     const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
     const hasPurchased = location.state?.hasPurchased;
     console.log("Has purchased:", hasPurchased);
+
     useEffect(() => {
         // Fetch quiz detail from API
         const fetchQuizDetail = async () => {
@@ -55,7 +63,17 @@ const StudentQuizDetail = () => {
         };
         fetchQuizDetail();
     }, [quizId]);
-
+    useEffect(() => {
+        const fetchMyRatings = async () => {
+            const response = await getMyRatings(account.id, quizId);
+            if (response && response.statusCode === 200) {
+                setIsRating(response.data);
+            } else {
+                console.error("Failed to fetch my ratings", response);
+            }
+        };
+        fetchMyRatings();
+    }, [account, quizId]);
     useEffect(() => {
         const fetchQuizDemo = async () => {
             const response = await getQuizDemo(quizId);
@@ -68,7 +86,6 @@ const StudentQuizDetail = () => {
         fetchQuizDemo();
     }, [quizId]);
 
-    // Fetch reviews
     const fetchReviews = async (page) => {
         if (!hasMoreReviews && page > 0) return;
         setReviewsLoading(true);
@@ -83,6 +100,8 @@ const StudentQuizDetail = () => {
             console.error("Failed to fetch reviews");
         }
         setReviewsLoading(false);
+        setIsRating(true);
+
     };
 
     useEffect(() => {
@@ -93,6 +112,39 @@ const StudentQuizDetail = () => {
 
     const handleLoadMoreReviews = () => {
         fetchReviews(reviewsPage + 1);
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        if (!reviewContent.trim()) {
+            setSubmitMessage({ type: 'danger', text: 'Vui lòng nhập nội dung đánh giá!' });
+            return;
+        }
+
+        setSubmitLoading(true);
+        setSubmitMessage(null);
+
+        try {
+            const response = await createComment(quizId, reviewContent, rating);
+            if (response && response.statusCode === 201) {
+                setSubmitMessage({ type: 'success', text: 'Đánh giá của bạn đã được gửi thành công!' });
+                setReviewContent("");
+                setRating(5);
+                // Refresh reviews
+                setReviews([]);
+                setReviewsPage(0);
+                setHasMoreReviews(true);
+                fetchReviews(0);
+            } else {
+                setSubmitMessage({ type: 'danger', text: 'Có lỗi xảy ra. Vui lòng thử lại!' });
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            setSubmitMessage({ type: 'danger', text: 'Có lỗi xảy ra. Vui lòng thử lại!' });
+        } finally {
+            setSubmitLoading(false);
+
+        }
     };
 
     if (!quiz) {
@@ -109,7 +161,7 @@ const StudentQuizDetail = () => {
                 <Container className="py-5 text-white">
                     <Row>
                         <Col md={8}>
-                            <h2 className="fw-bold">{quiz.title}</h2>
+                            <h2 className="fw-bold">{quiz.name}</h2>
                             <p className="text-light text-ellipsis">{quiz.description}</p>
                             <div className="d-flex flex-wrap gap-3 mt-3 small text-white-50">
                                 <span className="d-flex align-items-center">
@@ -170,6 +222,59 @@ const StudentQuizDetail = () => {
 
                         <Card className="bg-dark text-light border-0 shadow-sm p-4">
                             <h5 className="fw-bold mb-3">Đánh giá từ học viên {countReviews > 0 && `(${countReviews})`}</h5>
+
+                            {/* Review Form - Only show if user has purchased */}
+                            {(!isRating) && (quiz.price === 0 || hasPurchased) && (
+                                <Card className="bg-secondary bg-opacity-25 border-0 p-3 mb-4">
+                                    <h6 className="fw-semibold mb-3 text-white">Đánh giá của bạn</h6>
+                                    <Form onSubmit={handleSubmitReview}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="text-light">Xếp hạng</Form.Label>
+                                            <div className="d-flex gap-2 mb-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <span
+                                                        key={star}
+                                                        onClick={() => setRating(star)}
+                                                        style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                                        className={star <= rating ? 'text-warning' : 'text-secondary'}
+                                                    >
+                                                        {star <= rating ? '★' : '☆'}
+                                                    </span>
+                                                ))}
+                                                <span className="text-light ms-2">{rating}/5</span>
+                                            </div>
+                                        </Form.Group>
+
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="text-light">Nội dung đánh giá</Form.Label>
+                                            <Form.Control
+                                                as="textarea"
+                                                rows={3}
+                                                value={reviewContent}
+                                                onChange={(e) => setReviewContent(e.target.value)}
+                                                placeholder="Chia sẻ trải nghiệm của bạn về quiz này..."
+                                                className="bg-dark text-light border-secondary"
+                                            />
+                                        </Form.Group>
+
+                                        {submitMessage && (
+                                            <Alert variant={submitMessage.type} className="mb-3">
+                                                {submitMessage.text}
+                                            </Alert>
+                                        )}
+
+                                        <Button
+                                            type="submit"
+                                            variant="primary"
+                                            className="btn-gradient"
+                                            disabled={submitLoading}
+                                        >
+                                            {submitLoading ? 'Gửi đang...' : 'Gửi đánh giá'}
+                                        </Button>
+                                    </Form>
+                                </Card>
+                            )}
+
                             {reviews.length > 0 ? reviews.map((r, i) => (
                                 <div key={r.id}>
                                     <ReviewItem review={r} />
@@ -210,8 +315,9 @@ const StudentQuizDetail = () => {
                                     <small className="text-secondary">Teacher</small>
                                 </div>
                             </div>
-                            {quiz.highestScore && (
+                            {quiz.highestScore != undefined && (
                                 <>
+
                                     <h6 className="fw-bold mb-2">Điểm cao nhất:</h6>
                                     <h3 className="text-success fw-bold mb-3">{quiz.highestScore}đ</h3>
                                 </>

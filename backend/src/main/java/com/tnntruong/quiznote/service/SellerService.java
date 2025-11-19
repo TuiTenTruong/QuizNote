@@ -11,15 +11,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
+import com.tnntruong.quiznote.domain.PaymentTransaction;
 import com.tnntruong.quiznote.domain.Purchase;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.domain.Withdraw;
+import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.ResWalletSellerDTO;
+import com.tnntruong.quiznote.dto.response.Seller.ResOrderDTO;
+import com.tnntruong.quiznote.dto.response.Seller.ResRecentOrderDTO;
 import com.tnntruong.quiznote.dto.response.Seller.ResSellerAnalytics;
+import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
 import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
@@ -34,15 +44,17 @@ public class SellerService {
 	private final PurchaseRepository purchaseRepository;
 	private final SellerProfileRepository sellerProfileRepository;
 	private final WithdrawRepository withdrawRepository;
+	private final PaymentTransactionRepository paymentTransactionRepository;
 
 	public SellerService(UserRepository userRepository, SubjectRepository subjectRepository,
 			PurchaseRepository purchaseRepository, SellerProfileRepository sellerProfileRepository,
-			WithdrawRepository withdrawRepository) {
+			WithdrawRepository withdrawRepository, PaymentTransactionRepository paymentTransactionRepository) {
 		this.userRepository = userRepository;
 		this.subjectRepository = subjectRepository;
 		this.purchaseRepository = purchaseRepository;
 		this.sellerProfileRepository = sellerProfileRepository;
 		this.withdrawRepository = withdrawRepository;
+		this.paymentTransactionRepository = paymentTransactionRepository;
 	}
 
 	public ResSellerAnalytics getSellerAnalytics(long sellerId, Integer months) throws InvalidException {
@@ -128,7 +140,7 @@ public class SellerService {
 					String buyerName = purchase.getStudent().getName();
 					String subjectName = purchase.getSubject().getName();
 					Double price = purchase.getSubject().getPrice();
-					String purchasedAt = purchase.getPurchasedAt().toString();
+					Instant purchasedAt = purchase.getPurchasedAt();
 					String status = "Completed"; // Default status
 					return new ResSellerAnalytics.RecentOrder(
 							purchase.getId(),
@@ -212,5 +224,67 @@ public class SellerService {
 			return withdrawDTO;
 		}).collect(Collectors.toList()));
 		return res;
+	}
+
+	public ResResultPagination getOrdersSeller(Long sellerId, Specification<PaymentTransaction> spec, Pageable page)
+			throws InvalidException {
+		User seller = userRepository.findById(sellerId).orElseThrow(() -> new InvalidException("Seller not found"));
+		Specification<PaymentTransaction> finalSpec = (root, query, cb) -> cb.equal(root.get("seller").get("id"),
+				sellerId);
+		if (spec != null) {
+			finalSpec = finalSpec.and(spec);
+		}
+
+		Page<PaymentTransaction> transactions = paymentTransactionRepository.findAll(finalSpec, page);
+		List<ResOrderDTO> listOrder = transactions.getContent().stream().map(item -> {
+			ResOrderDTO res = new ResOrderDTO();
+			res.setId(item.getId());
+			res.setTransactionNo(item.getTransactionNo());
+			res.setAmount(item.getAmount());
+			res.setOrderInfo(item.getOrderInfo());
+			res.setPaymentMethod(item.getPaymentMethod());
+			res.setStatus(item.getStatus());
+			res.setPaymentTime(item.getPaymentTime());
+			res.setCreatedAt(item.getCreatedAt());
+
+			ResOrderDTO.SellerDTO sellerDTO = new ResOrderDTO.SellerDTO();
+			sellerDTO.setId(item.getSeller().getId());
+			sellerDTO.setName(item.getSeller().getName());
+			res.setSeller(sellerDTO);
+
+			ResOrderDTO.BuyerDTO buyerDTO = new ResOrderDTO.BuyerDTO();
+			buyerDTO.setId(item.getBuyer().getId());
+			buyerDTO.setName(item.getBuyer().getName());
+			res.setBuyer(buyerDTO);
+
+			ResOrderDTO.SubjectDTO subjectDTO = new ResOrderDTO.SubjectDTO();
+			subjectDTO.setId(item.getSubject().getId());
+			subjectDTO.setName(item.getSubject().getName());
+			res.setSubject(subjectDTO);
+			return res;
+		}).collect(Collectors.toList());
+		ResResultPagination result = new ResResultPagination();
+
+		ResResultPagination.Meta mt = new ResResultPagination.Meta();
+		mt.setPage(transactions.getNumber() + 1);
+		mt.setPageSize(transactions.getSize());
+		mt.setPages(transactions.getTotalPages());
+		mt.setTotal(transactions.getTotalElements());
+		result.setMeta(mt);
+		result.setResult(listOrder);
+		return result;
+
+	}
+
+	public List<ResRecentOrderDTO> getRecentOrder(Long subjectId) throws InvalidException {
+		List<Purchase> purchases = purchaseRepository.findRecentOrdersBySubjectId(subjectId);
+		return purchases.stream().map(item -> {
+			ResRecentOrderDTO res = new ResRecentOrderDTO();
+			res.setId(item.getId());
+			res.setBuyer(item.getStudent().getName());
+			res.setBuyerEmail(item.getStudent().getEmail());
+			res.setPurchaseDate(item.getPurchasedAt());
+			return res;
+		}).collect(Collectors.toList());
 	}
 }

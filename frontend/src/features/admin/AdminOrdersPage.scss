@@ -1,0 +1,140 @@
+.admin-orders-page {
+    background: #0b0b0f;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #fff;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .text-muted {
+        color: #9ca3af !important;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    .search-input,
+    .table-card {
+
+        .input-group-text,
+        .form-control,
+        .form-select {
+            background: #1a1a1a;
+            border-color: #3a3a42;
+            color: #fff;
+
+            &:focus {
+                background: #1a1a1a;
+                border-color: #9333ea;
+                color: #fff;
+                box-shadow: 0 0 0 0.2rem rgba(147, 51, 234, 0.25);
+            }
+
+            &::placeholder {
+                color: #6b7280;
+            }
+        }
+    }
+
+    .table-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .orders-table {
+        thead {
+            th {
+                background: #1a1a1a;
+                border-color: #2a2a2a;
+                color: #9ca3af;
+                font-weight: 600;
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                padding: 1rem 0.75rem;
+                white-space: nowrap;
+            }
+        }
+
+        tbody {
+            tr {
+                border-color: #2a2a2a;
+                transition: background 0.2s ease;
+                background-color: #0b0b0f;
+
+                &:hover {
+                    background: rgba(147, 51, 234, 0.1);
+                }
+
+                td {
+                    border-color: #2a2a2a;
+                    padding: 1rem 0.75rem;
+                    vertical-align: middle;
+                    background-color: #1a1a1a;
+                }
+            }
+        }
+    }
+
+    .badge {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .btn-export {
+        border-color: #3a3a42;
+
+        &:hover {
+            background: #9333ea;
+            border-color: #9333ea;
+        }
+    }
+
+    .modal-content {
+        background: #1a1a1a;
+        border: none;
+
+        .modal-header,
+        .modal-footer {
+            background: #1a1a1a;
+            border-color: #3a3a42;
+
+            .btn-close {
+                filter: invert(1);
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem 0.5rem;
+
+        .text-gradient {
+            font-size: 1.5rem;
+        }
+
+        .orders-table {
+            font-size: 0.875rem;
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    }
+}

@@ -220,8 +220,8 @@ public class VNPayService {
                     return sp;
                 });
 
-        profile.setTotalRevenue(profile.getTotalRevenue() + totalPrice);
-        profile.setPendingBalance(profile.getPendingBalance() + totalPrice);
+        profile.setTotalRevenue(profile.getTotalRevenue() + (long) (totalPrice * 0.85));
+        profile.setPendingBalance(profile.getPendingBalance() + (long) (totalPrice * 0.85));
         sellerProfileRepository.save(profile);
 
         this.purchaseService.handleCreatePurchase(new ReqCreatePurchaseDTO(buyerId, subjectId, seller.getId()));

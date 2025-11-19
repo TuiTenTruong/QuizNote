@@ -1,5 +1,7 @@
 import axios from "axios";
 import { store } from "../redux/store";
+import { toast } from "react-toastify";
+
 const instance = axios.create({
     baseURL: 'http://localhost:8080/'
 
@@ -23,8 +25,44 @@ instance.interceptors.response.use(function (response) {
     // Do something with response data
     return response && response.data ? response.data : response;
 }, function (error) {
+    // Handle account disabled error
+    if (error?.response?.data?.error === "Account disabled") {
+        const message = error.response.data.message || "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.";
+
+        toast.error(message, {
+            position: "top-right",
+            autoClose: 5000,
+        });
+
+        // Clear user data from localStorage and redux store
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+
+        return Promise.reject(error);
+    }
+
+    // Handle 401 Unauthorized
+    if (error?.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", {
+            position: "top-right",
+        });
+
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+    }
+
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     return error && error.response && error.response.data ? error.response.data : Promise.reject(error);
 });
+
 export default instance

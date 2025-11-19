@@ -11,7 +11,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.tnntruong.quiznote.domain.PaymentTransaction;
+import com.tnntruong.quiznote.dto.response.Seller.ResOrderDTO;
 import com.tnntruong.quiznote.dto.response.admin.ResAdminAnalyticsDTO;
+import com.tnntruong.quiznote.dto.response.admin.ResAdminOrderDTO;
+import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
 import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
@@ -22,12 +26,15 @@ public class AdminService {
         private final SubjectRepository subjectRepository;
         private final UserRepository userRepository;
         private final PurchaseRepository purchaseRepository;
+        private final PaymentTransactionRepository paymentTransactionRepository;
 
         public AdminService(SubjectRepository subjectRepository, UserRepository userRepository,
-                        PurchaseRepository purchaseRepository) {
+                        PurchaseRepository purchaseRepository,
+                        PaymentTransactionRepository paymentTransactionRepository) {
                 this.subjectRepository = subjectRepository;
                 this.userRepository = userRepository;
                 this.purchaseRepository = purchaseRepository;
+                this.paymentTransactionRepository = paymentTransactionRepository;
         }
 
         public ResAdminAnalyticsDTO getAdminAnalytics() {
@@ -126,5 +133,51 @@ public class AdminService {
                 analytics.setCurrentUsers(currentUsers);
 
                 return analytics;
+        }
+
+        public ResAdminOrderDTO getAllOrders() {
+
+                List<ResOrderDTO> orders = new ArrayList<>();
+                List<PaymentTransaction> transactions = paymentTransactionRepository
+                                .findAll(Sort.by("createdAt").descending());
+                for (PaymentTransaction item : transactions) {
+                        ResOrderDTO res = new ResOrderDTO();
+                        res.setId(item.getId());
+                        res.setTransactionNo(item.getTransactionNo());
+                        res.setAmount(item.getAmount());
+                        res.setOrderInfo(item.getOrderInfo());
+                        res.setPaymentMethod(item.getPaymentMethod());
+                        res.setPaymentTime(item.getPaymentTime());
+                        res.setStatus(item.getStatus());
+                        res.setCreatedAt(item.getCreatedAt());
+
+                        ResOrderDTO.SellerDTO sellerDTO = new ResOrderDTO.SellerDTO();
+                        sellerDTO.setId(item.getSeller().getId());
+                        sellerDTO.setName(item.getSeller().getName());
+                        sellerDTO.setEmail(item.getSeller().getEmail());
+                        res.setSeller(sellerDTO);
+
+                        ResOrderDTO.BuyerDTO buyerDTO = new ResOrderDTO.BuyerDTO();
+                        buyerDTO.setId(item.getBuyer().getId());
+                        buyerDTO.setName(item.getBuyer().getName());
+                        buyerDTO.setEmail(item.getBuyer().getEmail());
+                        res.setBuyer(buyerDTO);
+
+                        ResOrderDTO.SubjectDTO subjectDTO = new ResOrderDTO.SubjectDTO();
+                        subjectDTO.setId(item.getSubject().getId());
+                        subjectDTO.setName(item.getSubject().getName());
+                        res.setSubject(subjectDTO);
+
+                        orders.add(res);
+                }
+                ResAdminOrderDTO res = new ResAdminOrderDTO();
+                res.setOrders(orders);
+                res.setTotalOrders(orders.size());
+                res.setSuccessfulOrders(
+                                (int) transactions.stream().filter(t -> t.getStatus().equals("SUCCESS")).count());
+                res.setTotalRevenue(transactions.stream().mapToLong(PaymentTransaction::getAmount).sum());
+                res.setPlatformFee(res.getTotalRevenue() * 15 / 100);
+
+                return res;
         }
 }

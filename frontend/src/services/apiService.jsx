@@ -237,6 +237,33 @@ const updateQuestion = async (questionData) => {
 const deleteSubject = async (subjectId) => {
     return Axios.delete(`/api/v1/subjects/${subjectId}`);
 }
+
+const getAllAdminOrders = async () => {
+    return Axios.get(`/api/v1/admin/orders`);
+}
+
+const sellerGetRecentOrders = async (subjectId) => {
+    return Axios.get(`/api/v1/seller/recentOrder/${subjectId}`);
+}
+
+const createComment = async (subjectId, content, rating) => {
+    const data = {
+        content: content,
+        rating: rating
+    };
+    return Axios.post(`/api/v1/comments/${subjectId}`, data);
+}
+
+const getMyRatings = async (userId, subjectId) => {
+    return Axios.get(`/api/v1/comments/user/${userId}/${subjectId}`);
+}
+
+const replyComment = async (parentCommentId, content) => {
+    const data = {
+        content: content
+    };
+    return Axios.post(`/api/v1/comments/reply/${parentCommentId}`, data);
+}
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllActiveSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
@@ -246,5 +273,6 @@ export {
     getCurrentUser, updateUserProfile, changePassword, updateUserPreferences, uploadAvatar, deleteUserAccount,
     AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser,
     createRole, updateRole, deleteRole, getRolesPaginated, getAllPermissions, createPermission, updatePermission, deletePermission, getAllSubjects,
-    approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion
+    approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion, getAllAdminOrders, sellerGetRecentOrders,
+    createComment, getMyRatings, replyComment
 };

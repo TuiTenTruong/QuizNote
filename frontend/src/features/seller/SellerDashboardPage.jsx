@@ -186,12 +186,12 @@ const SellerDashboard = () => {
                                                     {order.quizTitle || order.quiz}
                                                 </h6>
                                                 <small className="text-white">
-                                                    Buyer: {order.buyerName || order.buyer} • {order.orderDate || order.date}
+                                                    Buyer: {order.buyerName} • {order.purchasedAt}
                                                 </small>
                                             </div>
                                             <Badge
                                                 bg={
-                                                    order.status === "Completed" || order.status === "COMPLETED"
+                                                    order.status === "Completed"
                                                         ? "success"
                                                         : "warning text-dark"
                                                 }
@@ -200,7 +200,7 @@ const SellerDashboard = () => {
                                             </Badge>
                                         </div>
                                         <div className="mt-2 text-end text-info fw-semibold">
-                                            {formatVND(order.amount || order.price)}
+                                            {formatVND(order.price)}
                                         </div>
                                     </Card>
                                 ))}
@@ -233,7 +233,7 @@ const SellerDashboard = () => {
                                                 variant="outline-light"
                                                 className="mt-2 mt-md-0"
                                             >
-                                                Edit
+                                                View
                                             </Button>
                                         </div>
                                         <div className="mt-2 text-end text-success fw-semibold">

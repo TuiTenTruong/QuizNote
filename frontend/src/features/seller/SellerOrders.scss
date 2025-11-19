@@ -78,6 +78,32 @@
         }
     }
 
+    .pagination {
+        .page-item {
+            .page-link {
+                background: #121212;
+                border: 1px solid #2e2e2e;
+                color: #ccc;
+
+                &:hover {
+                    background: linear-gradient(90deg, #9333ea, #f97316);
+                    color: #fff;
+                    border: none;
+                }
+
+
+            }
+
+            &.active .page-link {
+                background: linear-gradient(90deg, #9333ea, #f97316);
+                color: #fff;
+                border: none;
+            }
+        }
+
+
+    }
+
     @media (max-width: 768px) {
         padding: 1rem;
 

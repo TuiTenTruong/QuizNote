@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tnntruong.quiznote.domain.Comment;
+import com.tnntruong.quiznote.domain.User;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>, JpaSpecificationExecutor<Comment> {
@@ -16,6 +17,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, JpaSpec
     Double findAverageRatingBySubjectId(@Param("subjectId") Long subjectId);
 
     List<Comment> findBySubjectIdAndParentCommentIsNull(Long subjectId);
+
+    boolean existsByUserAndSubjectId(User user, Long subjectId);
 
     void deleteByUserId(Long userId);
 }

@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.service.AdminService;
+import com.tnntruong.quiznote.util.annotation.ApiMessage;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,12 @@ public class AdminController {
     @GetMapping("/analysis")
     public ResponseEntity<?> getAdminAnalytics() {
         return ResponseEntity.ok(adminService.getAdminAnalytics());
+    }
+
+    @GetMapping("/orders")
+    @ApiMessage("Fetched all orders successfully")
+    public ResponseEntity<?> getAllOrders() {
+        return ResponseEntity.ok(adminService.getAllOrders());
     }
 
 }

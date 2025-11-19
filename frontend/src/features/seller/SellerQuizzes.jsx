@@ -242,13 +242,10 @@ const SellerQuizzes = () => {
                                         <h6 className="fw-semibold mb-1 text-white">
                                             {quiz.name}
                                         </h6>
-                                        <p className="text-secondary small mb-2">{quiz.description}</p>
+                                        <p className="text-secondary small mb-2 text-ellipsis">{quiz.description}</p>
                                         <div className="quiz-meta d-flex flex-wrap gap-3 small text-white-50">
                                             <span>
                                                 <FaUser className="me-1" /> {quiz.purchaseCount || 0} purchases
-                                            </span>
-                                            <span>
-                                                <FaClock className="me-1" /> {quiz.duration ? `${quiz.duration} mins` : 'N/A'}
                                             </span>
                                             <span>{quiz.questionCount || 0} questions</span>
                                             <span>₫{(quiz.price || 0).toLocaleString()}</span>
@@ -268,9 +265,11 @@ const SellerQuizzes = () => {
                                     >
                                         {quiz.status?.toLowerCase()}
                                     </Badge>
-
+                                    <Button className="hover-gradient" onClick={() => navigate(`/seller/quizzes/${quiz.id}`)}>
+                                        View
+                                    </Button>
                                     <Button
-                                        size="sm"
+
                                         variant="outline-danger"
                                         className="flex-fill flex-sm-grow-0"
                                         onClick={() => handleDeleteClick(quiz.id)}

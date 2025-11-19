@@ -36,4 +36,7 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long>, JpaSp
 
     void deleteBySellerId(Long sellerId);
 
+    @Query("SELECT p FROM Purchase p WHERE p.subject.id = :subjectId ORDER BY p.purchasedAt DESC LIMIT 5")
+    List<Purchase> findRecentOrdersBySubjectId(Long subjectId);
+
 }

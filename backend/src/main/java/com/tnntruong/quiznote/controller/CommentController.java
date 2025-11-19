@@ -54,4 +54,10 @@ public class CommentController {
         commentService.deleteComment(commentId);
         return ResponseEntity.ok("Comment deleted successfully");
     }
+
+    @GetMapping("/user/{userId}/{subjectId}")
+    public ResponseEntity<?> getCommentsByUser(@PathVariable Long userId, @PathVariable Long subjectId)
+            throws InvalidException {
+        return ResponseEntity.ok(commentService.getCommentsByUser(userId, subjectId));
+    }
 }

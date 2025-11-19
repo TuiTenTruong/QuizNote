@@ -1,6 +1,9 @@
 package com.tnntruong.quiznote.dto.response.Seller;
 
+import java.time.Instant;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,7 +48,8 @@ public class ResSellerAnalytics {
         private String buyerName;
         private String subjectName;
         private Double price;
-        private String purchasedAt;
+        @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss a", timezone = "Asia/Ho_Chi_Minh")
+        private Instant purchasedAt;
         private String status;
     }
 

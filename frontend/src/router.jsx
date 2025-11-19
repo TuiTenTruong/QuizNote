@@ -31,7 +31,8 @@ import AdminSubjectsPage from "./features/admin/AdminSubjectsPage";
 import AdminRolesPermissionsPage from "./features/admin/AdminRolesPermissionsPage";
 import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import AdminOrdersPage from "./features/admin/AdminOrdersPage";
+import AdminSettingsPage from "./features/admin/AdminSettingsPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -68,7 +69,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/seller",
-        element: <ProtectedRoute allowedRoles={['SELLER']}><DashboardSeller /></ProtectedRoute>,
+        element: <DashboardSeller />,
         children: [
             { index: true, element: <SellerDashboard /> },
             { path: "quizzes", element: <SellerQuizzes /> },
@@ -89,6 +90,8 @@ const router = createBrowserRouter([
             { path: "users", element: <AdminUsersPage /> },
             { path: "permissions", element: <AdminRolesPermissionsPage /> },
             { path: "subjects", element: <AdminSubjectsPage /> },
+            { path: "orders", element: <AdminOrdersPage /> },
+            { path: "settings", element: <AdminSettingsPage /> }
         ]
     }
 

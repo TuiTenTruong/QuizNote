@@ -300,7 +300,7 @@ const AdminUsersPage = () => {
                                                         <td>
                                                             <Badge bg={
                                                                 user.role.name === 'SUPER_ADMIN' ? 'danger' :
-                                                                    user.role.name === 'Seller' ? 'warning' :
+                                                                    user.role.name === 'SELLER' ? 'warning' :
                                                                         'info'
                                                             }>
                                                                 {user.role.name}

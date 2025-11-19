@@ -13,6 +13,7 @@ import com.tnntruong.quiznote.dto.response.ResCommentDTO;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.repository.CommentRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -21,12 +22,14 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final SubjectRepository subjectRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     public CommentService(CommentRepository commentRepository, SubjectRepository subjectRepository,
-            UserService userService) {
+            UserService userService, UserRepository userRepository) {
         this.commentRepository = commentRepository;
         this.subjectRepository = subjectRepository;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     public Comment addComment(Long subjectId, ReqCreateCommentDTO req) throws InvalidException {
@@ -42,12 +45,13 @@ public class CommentService {
         newComment.setRating(req.getRating());
         newComment.setUser(user);
         newComment.setSubject(subject);
-
+        Comment savedComment = commentRepository.save(newComment);
         Double avg = commentRepository.findAverageRatingBySubjectId(subjectId);
         subject.setAverageRating(avg != null ? avg : 0.0);
+        subject.setRatingCount(subject.getRatingCount() + 1);
         subjectRepository.save(subject);
 
-        return commentRepository.save(newComment);
+        return savedComment;
     }
 
     public Comment replyToComment(Long parentId, ReqCreateCommentDTO request) throws InvalidException {
@@ -111,5 +115,13 @@ public class CommentService {
         Double avg = commentRepository.findAverageRatingBySubjectId(comment.getSubject().getId());
         comment.getSubject().setAverageRating(avg != null ? avg : 0.0);
         subjectRepository.save(comment.getSubject());
+    }
+
+    public boolean getCommentsByUser(Long userId, Long subjectId) throws InvalidException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidException("User not found"));
+
+        boolean hasComment = commentRepository.existsByUserAndSubjectId(user, subjectId);
+        return hasComment;
     }
 }
