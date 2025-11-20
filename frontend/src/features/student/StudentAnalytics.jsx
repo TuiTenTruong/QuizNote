@@ -185,7 +185,13 @@ const StudentAnalytics = () => {
                                                 />
                                             ))}
                                         </Pie>
-                                        <Tooltip contentStyle={{ background: "#1f1f1f", border: "none" }} />
+                                        <Tooltip
+                                            contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
+                                            labelStyle={{ color: '#fff' }}
+                                            itemStyle={{
+                                                color: 'var(--bs-secondary)'
+                                            }}
+                                        />
                                         <Legend />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -212,7 +218,13 @@ const StudentAnalytics = () => {
                                         <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                                         <XAxis dataKey="subject" stroke="#aaa" />
                                         <YAxis stroke="#aaa" domain={[0, 10]} />
-                                        <Tooltip contentStyle={{ background: "#1f1f1f", border: "none" }} />
+                                        <Tooltip
+                                            contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
+                                            labelStyle={{ color: '#fff' }}
+                                            itemStyle={{
+                                                color: 'var(--bs-secondary)'
+                                            }}
+                                        />
                                         <Bar dataKey="correct" fill="url(#colorUv)" radius={[6, 6, 0, 0]} />
                                         <defs>
                                             <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="0">

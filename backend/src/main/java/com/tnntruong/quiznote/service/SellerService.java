@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.method.P;
+
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.PaymentTransaction;
@@ -66,46 +66,52 @@ public class SellerService {
 		SellerProfile profile = profileOpt.orElse(new SellerProfile());
 
 		// Get all subjects by this seller
-		List<Subject> subjects = subjectRepository.findAll().stream()
-				.filter(s -> s.getSeller() != null && s.getSeller().getId() == sellerId)
-				.collect(Collectors.toList());
+		List<Subject> subjectsNotDeleted = subjectRepository.findAllBySellerIdNotDeleted(sellerId);
 
+		List<Subject> allSubjects = subjectRepository.findAllBySellerId(sellerId);
 		// Get all purchases for seller's subjects
 		List<Purchase> allPurchases = new ArrayList<>();
-		for (Subject subject : subjects) {
+		for (Subject subject : subjectsNotDeleted) {
 			allPurchases.addAll(purchaseRepository.findBySubjectId(subject.getId()));
 		}
 
+		List<PaymentTransaction> transactions = new ArrayList<>();
+		for (Subject subject : allSubjects) {
+			List<PaymentTransaction> subjectTransactions = paymentTransactionRepository
+					.findBySubjectId(subject.getId());
+			transactions.addAll(subjectTransactions);
+		}
+
 		// Filter by time range if specified
-		List<Purchase> filteredPurchases = allPurchases;
+		List<PaymentTransaction> filteredTransactions = transactions;
 		if (months != null && months > 0) {
 			Instant cutoffDate = Instant.now().minus(months * 30L, java.time.temporal.ChronoUnit.DAYS);
-			filteredPurchases = allPurchases.stream()
-					.filter(p -> p.getPurchasedAt() != null
-							&& p.getPurchasedAt().isAfter(cutoffDate))
+			filteredTransactions = transactions.stream()
+					.filter(p -> p.getCreatedAt() != null
+							&& p.getCreatedAt().isAfter(cutoffDate))
 					.collect(Collectors.toList());
 		}
 
 		// Calculate total revenue from filtered purchases
-		long totalRevenue = filteredPurchases.stream()
-				.mapToLong(p -> (long) p.getSubject().getPrice())
+		long totalRevenue = filteredTransactions.stream()
+				.mapToLong(p -> p.getAmount() != null ? p.getAmount().longValue() : 0L)
 				.sum();
 
 		// Total quizzes sold
-		int totalQuizzesSold = filteredPurchases.size();
+		int totalQuizzesSold = filteredTransactions.size();
 
 		// Total subjects
-		int totalSubjects = subjects.size();
+		int totalSubjects = subjectsNotDeleted.size();
 
 		// Average rating across all subjects
-		double averageRating = subjects.stream()
+		double averageRating = subjectsNotDeleted.stream()
 				.filter(s -> s.getAverageRating() != null && s.getAverageRating() > 0.0)
 				.mapToDouble(Subject::getAverageRating)
 				.average()
 				.orElse(0.0);
 
 		// Total views (using purchase count as a proxy for now)
-		int totalViews = subjects.stream()
+		int totalViews = subjectsNotDeleted.stream()
 				.mapToInt(s -> s.getPurchaseCount() != null ? s.getPurchaseCount() : 0)
 				.sum() * 10; // Estimate: 10 views per purchase
 
@@ -115,7 +121,7 @@ public class SellerService {
 						p -> p.getSubject().getId(),
 						Collectors.summingInt(p -> 1)));
 
-		List<ResSellerAnalytics.SubjectStat> topSubjects = subjects.stream()
+		List<ResSellerAnalytics.SubjectStat> topSubjects = subjectsNotDeleted.stream()
 				.map(subject -> {
 					int salesCount = subjectSalesCount.getOrDefault(subject.getId(), 0);
 					return new ResSellerAnalytics.SubjectStat(
@@ -153,23 +159,23 @@ public class SellerService {
 				.collect(Collectors.toList());
 
 		// Monthly revenue (last 6 months)
-		Map<YearMonth, List<Purchase>> monthlyPurchases = filteredPurchases.stream()
-				.filter(p -> p.getPurchasedAt() != null)
+		Map<YearMonth, List<PaymentTransaction>> monthlyPurchases = filteredTransactions.stream()
+				.filter(p -> p.getCreatedAt() != null)
 				.collect(Collectors.groupingBy(
-						p -> YearMonth.from(LocalDate.ofInstant(p.getPurchasedAt(),
+						p -> YearMonth.from(LocalDate.ofInstant(p.getCreatedAt(),
 								ZoneId.systemDefault())),
 						LinkedHashMap::new,
 						Collectors.toList()));
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM");
 		List<ResSellerAnalytics.MonthlyRevenue> monthlyRevenue = monthlyPurchases.entrySet().stream()
-				.sorted(Map.Entry.<YearMonth, List<Purchase>>comparingByKey())
+				.sorted(Map.Entry.<YearMonth, List<PaymentTransaction>>comparingByKey())
 				.map(e -> {
 					YearMonth month = e.getKey();
-					List<Purchase> purchases = e.getValue();
+					List<PaymentTransaction> purchases = e.getValue();
 					long revenue = purchases.stream()
-							.mapToLong(p -> (long) p.getSubject().getPrice())
-							.sum();
+							.mapToLong(p -> p.getAmount() != null ? p.getAmount().longValue() : 0L)
+							.sum() * 85 / 100;
 					int salesCount = purchases.size();
 					String monthName = month.atDay(1).format(formatter);
 					return new ResSellerAnalytics.MonthlyRevenue(monthName, revenue, salesCount);

@@ -54,15 +54,22 @@ const StudentQuizDetail = () => {
     useEffect(() => {
         // Fetch quiz detail from API
         const fetchQuizDetail = async () => {
-            const response = await getQuizDetail(quizId);
-            if (response && response.statusCode === 200) {
-                setQuiz(response.data);
-            } else {
-                console.error("Failed to fetch quiz detail", response);
+            try {
+                const response = await getQuizDetail(quizId);
+                if (response && response.statusCode === 200) {
+                    setQuiz(response.data);
+                } else {
+                    console.error("Failed to fetch quiz detail", response);
+                }
+            } catch (error) {
+                console.error("Error fetching quiz detail:", error);
+                // Nếu là subject INACTIVE và chưa mua, backend sẽ trả error
+                alert("Không thể truy cập môn học này. Môn học có thể đã được ẩn hoặc không tồn tại.");
+                navigate('/student/quizzes');
             }
         };
         fetchQuizDetail();
-    }, [quizId]);
+    }, [quizId, navigate]);
     useEffect(() => {
         const fetchMyRatings = async () => {
             const response = await getMyRatings(account.id, quizId);

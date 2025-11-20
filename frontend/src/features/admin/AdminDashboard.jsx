@@ -165,6 +165,9 @@ const AdminDashboard = () => {
                                         <Tooltip
                                             contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
                                             labelStyle={{ color: '#fff' }}
+                                            itemStyle={{
+                                                color: 'var(--bs-secondary)'
+                                            }}
                                         />
                                         <Line
                                             type="monotone"
@@ -209,7 +212,13 @@ const AdminDashboard = () => {
                                             ))}
                                         </Pie>
                                         <Tooltip
-                                            contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
+                                            contentStyle={{
+                                                background: '#1a1a1a',
+                                                border: '1px solid #333'
+                                            }}
+                                            itemStyle={{
+                                                color: 'var(--bs-secondary)'
+                                            }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>

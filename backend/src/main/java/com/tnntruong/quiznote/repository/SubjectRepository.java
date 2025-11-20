@@ -21,4 +21,9 @@ public interface SubjectRepository extends JpaRepository<Subject, Long>, JpaSpec
     List<Subject> findTop6ByStatusOrderByPurchaseCountDesc();
 
     void deleteBySellerId(Long sellerId);
+
+    @Query("SELECT s FROM Subject s WHERE s.seller.id = :sellerId AND s.status != 'DELETED'")
+    List<Subject> findAllBySellerIdNotDeleted(@Param("sellerId") Long sellerId);
+
+    List<Subject> findAllBySellerId(Long sellerId);
 }

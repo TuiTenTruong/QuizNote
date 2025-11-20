@@ -21,12 +21,13 @@ import {
 } from "react-icons/fa";
 import "./CreateQuiz.scss";
 import { createQuiz, createQuestion, saveDraftQuiz } from "../../services/apiService";
-
+import { useNavigate } from "react-router-dom";
 function CreateQuiz() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [imageFile, setImageFile] = useState(null);
+    const navigate = useNavigate();
     const [quiz, setQuiz] = useState({
         title: "",
         description: "",
@@ -204,8 +205,7 @@ function CreateQuiz() {
 
             setMessage({ type: 'success', text: 'Tạo bài kiểm tra thành công!' });
             setTimeout(() => {
-                // Reset form or redirect
-                window.location.href = '/seller-dashboard';
+                navigate('/seller');
             }, 2000);
         } catch (error) {
             console.error('Lỗi khi tạo bài kiểm tra:', error);
@@ -265,7 +265,7 @@ function CreateQuiz() {
 
             setMessage({ type: 'success', text: 'Lưu nháp thành công!' });
             setTimeout(() => {
-                window.location.href = '/seller-dashboard';
+                navigate('/seller');
             }, 2000);
         } catch (error) {
             console.error('Lỗi khi lưu nháp:', error);

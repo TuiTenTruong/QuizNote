@@ -14,6 +14,7 @@ import com.tnntruong.quiznote.dto.response.ResPurchaseDTO;
 import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -45,6 +46,12 @@ public class PurchaseService {
                     System.err.println("❌ Subject not found with id: " + dto.getSubjectId());
                     return new InvalidException("Subject not found");
                 });
+
+        // Kiểm tra nếu subject ở trạng thái DELETED - không cho phép mua
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            System.err.println("Subject is deleted with id: " + dto.getSubjectId());
+            throw new InvalidException("Subject not found");
+        }
 
         User seller = userRepository.findById(dto.getSellerId())
                 .orElseThrow(() -> {
@@ -110,22 +117,29 @@ public class PurchaseService {
             }
             List<Purchase> purchasesList = this.purchaseRepository.findByStudentId(idUser);
             List<ResPurchaseDTO.CurrentSubject> res = purchasesList.stream().map((item) -> {
+                Long subjectId = item.getSubject().getId();
+                Optional<Subject> subjectOptional = this.subjectRepository.findById(subjectId);
+                if (subjectOptional.isEmpty() || subjectOptional.get().getStatus() == SubjectStatus.DELETED) {
+                    return null;
+                }
+
                 ResPurchaseDTO.CurrentSubject subject = new ResPurchaseDTO.CurrentSubject();
                 if (item.getSubject() != null) {
-                    Long subjectId = item.getSubject().getId();
-                    Optional<Subject> subjectOptional = this.subjectRepository.findById(subjectId);
+
                     subjectOptional.ifPresent(s -> {
+
                         subject.setId(s.getId());
                         subject.setName(s.getName());
                         subject.setDescription(s.getDescription());
                         subject.setImageUrl(s.getImageUrl());
                         subject.setPurchasedAt(item.getPurchasedAt());
-                        subject.setQuestionCount(s.getQuestions().size());
                         subject.setAverageRating(s.getAverageRating());
+                        subject.setQuestionCount(s.getQuestions().size());
+
                     });
                 }
                 return subject;
-            }).collect(Collectors.toList());
+            }).filter(subject -> subject != null).collect(Collectors.toList());
             return res;
         } catch (NumberFormatException e) {
             throw new InvalidException("invalid id");

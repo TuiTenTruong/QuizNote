@@ -21,6 +21,7 @@ import com.tnntruong.quiznote.dto.response.ResQuestionDTO.ResOptionDTO;
 import com.tnntruong.quiznote.repository.ChapterRepository;
 import com.tnntruong.quiznote.repository.QuestionRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -129,14 +130,18 @@ public class QuestionService {
         }
     }
 
-    public List<ResQuestionDTO> handleGetQuestionBySubjectId(String id, Specification<Question> spec,
-            Pageable page) throws InvalidException {
+    public List<ResQuestionDTO> handleGetQuestionBySubjectId(String id, Specification<Question> spec, Pageable page)
+            throws InvalidException {
         try {
             Long idSubject = Long.parseLong(id);
-            boolean isExistById = this.subjectRepository.existsById(idSubject);
-            if (!isExistById) {
+            Subject subject = this.subjectRepository.findById(idSubject)
+                    .orElseThrow(() -> new InvalidException("subject with id = " + idSubject + " not found"));
+
+            // Kiểm tra nếu subject ở trạng thái DELETED
+            if (subject.getStatus() == SubjectStatus.DELETED) {
                 throw new InvalidException("subject with id = " + idSubject + " not found");
             }
+
             Specification<Question> finalSpec = (root, query, cb) -> cb.equal(root.get("subject").get("id"), idSubject);
             if (spec != null) {
                 finalSpec = finalSpec.and(spec);
@@ -154,10 +159,14 @@ public class QuestionService {
             Pageable page) throws InvalidException {
         try {
             Long idSubject = Long.parseLong(id);
-            boolean isExistById = this.subjectRepository.existsById(idSubject);
-            if (!isExistById) {
+            Subject subject = this.subjectRepository.findById(idSubject)
+                    .orElseThrow(() -> new InvalidException("subject with id = " + idSubject + " not found"));
+
+            // Kiểm tra nếu subject ở trạng thái DELETED
+            if (subject.getStatus() == SubjectStatus.DELETED) {
                 throw new InvalidException("subject with id = " + idSubject + " not found");
             }
+
             Specification<Question> finalSpec = (root, query, cb) -> cb.equal(root.get("subject").get("id"), idSubject);
             if (spec != null) {
                 finalSpec = finalSpec.and(spec);

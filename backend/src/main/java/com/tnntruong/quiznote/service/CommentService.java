@@ -14,6 +14,7 @@ import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.repository.CommentRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -39,6 +40,11 @@ public class CommentService {
         }
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new InvalidException("Subject not found"));
+
+        // Kiểm tra nếu subject ở trạng thái DELETED
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            throw new InvalidException("Subject not found");
+        }
 
         Comment newComment = new Comment();
         newComment.setContent(req.getContent());
@@ -77,6 +83,13 @@ public class CommentService {
 
     public ResResultPagination getCommentsBySubject(Long subjectId, Specification<Comment> spec, Pageable page)
             throws InvalidException {
+
+        // Kiểm tra subject có tồn tại và không bị DELETED
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new InvalidException("Subject not found"));
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            throw new InvalidException("Subject not found");
+        }
 
         // findBySubjectIdAndParentCommentIsNull
         Specification<Comment> finalSpec = (root, query, cb) -> cb.equal(root.get("subject").get("id"), subjectId);

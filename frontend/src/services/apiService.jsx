@@ -89,7 +89,7 @@ const getSubjectBySellerId = async (sellerId, spec, page) => {
     return Axios.get(`/api/v1/subjects/seller/${sellerId}?spec=${spec}&page=${page}`);
 }
 const getOrderOfSeller = async (sellerId, page, size) => {
-    return Axios.get(`/api/v1/orders/seller/${sellerId}?page=${page}&size=${size}`);
+    return Axios.get(`/api/v1/seller/orders/${sellerId}?page=${page}&size=${size}`);
 }
 const getWalletofSeller = async (sellerId) => {
     return Axios.get(`/api/v1/seller/getWallet/${sellerId}`);

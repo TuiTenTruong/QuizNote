@@ -46,6 +46,10 @@ public class Question {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionOption> options = new ArrayList<>();
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubmissionAnswer> submissionAnswers = new ArrayList<>();
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

@@ -31,7 +31,9 @@ import com.tnntruong.quiznote.repository.QuestionRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.SubmissionRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
+import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.util.constant.SubmissionStatus;
+import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 @Service
@@ -42,16 +44,19 @@ public class SubmissionService {
     private QuestionRepository questionRepository;
     private QuestionOptionRepository optionRepository;
     private SubmissionAnswerRepository submissionAnswerRepository;
+    private PurchaseRepository purchaseRepository;
 
     public SubmissionService(SubmissionRepository submissionRepository, UserRepository userRepository,
             SubjectRepository subjectRepository, QuestionRepository questionRepository,
-            QuestionOptionRepository optionRepository, SubmissionAnswerRepository submissionAnswerRepository) {
+            QuestionOptionRepository optionRepository, SubmissionAnswerRepository submissionAnswerRepository,
+            PurchaseRepository purchaseRepository) {
         this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
         this.submissionAnswerRepository = submissionAnswerRepository;
+        this.purchaseRepository = purchaseRepository;
     }
 
     public ResCreateSubmission handleStartSubmission(ReqStartSubmissionDTO dto) throws InvalidException {
@@ -61,6 +66,20 @@ public class SubmissionService {
         Subject subject = subjectRepository.findById(dto.getSubjectId())
                 .orElseThrow(() -> new InvalidException("subject not found"));
 
+        // Kiểm tra nếu subject ở trạng thái DELETED - không cho phép làm bài
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            throw new InvalidException("subject not found");
+        }
+
+        // Kiểm tra nếu subject ở trạng thái INACTIVE
+        if (subject.getStatus() == SubjectStatus.INACTIVE) {
+            // Kiểm tra nếu user chưa mua subject này thì không cho phép làm bài
+            if (subject.getPrice() > 0 &&
+                    !purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
+                throw new InvalidException("This subject is currently inactive and not available for submission");
+            }
+            // Nếu đã mua hoặc subject miễn phí thì vẫn cho phép làm bài
+        }
         Submission submission = new Submission();
         submission.setStudent(student);
         submission.setSubject(subject);
@@ -270,7 +289,15 @@ public class SubmissionService {
     public List<ResSubmissionDTO> getUserSubmissionHistory(Long userId) {
         List<Submission> submissions = submissionRepository.findByStudentIdOrderBySubmittedAtDesc(userId);
         return submissions.stream()
-                .map(this::convertToDTO)
+                .map((s) -> {
+                    if (s.getSubject().getStatus() == SubjectStatus.DELETED) {
+                        return null;
+                    }
+                    return convertToDTO(s);
+                }
+
+                )
+                .filter(dto -> dto != null)
                 .collect(Collectors.toList());
     }
 

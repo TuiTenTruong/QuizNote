@@ -14,6 +14,7 @@ import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.repository.SubjectRepository;
+import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
@@ -23,10 +24,13 @@ public class SubjectService {
     private final UserService userService;
 
     private SubjectRepository subjectRepository;
+    private PurchaseRepository purchaseRepository;
 
-    public SubjectService(SubjectRepository subjectRepository, UserService userService) {
+    public SubjectService(SubjectRepository subjectRepository, UserService userService,
+            PurchaseRepository purchaseRepository) {
         this.subjectRepository = subjectRepository;
         this.userService = userService;
+        this.purchaseRepository = purchaseRepository;
     }
 
     public ResSubjectDTO handleCreateSubject(Subject subject, String fileUrl) throws InvalidException {
@@ -106,14 +110,12 @@ public class SubjectService {
     public void handleDeleteSubject(long id) throws InvalidException {
         Subject subject = this.subjectRepository.findById(id)
                 .orElseThrow(() -> new InvalidException("subject with id = " + id + " not found"));
-        // If subject is DRAFT, delete permanently (cascade will delete all questions)
         if (subject.getStatus() == SubjectStatus.DRAFT) {
             this.subjectRepository.delete(subject);
-        } else {
-            // For other statuses, just set to INACTIVE
-            subject.setStatus(SubjectStatus.INACTIVE);
-            this.subjectRepository.save(subject);
+            return;
         }
+        subject.setStatus(SubjectStatus.DELETED);
+        this.subjectRepository.save(subject);
     }
 
     public ResSubjectDTO handleGetSubjectById(long id) throws InvalidException {
@@ -121,11 +123,38 @@ public class SubjectService {
         if (subjectOptional.isEmpty()) {
             throw new InvalidException("subject with id = " + id + " not found");
         }
-        return this.convertSubjectToDTO(subjectOptional.get());
+
+        Subject subject = subjectOptional.get();
+
+        // Kiểm tra nếu subject có status DELETED - không cho phép truy cập
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            throw new InvalidException("subject with id = " + id + " not found");
+        }
+
+        // Kiểm tra nếu subject có status INACTIVE
+        if (subject.getStatus() == SubjectStatus.INACTIVE) {
+            // Lấy user hiện tại
+            User currentUser = this.userService.handleGetCurrentUser();
+
+            // Nếu không có user hoặc user chưa mua subject này thì không cho phép truy cập
+            if (currentUser == null ||
+                    !this.purchaseRepository.findByStudentIdAndSubjectId(currentUser.getId(), id).isPresent()) {
+                throw new InvalidException("This subject is currently inactive and not available for access");
+            }
+            // Nếu đã mua thì vẫn cho phép truy cập
+        }
+
+        return this.convertSubjectToDTO(subject);
     }
 
     public ResResultPagination handleGetAllSubject(Specification<Subject> spec, Pageable page) {
-        Page<Subject> subjectPage = this.subjectRepository.findAll(spec, page);
+        // Thêm filter để loại bỏ các subject có status DELETED
+        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> 
+            criteriaBuilder.notEqual(root.get("status"), SubjectStatus.DELETED);
+        
+        Specification<Subject> combinedSpec = spec == null ? notDeletedSpec : spec.and(notDeletedSpec);
+        
+        Page<Subject> subjectPage = this.subjectRepository.findAll(combinedSpec, page);
         List<ResSubjectDTO> subjectList = subjectPage.stream().map((item) -> this.convertSubjectToDTO(item))
                 .collect(Collectors.toList());
 
@@ -145,8 +174,12 @@ public class SubjectService {
     public ResResultPagination handleGetSubjectBySellerId(long sellerId, Specification<Subject> spec, Pageable page) {
         Specification<Subject> sellerSpec = (root, query, criteriaBuilder) -> criteriaBuilder
                 .equal(root.get("seller").get("id"), sellerId);
-
-        Specification<Subject> combinedSpec = spec == null ? sellerSpec : spec.and(sellerSpec);
+        
+        // Thêm filter để loại bỏ các subject có status DELETED
+        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> 
+            criteriaBuilder.notEqual(root.get("status"), SubjectStatus.DELETED);
+        
+        Specification<Subject> combinedSpec = spec == null ? sellerSpec.and(notDeletedSpec) : spec.and(sellerSpec).and(notDeletedSpec);
 
         Page<Subject> subjectPage = this.subjectRepository.findAll(combinedSpec, page);
         List<ResSubjectDTO> subjectList = subjectPage.stream()

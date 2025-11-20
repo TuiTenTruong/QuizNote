@@ -59,7 +59,7 @@ public class Subject {
     @JoinColumn(name = "seller_id")
     private User seller;
 
-    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Purchase> purchases = new ArrayList<>();
 
@@ -67,13 +67,21 @@ public class Subject {
     @JsonIgnore
     private List<Question> questions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Chapter> chapters = new ArrayList<>();
 
-    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<PaymentTransaction> paymentTransactions = new ArrayList<>();
 
     private Instant createdAt;
     private Instant updatedAt;

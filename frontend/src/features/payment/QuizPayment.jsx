@@ -18,6 +18,12 @@ const QuizPayment = () => {
     useEffect(() => {
         const state = location.state;
         if (state?.quiz) {
+            // Kiểm tra status ngay khi có data từ state
+            if (state.quiz.status === 'INACTIVE') {
+                toast.error("Môn học này hiện không khả dụng để mua.");
+                navigate('/student/quizzes');
+                return;
+            }
             setQuizData(state.quiz);
         } else {
             const quizId = location.pathname.split("/").pop();
@@ -27,18 +33,33 @@ const QuizPayment = () => {
             };
             fetchQuizById(quizId).then((data) => {
                 if (data) {
+                    // Kiểm tra status khi fetch từ API
+                    if (data.status === 'INACTIVE') {
+                        toast.error("Môn học này hiện không khả dụng để mua.");
+                        navigate('/student/quizzes');
+                        return;
+                    }
                     setQuizData(data);
                 } else {
                     console.error("Failed to fetch quiz:", data);
                 }
             }).catch((error) => {
                 console.error("Error fetching quiz:", error);
+                toast.error("Không thể tải thông tin môn học. Vui lòng thử lại sau.");
+                navigate('/student/quizzes');
             });
         }
-    }, [location]);
+    }, [location, navigate]);
 
     const handleVNPayPayment = async () => {
         if (!quizData) return;
+
+        // Kiểm tra nếu subject ở trạng thái INACTIVE thì không cho phép thanh toán
+        if (quizData.status === 'INACTIVE') {
+            toast.error("Môn học này hiện không khả dụng để mua. Vui lòng liên hệ quản trị viên.");
+            navigate('/student/quizzes');
+            return;
+        }
 
         setLoading(true);
         try {

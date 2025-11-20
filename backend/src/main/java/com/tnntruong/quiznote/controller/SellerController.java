@@ -37,7 +37,7 @@ public class SellerController {
         return ResponseEntity.ok(this.sellerService.getWalletSeller(sellerId));
     }
 
-    @GetMapping("/order/{sellerId}")
+    @GetMapping("/orders/{sellerId}")
     public ResponseEntity<?> getOrdersSeller(@PathVariable Long sellerId,
             @Filter Specification<PaymentTransaction> spec, Pageable page) throws InvalidException {
         return ResponseEntity.ok(this.sellerService.getOrdersSeller(sellerId, spec, page));

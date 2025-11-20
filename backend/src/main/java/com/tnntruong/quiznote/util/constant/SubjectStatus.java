@@ -5,5 +5,6 @@ public enum SubjectStatus {
     PENDING, // Chờ duyệt
     REJECTED, // Bị từ chối
     ACTIVE, // Đang hoạt động
-    INACTIVE // Ngưng hoạt động
+    INACTIVE, // Ngưng hoạt động
+    DELETED // Đã xóa (soft delete)
 }
