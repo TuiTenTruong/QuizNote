@@ -37,7 +37,7 @@ public class QuestionService {
         this.chapterRepository = chapterRepository;
     }
 
-    public ResQuestionDTO hanleCreateQuestion(ReqCreateQuestionDTO dto) throws InvalidException {
+    public ResQuestionDTO handleCreateQuestion(ReqCreateQuestionDTO dto, String stored) throws InvalidException {
         Question question = new Question();
         Subject subject = subjectRepository.findById(dto.getSubjectId())
                 .orElseThrow(() -> new InvalidException("Subject not found"));
@@ -47,7 +47,9 @@ public class QuestionService {
             question.setChapter(chapter);
         }
         question.setSubject(subject);
+        question.setImageUrl(stored);
         question.setContent(dto.getContent());
+        question.setType(dto.getType());
         question.setExplanation(dto.getExplanation());
 
         List<QuestionOption> options = dto.getOptions().stream().map(opt -> {
@@ -67,17 +69,17 @@ public class QuestionService {
         return convertToDTO(saved);
     }
 
-    public List<ResQuestionDTO> handleCreateQuestions(ReqCreateQuestionDTO[] dtos) throws InvalidException {
-        List<ResQuestionDTO> createdQuestions = java.util.Arrays.stream(dtos)
-                .map(dto -> {
-                    try {
-                        return hanleCreateQuestion(dto);
-                    } catch (InvalidException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .collect(Collectors.toList());
-        return createdQuestions;
+    public List<ResQuestionDTO> handleCreateQuestions(ReqCreateQuestionDTO[] questionDTOs, String[] imagePaths)
+            throws InvalidException {
+        List<ResQuestionDTO> results = new ArrayList<>();
+
+        for (int i = 0; i < questionDTOs.length; i++) {
+            String imagePath = (imagePaths != null && i < imagePaths.length) ? imagePaths[i] : null;
+            ResQuestionDTO result = handleCreateQuestion(questionDTOs[i], imagePath);
+            results.add(result);
+        }
+
+        return results;
     }
 
     public ResQuestionDTO handleGetQuestionById(String id) throws InvalidException {
@@ -91,7 +93,8 @@ public class QuestionService {
         }
     }
 
-    public ResQuestionDTO handleUpdateQuestion(ReqUpdateQuestionDTO questionDTO) throws InvalidException {
+    public ResQuestionDTO handleUpdateQuestion(ReqUpdateQuestionDTO questionDTO, String stored)
+            throws InvalidException {
         Question question = questionRepository.findById(questionDTO.getId())
                 .orElseThrow(() -> new InvalidException("Question not found"));
 
@@ -102,7 +105,11 @@ public class QuestionService {
         }
 
         question.setContent(questionDTO.getContent());
+        if (stored != null) {
+            question.setImageUrl(stored);
+        }
         question.setExplanation(questionDTO.getExplanation());
+        question.setType(questionDTO.getType());
         question.setChapter(chapter);
 
         question.getOptions().clear();
@@ -213,6 +220,8 @@ public class QuestionService {
         return new ResQuestionDTO(
                 q.getId(),
                 q.getContent(),
+                q.getType(),
+                q.getImageUrl(),
                 q.getExplanation(),
                 q.getSubject().getId(),
                 q.getChapter() != null ? new ResQuestionDTO.ChapterDTO(q.getChapter().getId(), q.getChapter().getName())
@@ -233,6 +242,8 @@ public class QuestionService {
         return new ResQuestionDTO(
                 q.getId(),
                 q.getContent(),
+                q.getType(),
+                q.getImageUrl(),
                 q.getExplanation(),
                 q.getSubject().getId(),
                 q.getChapter() != null ? new ResQuestionDTO.ChapterDTO(q.getChapter().getId(), q.getChapter().getName())

@@ -113,7 +113,7 @@ const StudentMyQuizzes = () => {
                                         variant="outline-light"
                                         size="sm"
                                         className="flex-fill"
-                                        onClick={() => navigate(`/student/quizzes/${quiz.id}`)}
+                                        onClick={() => navigate(`/student/quizzes/${quiz.id}`, { state: { hasPurchased: true } })}
                                     >
                                         Chi tiết
                                     </Button>

@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Card, ProgressBar, Modal, Badge } from "react-bootstrap";
-import { FaClock, FaChevronLeft, FaChevronRight, FaFlagCheckered, FaArrowLeft } from "react-icons/fa";
+import { FaClock, FaChevronLeft, FaChevronRight, FaFlagCheckered, FaArrowLeft, FaFlag } from "react-icons/fa";
 import "./ExamQuiz.scss";
 import { getQuizRandom, submitQuizResult, startSubmission } from "../../../services/apiService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-
+import axiosInstance from "../../../utils/axiosCustomize";
 function ExamQuiz() {
     const [quizData, setQuizData] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [answers, setAnswers] = useState([]);
+    const [flaggedQuestions, setFlaggedQuestions] = useState([]);
     const [timeLeft, setTimeLeft] = useState(0);
     const [showSubmit, setShowSubmit] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -19,10 +20,12 @@ function ExamQuiz() {
     const [endTime, setEndTime] = useState(null);
     const [submissionId, setSubmissionId] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
+    const [tempMultipleChoiceAnswers, setTempMultipleChoiceAnswers] = useState([]);
     const location = useLocation();
     const navigate = useNavigate();
     const QUESTIONS_PER_PAGE = 5;
-
+    const [imageModal, setImageModal] = useState({ show: false, url: '' });
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
     const quizId = location.state?.quizId || 0;
     const duration = location.state?.duration || 10;
 
@@ -44,15 +47,62 @@ function ExamQuiz() {
         if (savedState) {
             try {
                 const parsed = JSON.parse(savedState);
+
+                // Check if time has expired
+                const now = Date.now();
+                if (now >= parsed.endTime) {
+                    console.log("Time expired, auto-submitting...");
+                    toast.warning("Thời gian làm bài đã hết. Hệ thống sẽ tự động nộp bài.");
+
+                    // Prepare the submission
+                    const formattedAnswers = parsed.quizData.questions
+                        .map((question, index) => {
+                            if (parsed.answers[index] !== null) {
+                                return {
+                                    questionId: question.id,
+                                    selectedOptionId: parsed.answers[index]
+                                };
+                            }
+                            return {
+                                questionId: question.id,
+                                selectedOptionId: -1
+                            };
+                        })
+                        .filter(answer => answer !== null);
+
+                    // Submit immediately
+                    submitQuizResult(parsed.submissionId, formattedAnswers)
+                        .then(response => {
+                            const finalScore = response.data.score || response.data.percentage || 0;
+                            setScore(finalScore);
+                            setCorrectCount(response.data.correctCount);
+                            setSubmitted(true);
+                            sessionStorage.removeItem(STORAGE_KEY);
+                            toast.info("Bài thi đã được tự động nộp do hết thời gian.");
+                        })
+                        .catch(error => {
+                            console.error("Error auto-submitting quiz:", error);
+                            // If backend rejects (time expired), show the zero score result
+                            setScore(0);
+                            setCorrectCount(0);
+                            setSubmitted(true);
+                            sessionStorage.removeItem(STORAGE_KEY);
+                            toast.error("Thời gian làm bài đã hết. Bài thi được tính 0 điểm.");
+                        });
+
+                    return;
+                }
+
                 setQuizData(parsed.quizData);
                 setAnswers(parsed.answers);
+                setFlaggedQuestions(parsed.flaggedQuestions || []);
+                setTempMultipleChoiceAnswers(parsed.tempMultipleChoiceAnswers || []);
                 setStartTime(parsed.startTime);
                 setEndTime(parsed.endTime);
                 setSubmissionId(parsed.submissionId);
                 setCurrentPage(parsed.currentPage || 0);
 
                 // Calculate remaining time based on endTime
-                const now = Date.now();
                 const remaining = Math.max(0, Math.floor((parsed.endTime - now) / 1000));
                 setTimeLeft(remaining);
             } catch (error) {
@@ -68,6 +118,8 @@ function ExamQuiz() {
             const stateToSave = {
                 quizData,
                 answers,
+                flaggedQuestions,
+                tempMultipleChoiceAnswers,
                 startTime,
                 endTime,
                 submissionId,
@@ -75,7 +127,50 @@ function ExamQuiz() {
             };
             sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
         }
-    }, [quizData, answers, startTime, endTime, submissionId, currentPage, STORAGE_KEY]);
+    }, [quizData, answers, flaggedQuestions, tempMultipleChoiceAnswers, startTime, endTime, submissionId, currentPage, STORAGE_KEY]);
+
+    // Auto-submit when time expires, even if user is not on the page
+    useEffect(() => {
+        if (!endTime || !submissionId || submitted) return;
+
+        const checkAndAutoSubmit = async () => {
+            const now = Date.now();
+            if (now >= endTime && !submitted) {
+                console.log("Time expired, auto-submitting from visibility check...");
+                await handleSubmit();
+            }
+        };
+
+        // Set up visibility change listener to check when user returns to page
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                checkAndAutoSubmit();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [endTime, submissionId, submitted]);
+
+    // Warn user before leaving the page during exam
+    useEffect(() => {
+        if (!quizData || submitted) return;
+
+        const handleBeforeUnload = (e) => {
+            e.preventDefault();
+            e.returnValue = 'Bạn đang làm bài thi. Nếu rời khỏi trang, tiến trình sẽ được lưu nhưng thời gian vẫn tiếp tục chạy.';
+            return e.returnValue;
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [quizData, submitted]);
 
     useEffect(() => {
         const fetchQuizData = async () => {
@@ -123,15 +218,22 @@ function ExamQuiz() {
                     questions: response.data.map(question => ({
                         id: question.id,
                         text: question.content,
+                        imageUrl: question.imageUrl,
+                        type: question.type,
                         options: question.options
-                            .map(opt => { return { id: opt.id, content: opt.content }; }),
+                            .sort((a, b) => a.optionOrder - b.optionOrder)
+                            .map(opt => { return { id: opt.id, content: opt.content, isCorrect: opt.isCorrect }; }),
                         correct: question.options.findIndex(opt => opt.isCorrect),
+                        correctOptionId: question.options.find(opt => opt.isCorrect)?.id,
+                        correctCount: question.options.filter(opt => opt.isCorrect).length,
                         chapterName: question.chapter ? question.chapter.name : null,
                     }))
                 };
 
                 setQuizData(transformedData);
                 setAnswers(new Array(transformedData.totalQuestions).fill(null));
+                setFlaggedQuestions(new Array(transformedData.totalQuestions).fill(false));
+                setTempMultipleChoiceAnswers(new Array(transformedData.totalQuestions).fill([]));
             } catch (error) {
                 console.error("Error starting submission or fetching quiz:", error);
                 alert("Có lỗi xảy ra khi bắt đầu bài thi. Vui lòng thử lại.");
@@ -150,14 +252,18 @@ function ExamQuiz() {
 
     // Timer countdown based on endTime
     useEffect(() => {
-        if (submitted || !quizData || !endTime) return;
+        if (submitted || !quizData || !endTime || !submissionId) return;
+
+        let hasAutoSubmitted = false;
 
         const updateTimer = () => {
             const now = Date.now();
             const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
             setTimeLeft(remaining);
 
-            if (remaining <= 0) {
+            if (remaining <= 0 && !submitted && !hasAutoSubmitted) {
+                hasAutoSubmitted = true;
+                toast.warning("Hết giờ! Đang tự động nộp bài...");
                 handleSubmit();
             }
         };
@@ -168,12 +274,33 @@ function ExamQuiz() {
         // Then update every second
         const timer = setInterval(updateTimer, 1000);
         return () => clearInterval(timer);
-    }, [endTime, submitted, quizData]);
+    }, [endTime, submitted, quizData, submissionId, answers]);
 
     const handleSelect = (questionIndex, optionId) => {
-        const newAnswers = [...answers];
-        newAnswers[questionIndex] = optionId;
-        setAnswers(newAnswers);
+        const question = quizData.questions[questionIndex];
+
+        if (question.type === 'MULTIPLE_CHOICE') {
+            // Cho phép chọn nhiều đáp án và lưu trực tiếp
+            const currentSelections = Array.isArray(answers[questionIndex]) ? answers[questionIndex] : [];
+            const newSelections = currentSelections.includes(optionId)
+                ? currentSelections.filter(id => id !== optionId)
+                : [...currentSelections, optionId];
+
+            const newAnswers = [...answers];
+            newAnswers[questionIndex] = newSelections.length > 0 ? newSelections : null;
+            setAnswers(newAnswers);
+        } else {
+            // Single choice - xử lý như cũ
+            const newAnswers = [...answers];
+            newAnswers[questionIndex] = optionId;
+            setAnswers(newAnswers);
+        }
+    };
+
+    const handleToggleFlag = (questionIndex) => {
+        const newFlags = [...flaggedQuestions];
+        newFlags[questionIndex] = !newFlags[questionIndex];
+        setFlaggedQuestions(newFlags);
     };
 
     const handleSubmit = async () => {
@@ -183,10 +310,19 @@ function ExamQuiz() {
         const formattedAnswers = quizData.questions
             .map((question, index) => {
                 if (answers[index] !== null) {
-                    return {
-                        questionId: question.id,
-                        selectedOptionId: answers[index]
-                    };
+                    if (Array.isArray(answers[index])) {
+                        // Multiple choice - send array of selected options
+                        return {
+                            questionId: question.id,
+                            selectedOptionIds: answers[index]
+                        };
+                    } else {
+                        // Single choice
+                        return {
+                            questionId: question.id,
+                            selectedOptionId: answers[index]
+                        };
+                    }
                 }
                 return {
                     questionId: question.id,
@@ -209,9 +345,30 @@ function ExamQuiz() {
 
             // Clear saved state after submission
             sessionStorage.removeItem(STORAGE_KEY);
+
+            // Calculate actual time spent
+            const timeSpentSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeSpentSeconds / 60);
+            const seconds = timeSpentSeconds % 60;
+            console.log(`Time spent: ${minutes}m ${seconds}s`);
+
+            toast.success("Nộp bài thành công!");
         } catch (error) {
             console.error("Error submitting quiz result:", error);
-            alert("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.");
+
+            // Check if it's a time expired error
+            if (error.response?.data?.message?.includes("expired") ||
+                error.response?.data?.message?.includes("deadline")) {
+                toast.error("Hết thời gian làm bài. Bài thi được tính 0 điểm.");
+                setScore(0);
+                setCorrectCount(0);
+                setSubmitted(true);
+                setShowSubmit(false);
+                sessionStorage.removeItem(STORAGE_KEY);
+                navigate(-1);
+            } else {
+                toast.error("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.");
+            }
         }
     };
 
@@ -230,6 +387,13 @@ function ExamQuiz() {
         return `${m}:${s.toString().padStart(2, "0")}`;
     };
 
+    const handleImageClick = (imageUrl) => {
+        setImageModal({ show: true, url: imageUrl });
+    };
+
+    const handleCloseImageModal = () => {
+        setImageModal({ show: false, url: '' });
+    };
     if (!account || !account.id) {
         return (
             <Container className="text-center py-5">
@@ -315,13 +479,41 @@ function ExamQuiz() {
                                             <h5 className="fw-bold">
                                                 Câu {questionIndex + 1}/{quizData.totalQuestions}
                                             </h5>
-
+                                            <div className="d-flex gap-2 align-items-center justify-content-between">
+                                                {question.type === 'MULTIPLE_CHOICE' && (
+                                                    <p className="m-0">Chọn nhiều đáp án</p>
+                                                )}
+                                                <Button
+                                                    variant="link"
+                                                    className={`flag-btn ${flaggedQuestions[questionIndex] ? 'flagged' : ''}`}
+                                                    onClick={() => handleToggleFlag(questionIndex)}
+                                                    title={flaggedQuestions[questionIndex] ? "Bỏ đánh dấu" : "Đánh dấu câu hỏi"}
+                                                >
+                                                    <FaFlag />
+                                                </Button>
+                                            </div>
                                         </div>
 
                                         <h6 className="mb-4">{question.text}</h6>
 
+                                        {question.imageUrl && (
+                                            <div className="mb-3">
+                                                <img
+                                                    src={backendBaseURL + question.imageUrl}
+                                                    alt="Question"
+                                                    className="img-fluid rounded"
+                                                    style={{ maxWidth: '300px', maxHeight: '400px' }}
+                                                    onClick={() => handleImageClick(backendBaseURL + question.imageUrl)}
+                                                    title="Click để xem ảnh lớn hơn"
+                                                />
+                                            </div>
+                                        )}
+
                                         {question.options.map((opt, i) => {
-                                            const selected = answers[questionIndex] === opt.id;
+                                            const isMultipleChoice = question.type === 'MULTIPLE_CHOICE';
+                                            const selected = Array.isArray(answers[questionIndex])
+                                                ? answers[questionIndex].includes(opt.id)
+                                                : answers[questionIndex] === opt.id;
 
                                             return (
                                                 <Card
@@ -376,9 +568,9 @@ function ExamQuiz() {
                                     <Button
                                         key={i}
                                         size="sm"
-                                        className={`num-btn ${answers[i] !== null ? "answered" : ""
-                                            } ${i >= startIndex && i < endIndex ? "active" : ""}`}
+                                        className={`num-btn ${answers[i] !== null ? "answered" : ""} ${i >= startIndex && i < endIndex ? "active" : ""} ${flaggedQuestions[i] ? "flagged" : ""}`}
                                         onClick={() => handleQuestionNumberClick(i)}
+                                        title={flaggedQuestions[i] ? `Câu ${i + 1} (Đã đánh dấu)` : `Câu ${i + 1}`}
                                     >
                                         {i + 1}
                                     </Button>
@@ -412,6 +604,25 @@ function ExamQuiz() {
                         Nộp bài
                     </Button>
                 </Modal.Footer>
+            </Modal>
+
+            <Modal
+                show={imageModal.show}
+                onHide={handleCloseImageModal}
+                size="lg"
+                centered
+            >
+                <Modal.Header closeButton className="bg-dark text-light border-secondary">
+                    <Modal.Title>Hình ảnh câu hỏi</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-center p-0">
+                    <img
+                        src={imageModal.url}
+                        alt="Question Enlarged"
+                        className="img-fluid w-100"
+                        style={{ maxHeight: '80vh', objectFit: 'contain' }}
+                    />
+                </Modal.Body>
             </Modal>
         </div>
     );

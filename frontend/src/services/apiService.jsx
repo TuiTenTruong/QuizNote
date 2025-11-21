@@ -82,6 +82,13 @@ const createQuiz = async (formData) => {
 const createQuestion = async (data) => {
     return Axios.post('/api/v1/questions', data);
 }
+const createQuestionBatch = async (formData) => {
+    return Axios.post('/api/v1/questions/batch', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
 const saveDraftQuiz = async (quizData) => {
     return Axios.post('/api/v1/subjects/draft', quizData);
 }
@@ -274,5 +281,5 @@ export {
     AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser,
     createRole, updateRole, deleteRole, getRolesPaginated, getAllPermissions, createPermission, updatePermission, deletePermission, getAllSubjects,
     approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion, getAllAdminOrders, sellerGetRecentOrders,
-    createComment, getMyRatings, replyComment
+    createComment, getMyRatings, replyComment, createQuestionBatch
 };

@@ -44,9 +44,9 @@ public class AdminService {
                 long totalUsers = userRepository.count();
                 Instant oneMonthAgo = Instant.now().minus(30, java.time.temporal.ChronoUnit.DAYS);
                 long usersLastMonth = userRepository.countUsersRegisteredAfter(oneMonthAgo);
-                long previousUsers = totalUsers - usersLastMonth;
-                double userChange = previousUsers == 0 ? (usersLastMonth > 0 ? 100.0 : 0.0)
-                                : ((double) usersLastMonth / previousUsers) * 100;
+                long increasedUsers = totalUsers - usersLastMonth;
+                double userChange = increasedUsers == 0 ? 0.0
+                                : ((double) increasedUsers / usersLastMonth) * 100;
                 ResAdminAnalyticsDTO.StatusCard userStatus = new ResAdminAnalyticsDTO.StatusCard();
                 userStatus.setTitle("Total Users");
                 userStatus.setValue(totalUsers);

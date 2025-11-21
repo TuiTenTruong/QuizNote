@@ -37,7 +37,9 @@ const SellerSubjectDetailPage = () => {
     const [questions, setQuestions] = useState([]);
     const [originalQuestions, setOriginalQuestions] = useState([]);
     const [questionToDelete, setQuestionToDelete] = useState([]);
+    const [questionImageFiles, setQuestionImageFiles] = useState({});
     const backendBaseURL = instance.defaults.baseURL + "storage/subjects/";
+    const questionImageBaseURL = instance.defaults.baseURL + "storage/questions/";
 
     useEffect(() => {
         const fetchSubjectDetail = async () => {
@@ -74,12 +76,17 @@ const SellerSubjectDetailPage = () => {
         setSubject({ ...subject, status: newStatus });
     };
 
+    const handleSubmitForReview = () => {
+        setSubject({ ...subject, status: "PENDING" });
+    };
+
     const addQuestion = () => {
         setQuestions([
             ...questions,
             {
                 content: "",
                 explanation: "",
+                imageUrl: null,
                 options: [
                     { content: "", isCorrect: false },
                     { content: "", isCorrect: false },
@@ -103,6 +110,16 @@ const SellerSubjectDetailPage = () => {
         const updated = [...questions];
         updated[qIndex][field] = value;
         setQuestions(updated);
+    };
+
+    const handleQuestionImageChange = (qIndex, e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setQuestionImageFiles({
+                ...questionImageFiles,
+                [qIndex]: file
+            });
+        }
     };
 
     const handleOptionChange = (qIndex, oIndex, value) => {
@@ -130,12 +147,13 @@ const SellerSubjectDetailPage = () => {
         setQuestions(updated);
     };
 
-    const isQuestionModified = (question, originalQuestion) => {
+    const isQuestionModified = (question, originalQuestion, qIndex) => {
         if (!originalQuestion) return true;
 
         if (question.content !== originalQuestion.content) return true;
         if ((question.explanation || '') !== (originalQuestion.explanation || '')) return true;
         if (question.options.length !== originalQuestion.options.length) return true;
+        if (questionImageFiles[qIndex]) return true; // New image uploaded
 
         for (let i = 0; i < question.options.length; i++) {
             const opt = question.options[i];
@@ -231,6 +249,8 @@ const SellerSubjectDetailPage = () => {
             const existingQuestions = questions.filter(q => q.id);
 
             if (newQuestions.length > 0) {
+                const batchFormData = new FormData();
+
                 const createDTOs = newQuestions.map(q => ({
                     subjectId: subject.id,
                     content: q.content,
@@ -241,7 +261,23 @@ const SellerSubjectDetailPage = () => {
                         optionOrder: idx + 1
                     }))
                 }));
-                const createResponse = await createQuestionsBatch(createDTOs);
+
+                batchFormData.append('questions', new Blob([JSON.stringify(createDTOs)], {
+                    type: 'application/json'
+                }));
+
+                // Add images for new questions
+                const originalQuestionsCount = originalQuestions.length;
+                newQuestions.forEach((q, idx) => {
+                    const questionIndex = originalQuestionsCount + idx;
+                    if (questionImageFiles[questionIndex]) {
+                        batchFormData.append('images', questionImageFiles[questionIndex]);
+                    } else {
+                        batchFormData.append('images', new Blob());
+                    }
+                });
+
+                const createResponse = await createQuestionsBatch(batchFormData);
                 if (createResponse.statusCode !== 201) {
                     console.error('Error creating questions:', createResponse);
                     toast.error("Lỗi khi thêm câu hỏi mới.");
@@ -250,12 +286,16 @@ const SellerSubjectDetailPage = () => {
             }
 
             // Update only modified existing questions
-            const modifiedQuestions = existingQuestions.filter(q => {
+            const modifiedQuestions = existingQuestions.filter((q, idx) => {
                 const original = originalQuestions.find(oq => oq.id === q.id);
-                return isQuestionModified(q, original);
+                return isQuestionModified(q, original, idx);
             });
 
-            for (const q of modifiedQuestions) {
+            for (let i = 0; i < modifiedQuestions.length; i++) {
+                const q = modifiedQuestions[i];
+                const qIndex = questions.findIndex(question => question.id === q.id);
+
+                const updateFormData = new FormData();
                 const updateDTO = {
                     id: q.id,
                     subjectId: subject.id,
@@ -267,13 +307,21 @@ const SellerSubjectDetailPage = () => {
                         optionOrder: idx + 1
                     }))
                 };
-                const response = await updateQuestion(updateDTO);
+
+                updateFormData.append('question', new Blob([JSON.stringify(updateDTO)], {
+                    type: 'application/json'
+                }));
+
+                if (questionImageFiles[qIndex]) {
+                    updateFormData.append('image', questionImageFiles[qIndex]);
+                }
+
+                const response = await updateQuestion(updateFormData);
                 if (response.statusCode !== 200) {
                     console.error(`Error updating question ${q.id}:`, response);
                     toast.error("Lỗi khi cập nhật câu hỏi.");
                     return;
                 }
-
             }
 
             toast.success("Cập nhật môn học và câu hỏi thành công!");
@@ -283,6 +331,7 @@ const SellerSubjectDetailPage = () => {
             setQuestions(questionsResponse.data);
             setOriginalQuestions(JSON.parse(JSON.stringify(questionsResponse.data)));
             setImageFile(null);
+            setQuestionImageFiles({});
         } catch (error) {
             console.error('Error saving subject:', error);
             setMessage({
@@ -305,6 +354,16 @@ const SellerSubjectDetailPage = () => {
             <Badge bg="secondary" className="px-3 py-2">
                 <FaBan className="me-2" />
                 Inactive
+            </Badge>
+        ) : status === "DRAFT" ? (
+            <Badge bg="warning" className="px-3 py-2 text-dark">
+                <FaSave className="me-2" />
+                Draft
+            </Badge>
+        ) : status === "PENDING" ? (
+            <Badge bg="info" className="px-3 py-2">
+                <FaSave className="me-2" />
+                Pending Review
             </Badge>
         ) : (
             <></>
@@ -340,6 +399,17 @@ const SellerSubjectDetailPage = () => {
                             <div className="d-flex gap-2 align-items-center">
                                 {getStatusBadge(subject.status)}
 
+                                {subject.status === "DRAFT" && (
+                                    <Button
+                                        variant="outline-info"
+                                        onClick={handleSubmitForReview}
+                                        disabled={loading}
+                                    >
+                                        <FaCheckCircle className="me-2" />
+                                        Xét Duyệt
+                                    </Button>
+                                )}
+
                                 {(subject.status === "ACTIVE" || subject.status === "INACTIVE") && (
                                     <Button
                                         variant={subject.status === "ACTIVE" ? "outline-danger" : "outline-success"}
@@ -356,7 +426,9 @@ const SellerSubjectDetailPage = () => {
                                                 Bật
                                             </>
                                         )}
-                                    </Button>)}
+                                    </Button>
+                                )}
+                                
                                 <Button
                                     className="btn-gradient"
                                     onClick={handleSaveSubject}
@@ -485,6 +557,33 @@ const SellerSubjectDetailPage = () => {
                                             }
                                             className="bg-dark text-light border-secondary mb-3"
                                         />
+
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="text-light">Hình Ảnh Câu Hỏi</Form.Label>
+                                            <InputGroup>
+                                                <InputGroup.Text className="bg-dark border-secondary text-light">
+                                                    <FaImage />
+                                                </InputGroup.Text>
+                                                <Form.Control
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleQuestionImageChange(qIndex, e)}
+                                                    className="bg-dark text-light border-secondary"
+                                                />
+                                            </InputGroup>
+                                            {(questionImageFiles[qIndex] || q.imageUrl) && (
+                                                <div className="mt-2">
+                                                    <img
+                                                        src={questionImageFiles[qIndex]
+                                                            ? URL.createObjectURL(questionImageFiles[qIndex])
+                                                            : questionImageBaseURL + q.imageUrl}
+                                                        alt="Question Preview"
+                                                        className="img-fluid rounded"
+                                                        style={{ maxHeight: '150px' }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </Form.Group>
 
                                         {q.options.map((option, oIndex) => (
                                             <div

@@ -83,7 +83,7 @@ public class SubmissionService {
         Submission submission = new Submission();
         submission.setStudent(student);
         submission.setSubject(subject);
-        submission.setDuration(dto.getDuration()); // lưu thời gian cho phép
+        submission.setDuration(dto.getDuration());
         submission.setStatus(SubmissionStatus.IN_PROGRESS);
         submission.setStartedAt(Instant.now());
 
@@ -115,7 +115,17 @@ public class SubmissionService {
             throw new InvalidException("Submission already submitted");
         }
 
-        // Validate empty answers
+        // Check if submission time has expired
+        if (submission.getStartedAt() != null && submission.getDuration() != null) {
+            Instant endTime = submission.getStartedAt().plusSeconds(submission.getDuration() * 60L);
+            Instant now = Instant.now();
+            Instant bufferTime = endTime.plusSeconds(5);
+
+            if (now.isAfter(bufferTime)) {
+                throw new InvalidException("Submission time has expired. Cannot submit answers after deadline.");
+            }
+        }
+
         if (answers == null || answers.isEmpty()) {
             throw new InvalidException("Answers cannot be empty");
         }
@@ -123,9 +133,17 @@ public class SubmissionService {
         Set<Long> questionIds = answers.stream()
                 .map(ReqSubmitAnswerDTO::getQuestionId)
                 .collect(Collectors.toSet());
+
         Set<Long> optionIds = answers.stream()
-                .map(ReqSubmitAnswerDTO::getSelectedOptionId)
-                .filter(id -> id != -1) // exclude unanswered questions
+                .flatMap(a -> {
+                    // Hỗ trợ cả selectedOptionIds (mới) và selectedOptionId (cũ)
+                    if (a.getSelectedOptionIds() != null && !a.getSelectedOptionIds().isEmpty()) {
+                        return a.getSelectedOptionIds().stream();
+                    } else if (a.getSelectedOptionId() != null && a.getSelectedOptionId() != -1) {
+                        return List.of(a.getSelectedOptionId()).stream();
+                    }
+                    return List.<Long>of().stream();
+                })
                 .collect(Collectors.toSet());
 
         // Batch load questions and options
@@ -140,7 +158,6 @@ public class SubmissionService {
             throw new InvalidException("Some options not found");
         }
 
-        // Create maps for quick lookup
         Map<Long, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
         Map<Long, QuestionOption> optionMap = options.stream()
@@ -169,29 +186,58 @@ public class SubmissionService {
             answer.setSubmission(submission);
             answer.setQuestion(question);
 
-            // Handle unanswered question (selectedOptionId = -1)
-            if (dto.getSelectedOptionId() == -1) {
+            // Xử lý câu hỏi nhiều đáp án
+            List<Long> selectedIds = dto.getSelectedOptionIds();
+
+            // Tương thích ngược với selectedOptionId
+            if ((selectedIds == null || selectedIds.isEmpty()) && dto.getSelectedOptionId() != null) {
+                if (dto.getSelectedOptionId() == -1) {
+                    selectedIds = new ArrayList<>();
+                } else {
+                    selectedIds = List.of(dto.getSelectedOptionId());
+                }
+            }
+
+            // Handle unanswered question
+            if (selectedIds == null || selectedIds.isEmpty()) {
                 answer.setSelectedOption(null);
+                answer.setSelectedOptions(new ArrayList<>());
                 answer.setIsCorrect(false);
             } else {
-                QuestionOption selected = optionMap.get(dto.getSelectedOptionId());
+                List<QuestionOption> selectedOptions = new ArrayList<>();
 
-                if (selected == null) {
-                    throw new InvalidException("Option with id " + dto.getSelectedOptionId() + " not found");
+                for (Long optionId : selectedIds) {
+                    QuestionOption selected = optionMap.get(optionId);
+                    if (selected == null) {
+                        throw new InvalidException("Option with id " + optionId + " not found");
+                    }
+
+                    if (selected.getQuestion().getId() != (question.getId())) {
+                        throw new InvalidException(
+                                "Option " + selected.getId() + " does not belong to question " + question.getId());
+                    }
+
+                    selectedOptions.add(selected);
                 }
 
-                // Validate option belongs to question
-                if (selected.getQuestion().getId() != question.getId()) {
-                    throw new InvalidException(
-                            "Option " + selected.getId() + " does not belong to question " + question.getId());
-                }
+                // Lấy tất cả đáp án đúng của câu hỏi
+                List<QuestionOption> correctOptions = question.getOptions().stream()
+                        .filter(opt -> Boolean.TRUE.equals(opt.getIsCorrect()))
+                        .collect(Collectors.toList());
 
-                boolean isCorrect = Boolean.TRUE.equals(selected.getIsCorrect());
+                // Kiểm tra câu trả lời đúng:
+                // - Số lượng đáp án chọn phải bằng số đáp án đúng
+                // - Tất cả đáp án chọn phải đúng
+                boolean isCorrect = selectedOptions.size() == correctOptions.size() &&
+                        selectedOptions.stream().allMatch(opt -> Boolean.TRUE.equals(opt.getIsCorrect()));
+
                 if (isCorrect) {
                     correctCount++;
                 }
 
-                answer.setSelectedOption(selected);
+                // Lưu cả 2 để tương thích
+                answer.setSelectedOption(selectedOptions.isEmpty() ? null : selectedOptions.get(0));
+                answer.setSelectedOptions(selectedOptions);
                 answer.setIsCorrect(isCorrect);
             }
 
@@ -206,18 +252,15 @@ public class SubmissionService {
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(Instant.now());
 
-        // Tính thời gian đã dùng (giây)
         if (submission.getStartedAt() != null) {
             long timeSpentSeconds = submission.getSubmittedAt().getEpochSecond()
                     - submission.getStartedAt().getEpochSecond();
             submission.setTimeSpent(timeSpentSeconds);
         }
 
-        // Save all at once
         submission.getAnswers().addAll(submissionAnswers);
         Submission saved = submissionRepository.save(submission);
 
-        // Update statistics asynchronously or in batch
         for (Long qId : questionIds) {
             updateQuestionCorrectnessPercentage(qId);
         }
@@ -231,6 +274,17 @@ public class SubmissionService {
             ResSubmissionAnswerDTO dto = new ResSubmissionAnswerDTO();
             dto.setQuestionId(answer.getQuestion().getId());
             dto.setQuestionContent(answer.getQuestion().getContent());
+
+            // Trả về nhiều đáp án nếu có
+            if (answer.getSelectedOptions() != null && !answer.getSelectedOptions().isEmpty()) {
+                dto.setSelectedOptionIds(answer.getSelectedOptions().stream()
+                        .map(QuestionOption::getId)
+                        .collect(Collectors.toList()));
+            } else if (answer.getSelectedOption() != null) {
+                dto.setSelectedOptionIds(List.of(answer.getSelectedOption().getId()));
+            }
+
+            // Tương thích ngược
             dto.setSelectedOptionId(answer.getSelectedOption() != null
                     ? answer.getSelectedOption().getId()
                     : -1);
@@ -246,7 +300,6 @@ public class SubmissionService {
                 submission.getScore(),
                 submission.getCorrectCount(),
                 submission.getTotalQuestions(),
-
                 submission.getDuration(),
                 submission.getStatus().name(),
                 submission.getTimeSpent(),

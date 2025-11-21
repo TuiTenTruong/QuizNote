@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tnntruong.quiznote.domain.Submission;
+import com.tnntruong.quiznote.util.constant.SubmissionStatus;
 
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
@@ -16,6 +17,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     Double findHighestScoreBySubjectId(@Param("subjectId") Long subjectId);
 
     List<Submission> findByStudentIdOrderBySubmittedAtDesc(Long studentId);
+
+    List<Submission> findByStatus(SubmissionStatus status);
 
     void deleteByStudentId(Long studentId);
 }

@@ -48,7 +48,7 @@ const StudentQuizDetail = () => {
     const [isRating, setIsRating] = useState(false);
     const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
     const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
-    const hasPurchased = location.state?.hasPurchased;
+    const hasPurchased = location.state?.hasPurchased || false;
     console.log("Has purchased:", hasPurchased);
 
     useEffect(() => {
@@ -69,7 +69,7 @@ const StudentQuizDetail = () => {
             }
         };
         fetchQuizDetail();
-    }, [quizId, navigate]);
+    }, [quizId, navigate, account]);
     useEffect(() => {
         const fetchMyRatings = async () => {
             const response = await getMyRatings(account.id, quizId);
@@ -107,8 +107,6 @@ const StudentQuizDetail = () => {
             console.error("Failed to fetch reviews");
         }
         setReviewsLoading(false);
-        setIsRating(true);
-
     };
 
     useEffect(() => {
@@ -135,6 +133,7 @@ const StudentQuizDetail = () => {
             const response = await createComment(quizId, reviewContent, rating);
             if (response && response.statusCode === 201) {
                 setSubmitMessage({ type: 'success', text: 'Đánh giá của bạn đã được gửi thành công!' });
+                setIsRating(true);
                 setReviewContent("");
                 setRating(5);
                 // Refresh reviews
@@ -237,18 +236,18 @@ const StudentQuizDetail = () => {
                                     <Form onSubmit={handleSubmitReview}>
                                         <Form.Group className="mb-3">
                                             <Form.Label className="text-light">Xếp hạng</Form.Label>
-                                            <div className="d-flex gap-2 mb-2">
+                                            <div className="d-flex gap-2 mb-2 align-items-center">
                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                     <span
                                                         key={star}
                                                         onClick={() => setRating(star)}
-                                                        style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                                        style={{ cursor: 'pointer', fontSize: '1.6rem' }}
                                                         className={star <= rating ? 'text-warning' : 'text-secondary'}
                                                     >
                                                         {star <= rating ? '★' : '☆'}
                                                     </span>
                                                 ))}
-                                                <span className="text-light ms-2">{rating}/5</span>
+                                                <span className="text-light ms-2 pt-1">{rating}/5</span>
                                             </div>
                                         </Form.Group>
 

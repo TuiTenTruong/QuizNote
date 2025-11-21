@@ -34,7 +34,8 @@ public class ResSubmissionDTO {
     public static class ResSubmissionAnswerDTO {
         private Long questionId;
         private String questionContent;
-        private Long selectedOptionId;
+        private Long selectedOptionId; // Deprecated: tương thích ngược
+        private List<Long> selectedOptionIds; // Mới: hỗ trợ nhiều đáp án
         private Boolean isCorrect;
     }
 

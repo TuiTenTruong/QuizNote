@@ -2,6 +2,8 @@ package com.tnntruong.quiznote.dto.request;
 
 import java.util.List;
 
+import com.tnntruong.quiznote.util.constant.QuestionTypeEnum;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -15,6 +17,7 @@ public class ReqCreateQuestionDTO {
     private Long chapterId;
     @NotBlank(message = "Content cannot be blank")
     private String content;
+    private QuestionTypeEnum type = QuestionTypeEnum.ONE_CHOICE;
     private String explanation;
     private List<ReqOptionDTO> options;
 

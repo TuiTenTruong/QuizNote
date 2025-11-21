@@ -20,7 +20,7 @@ import {
     FaTrash,
 } from "react-icons/fa";
 import "./CreateQuiz.scss";
-import { createQuiz, createQuestion, saveDraftQuiz } from "../../services/apiService";
+import { createQuiz, createQuestion, createQuestionBatch, saveDraftQuiz } from "../../services/apiService";
 import { useNavigate } from "react-router-dom";
 function CreateQuiz() {
     const [step, setStep] = useState(1);
@@ -35,8 +35,9 @@ function CreateQuiz() {
         questions: [
             {
                 text: "",
-                type: "Multiple Answers",
+                type: "ONE_CHOICE",
                 points: 10,
+                imageFile: null,
                 answers: [
                     { text: "", isCorrect: false },
                     { text: "", isCorrect: false },
@@ -69,6 +70,8 @@ function CreateQuiz() {
                 ...quiz.questions,
                 {
                     text: "",
+                    type: "ONE_CHOICE",
+                    imageFile: null,
                     answers: [
                         { text: "", isCorrect: false },
                         { text: "", isCorrect: false },
@@ -104,8 +107,28 @@ function CreateQuiz() {
 
     const toggleCorrect = (qIndex, aIndex) => {
         const updated = [...quiz.questions];
-        updated[qIndex].answers[aIndex].isCorrect =
-            !updated[qIndex].answers[aIndex].isCorrect;
+        if (updated[qIndex].type === "ONE_CHOICE") {
+            // Set all answers to false
+            updated[qIndex].answers = updated[qIndex].answers.map((ans, index) => ({
+                ...ans,
+                isCorrect: index === aIndex,
+            }));
+        } else {
+            updated[qIndex].answers[aIndex].isCorrect = !updated[qIndex].answers[aIndex].isCorrect;
+        }
+        setQuiz({ ...quiz, questions: updated });
+    };
+
+    const handleQuestionFileChange = (qIndex, e) => {
+        const file = e.target.files[0];
+        const updated = [...quiz.questions];
+        updated[qIndex].imageFile = file;
+        setQuiz({ ...quiz, questions: updated });
+    };
+
+    const handleQuestionTypeChange = (qIndex, newType) => {
+        const updated = [...quiz.questions];
+        updated[qIndex].type = newType;
         setQuiz({ ...quiz, questions: updated });
     };
 
@@ -127,6 +150,8 @@ function CreateQuiz() {
             return false;
         }
 
+
+
         for (let i = 0; i < quiz.questions.length; i++) {
             const q = quiz.questions[i];
             if (!q.text.trim()) {
@@ -147,6 +172,11 @@ function CreateQuiz() {
                     setMessage({ type: 'danger', text: `Câu hỏi ${i + 1}, Đáp án ${j + 1} không được để trống` });
                     return false;
                 }
+            }
+            const hasManyCorrect = q.answers.filter(a => a.isCorrect).length > 1;
+            if (q.type === "ONE_CHOICE" && hasManyCorrect) {
+                setMessage({ type: 'danger', text: `Câu hỏi ${i + 1} chỉ được có một đáp án đúng` });
+                return false;
             }
         }
         return true;
@@ -188,20 +218,39 @@ function CreateQuiz() {
             const quizRes = await createQuiz(formData);
             const quizId = quizRes.data.id;
 
-            // Create questions
-            for (const question of quiz.questions) {
-                const questionData = {
-                    subjectId: quizId,
-                    content: question.text,
-                    explanation: question.explanation || '',
-                    options: question.answers.map((answer, index) => ({
-                        content: answer.text,
-                        isCorrect: answer.isCorrect,
-                        optionOrder: index + 1
-                    }))
-                };
-                await createQuestion(questionData);
-            }
+            // Prepare batch questions with images
+            const batchFormData = new FormData();
+
+            // Prepare questions data
+            const questionsData = quiz.questions.map((question) => ({
+                subjectId: quizId,
+                content: question.text,
+                explanation: question.explanation || '',
+                type: question.type,
+                options: question.answers.map((answer, index) => ({
+                    content: answer.text,
+                    isCorrect: answer.isCorrect,
+                    optionOrder: index + 1
+                }))
+            }));
+
+            // Add questions as JSON
+            batchFormData.append('questions', new Blob([JSON.stringify(questionsData)], {
+                type: 'application/json'
+            }));
+
+            // Add images if they exist
+            quiz.questions.forEach((question, index) => {
+                if (question.imageFile) {
+                    batchFormData.append('images', question.imageFile);
+                } else {
+                    // Add empty blob for questions without images to maintain index alignment
+                    batchFormData.append('images', new Blob());
+                }
+            });
+
+            // Create all questions in batch
+            await createQuestionBatch(batchFormData);
 
             setMessage({ type: 'success', text: 'Tạo bài kiểm tra thành công!' });
             setTimeout(() => {
@@ -392,7 +441,16 @@ function CreateQuiz() {
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <h6 className="text-light mb-0">Câu Hỏi {qIndex + 1}</h6>
                                     <div className=" d-flex gap-2">
-
+                                        <Form.Group>
+                                            <Form.Select
+                                                value={q.type}
+                                                onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
+                                                className="bg-dark text-light border-secondary"
+                                            >
+                                                <option value="ONE_CHOICE">One Choice</option>
+                                                <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+                                            </Form.Select>
+                                        </Form.Group>
                                         <Button variant="outline-light" onClick={() => removeQuestion(qIndex)}>
                                             <FaTrash />
                                         </Button>
@@ -411,6 +469,31 @@ function CreateQuiz() {
                                     }}
                                     className="bg-dark text-light border-secondary mb-3"
                                 />
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="text-light">Hình Ảnh Câu Hỏi</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text className="bg-dark border-secondary text-light">
+                                            <FaImage />
+                                        </InputGroup.Text>
+                                        <Form.Control
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleQuestionFileChange(qIndex, e)}
+                                            className="bg-dark text-light border-secondary"
+                                        />
+                                    </InputGroup>
+                                    {q.imageFile && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={URL.createObjectURL(q.imageFile)}
+                                                alt="Preview"
+                                                className="img-fluid rounded"
+                                                style={{ maxHeight: '150px' }}
+                                            />
+                                        </div>
+                                    )}
+                                </Form.Group>
 
                                 {q.answers.map((a, aIndex) => (
                                     <div

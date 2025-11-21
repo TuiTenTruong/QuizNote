@@ -27,6 +27,7 @@ const StudentQuizHistoryDetail = () => {
                         return {
                             ...question,
                             selectedOptionId: answerData?.selectedOptionId,
+                            selectedOptionIds: answerData?.selectedOptionIds,
                             isCorrect: answerData?.isCorrect,
                         };
                     })
@@ -138,7 +139,7 @@ const StudentQuizHistoryDetail = () => {
                             <p className="mb-3">{q.content}</p>
 
                             {q.options.map((opt) => {
-                                const isSelected = opt.id === q.selectedOptionId;
+                                const isSelected = q.selectedOptionIds?.includes(opt.id);
                                 const isCorrect = opt.isCorrect;
 
                                 return (

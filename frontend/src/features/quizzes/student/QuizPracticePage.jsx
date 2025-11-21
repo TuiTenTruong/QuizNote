@@ -7,6 +7,7 @@ import { getQuizQuestions, startSubmission, submitQuizResult } from "../../../se
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import axiosInstance from "../../../utils/axiosCustomize";
 
 const QuizPracticePage = () => {
     const [quizData, setQuizData] = useState(null);
@@ -16,9 +17,12 @@ const QuizPracticePage = () => {
     const [feedback, setFeedback] = useState([]);
     const [score, setScore] = useState(0);
     const [submissionId, setSubmissionId] = useState(null);
+    const [imageModal, setImageModal] = useState({ show: false, url: '' });
+    const [tempMultipleChoiceAnswers, setTempMultipleChoiceAnswers] = useState([]);
     const location = useLocation();
     const navigate = useNavigate();
     const QUESTIONS_PER_PAGE = 5;
+    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
 
     const quizId = location.state?.quizId || 0;
     const account = useSelector(state => state.user.account);
@@ -94,10 +98,13 @@ const QuizPracticePage = () => {
                     questions: response.data.map(question => ({
                         id: question.id,
                         text: question.content,
+                        imageUrl: question.imageUrl,
+                        type: question.type,
                         options: question.options
                             .sort((a, b) => a.optionOrder - b.optionOrder)
-                            .map(opt => ({ id: opt.id, content: opt.content })),
+                            .map(opt => ({ id: opt.id, content: opt.content, isCorrect: opt.isCorrect })),
                         correctOptionId: question.options.find(opt => opt.isCorrect)?.id,
+                        correctCount: question.options.filter(opt => opt.isCorrect).length,
                         explain: question.explanation,
                         chapterName: question.chapter ? question.chapter.name : null,
                     }))
@@ -110,9 +117,11 @@ const QuizPracticePage = () => {
                     setAnswers(savedState.answers || new Array(transformedData.totalQuestions).fill(null));
                     setFeedback(savedState.feedback || new Array(transformedData.totalQuestions).fill(null));
                     setCurrentPage(savedState.currentPage || 0);
+                    setTempMultipleChoiceAnswers(savedState.tempMultipleChoiceAnswers || new Array(transformedData.totalQuestions).fill([]));
                 } else {
                     setAnswers(new Array(transformedData.totalQuestions).fill(null));
                     setFeedback(new Array(transformedData.totalQuestions).fill(null));
+                    setTempMultipleChoiceAnswers(new Array(transformedData.totalQuestions).fill([]));
                 }
             } catch (error) {
                 console.error("Error starting practice or fetching quiz:", error);
@@ -138,18 +147,58 @@ const QuizPracticePage = () => {
                 feedback,
                 currentPage,
                 submissionId,
+                tempMultipleChoiceAnswers,
             });
         }
-    }, [answers, feedback, currentPage, submissionId, quizData]);
+    }, [answers, feedback, currentPage, submissionId, quizData, tempMultipleChoiceAnswers]);
 
     // Khi chọn đáp án
     const handleSelect = (questionIndex, optionId) => {
-        if (answers[questionIndex] !== null) return; // tránh chọn lại
+        if (answers[questionIndex] !== null) return;
+
+        const question = quizData.questions[questionIndex];
+
+        if (question.type === 'MULTIPLE_CHOICE') {
+            // Cho phép chọn nhiều đáp án
+            const currentSelections = tempMultipleChoiceAnswers[questionIndex] || [];
+            const newSelections = currentSelections.includes(optionId)
+                ? currentSelections.filter(id => id !== optionId)
+                : [...currentSelections, optionId];
+
+            const newTempAnswers = [...tempMultipleChoiceAnswers];
+            newTempAnswers[questionIndex] = newSelections;
+            setTempMultipleChoiceAnswers(newTempAnswers);
+        } else {
+            // Single choice - xử lý như cũ
+            const newAnswers = [...answers];
+            newAnswers[questionIndex] = optionId;
+            setAnswers(newAnswers);
+
+            const isCorrect = optionId === question.correctOptionId;
+            const newFeedback = [...feedback];
+            newFeedback[questionIndex] = isCorrect;
+            setFeedback(newFeedback);
+        }
+    };
+
+    // Xác nhận đáp án multiple choice
+    const handleConfirmMultipleChoice = (questionIndex) => {
+        const selectedOptions = tempMultipleChoiceAnswers[questionIndex] || [];
+        if (selectedOptions.length === 0) return;
+
+        const question = quizData.questions[questionIndex];
+        const correctOptionId = question.correctOptionId;
+        const correctCount = question.correctCount || 0;
+
+        // Kiểm tra xem tất cả đáp án đúng đã được chọn và không có đáp án sai
+        const isCorrect =
+            selectedOptions.length === correctCount &&
+            selectedOptions.every(id => correctOptionId === id);
+
         const newAnswers = [...answers];
-        newAnswers[questionIndex] = optionId;
+        newAnswers[questionIndex] = selectedOptions;
         setAnswers(newAnswers);
 
-        const isCorrect = optionId === quizData.questions[questionIndex].correctOptionId;
         const newFeedback = [...feedback];
         newFeedback[questionIndex] = isCorrect;
         setFeedback(newFeedback);
@@ -165,10 +214,19 @@ const QuizPracticePage = () => {
         const formattedAnswers = quizData.questions
             .map((question, index) => {
                 if (answers[index] !== null) {
-                    return {
-                        questionId: question.id,
-                        selectedOptionId: answers[index]
-                    };
+                    if (Array.isArray(answers[index])) {
+                        // Multiple choice - send array of selected options
+                        return {
+                            questionId: question.id,
+                            selectedOptionIds: answers[index]
+                        };
+                    } else {
+                        // Single choice
+                        return {
+                            questionId: question.id,
+                            selectedOptionId: answers[index]
+                        };
+                    }
                 }
                 return null;
             })
@@ -197,6 +255,14 @@ const QuizPracticePage = () => {
     const handleBack = () => {
         toast.info("Tiến độ luyện tập đã được lưu lại.");
         navigate(-1);
+    };
+
+    const handleImageClick = (imageUrl) => {
+        setImageModal({ show: true, url: imageUrl });
+    };
+
+    const handleCloseImageModal = () => {
+        setImageModal({ show: false, url: '' });
     };
 
     const handleQuestionNumberClick = (questionIndex) => {
@@ -308,21 +374,53 @@ const QuizPracticePage = () => {
                                             <h5 className="fw-bold">
                                                 Câu {questionIndex + 1}/{quizData.totalQuestions}
                                             </h5>
+
+                                            {question.type == 'MULTIPLE_CHOICE' && (
+                                                <p>Chọn nhiều đáp án</p>
+                                            )}
                                             <Badge bg="secondary">Luyện tập</Badge>
                                         </div>
 
                                         <h6 className="mb-4">{question.text}</h6>
 
+                                        {question.imageUrl && (
+                                            <div className="mb-3">
+                                                <img
+                                                    src={backendBaseURL + question.imageUrl}
+                                                    alt="Question"
+                                                    className="img-fluid rounded"
+                                                    style={{
+                                                        maxWidth: '200px',
+                                                        maxHeight: '300px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => handleImageClick(backendBaseURL + question.imageUrl)}
+                                                    title="Click để xem ảnh lớn hơn"
+                                                />
+                                            </div>
+                                        )}
+
                                         {question.options.map((opt, i) => {
-                                            const selected = answers[questionIndex] === opt.id;
-                                            const isCorrect = question.correctOptionId === opt.id;
+                                            const isMultipleChoice = question.type === 'MULTIPLE_CHOICE';
+                                            const tempSelected = isMultipleChoice &&
+                                                (tempMultipleChoiceAnswers[questionIndex] || []).includes(opt.id);
+                                            const finalSelected = Array.isArray(answers[questionIndex])
+                                                ? answers[questionIndex].includes(opt.id)
+                                                : answers[questionIndex] === opt.id;
+
+                                            const isCorrect = isMultipleChoice
+                                                ? question.options.find(o => o.id === opt.id)?.isCorrect
+                                                : question.correctOptionId === opt.id;
+
                                             const showFeedback = answers[questionIndex] !== null;
 
                                             return (
                                                 <Card
                                                     key={opt.id}
-                                                    className={`option-card p-3 mb-2 text-white ${selected ? "selected" : ""
-                                                        } ${showFeedback && isCorrect ? "correct" : ""} ${showFeedback && selected && !isCorrect ? "wrong" : ""
+                                                    className={`option-card p-3 mb-2 text-white ${tempSelected ? "selected" : ""
+                                                        } ${showFeedback && finalSelected ? "selected" : ""
+                                                        } ${showFeedback && isCorrect ? "correct" : ""
+                                                        } ${showFeedback && finalSelected && !isCorrect ? "wrong" : ""
                                                         }`}
                                                     onClick={() => handleSelect(questionIndex, opt.id)}
                                                 >
@@ -331,8 +429,20 @@ const QuizPracticePage = () => {
                                             );
                                         })}
 
+                                        {/* Nút xác nhận cho multiple choice */}
+                                        {question.type === 'MULTIPLE_CHOICE' && answers[questionIndex] === null && (
+                                            <Button
+                                                variant="primary"
+                                                className="mt-3 w-100"
+                                                onClick={() => handleConfirmMultipleChoice(questionIndex)}
+                                                disabled={(tempMultipleChoiceAnswers[questionIndex] || []).length === 0}
+                                            >
+                                                Xác nhận đáp án
+                                            </Button>
+                                        )}
+
                                         {/* Hiện phản hồi sau khi chọn */}
-                                        {answers[questionIndex] !== null && (
+                                        {(answers[questionIndex] !== null && question.explain) && (
                                             <div className="feedback mt-3 p-3 rounded">
                                                 {feedback[questionIndex] ? (
                                                     <p className="text-success">
@@ -408,6 +518,26 @@ const QuizPracticePage = () => {
                         </Card>
                     </Col>
                 </Row>
+
+                {/* Modal hiển thị ảnh phóng to */}
+                <Modal
+                    show={imageModal.show}
+                    onHide={handleCloseImageModal}
+                    size="lg"
+                    centered
+                >
+                    <Modal.Header closeButton className="bg-dark text-light border-secondary">
+                        <Modal.Title>Hình ảnh câu hỏi</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="bg-dark text-center p-0">
+                        <img
+                            src={imageModal.url}
+                            alt="Question Enlarged"
+                            className="img-fluid w-100"
+                            style={{ maxHeight: '80vh', objectFit: 'contain' }}
+                        />
+                    </Modal.Body>
+                </Modal>
             </Container>
         </div>
     );
