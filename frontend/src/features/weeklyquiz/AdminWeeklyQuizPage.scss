@@ -1,0 +1,210 @@
+.admin-weekly-quiz-page {
+    background: #0b0b0f;
+    min-height: 100vh;
+    color: #fff;
+    padding: 2rem 1rem;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .text-muted {
+        color: #6b7280 !important;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 999px;
+        padding-inline: 1.25rem;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .weekly-table-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .weekly-table {
+        thead {
+            th {
+                border-color: #2a2a2a;
+                color: #9ca3af;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+        }
+
+        tbody {
+            tr {
+                border-color: #2a2a2a;
+                transition: background 0.15s ease;
+
+                &:hover {
+                    background: rgba(147, 51, 234, 0.15);
+                }
+
+                td {
+                    border-color: #2a2a2a;
+                    vertical-align: middle;
+                }
+            }
+        }
+    }
+
+    .calendar-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: #111827;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #f97316;
+        font-size: 0.9rem;
+    }
+
+    .bg-input {
+        background-color: #111827 !important;
+        border-color: #374151 !important;
+
+        &:focus {
+            border-color: #9333ea !important;
+            box-shadow: 0 0 0 0.15rem rgba(147, 51, 234, 0.35);
+        }
+    }
+
+    .weekly-quiz-modal {
+        .modal-content {
+            border-radius: 14px;
+            border: 1px solid #374151;
+            background: #020617;
+
+            input::placeholder {
+                color: #ffffff !important;
+            }
+
+
+        }
+    }
+
+    .questions-section {
+        .questions-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #1f2937;
+                border-radius: 3px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #4b5563;
+                border-radius: 3px;
+
+                &:hover {
+                    background: #6b7280;
+                }
+            }
+        }
+
+        .question-card {
+            border-radius: 10px;
+            background: #111827 !important;
+            border: 1px solid #1f2937;
+            transition: border-color 0.2s ease;
+
+            &:hover {
+                border-color: #374151;
+            }
+
+            .card-header {
+                background: #1f2937 !important;
+                border-bottom: 1px solid #374151;
+                padding: 0.75rem 1rem;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+        }
+
+        .bg-question {
+            background: #111827;
+        }
+
+        .bg-question-header {
+            background: #1f2937;
+            border-bottom: 1px solid #374151;
+        }
+
+        .option-input-group {
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            transition: all 0.2s ease;
+
+            &:hover {
+                border-color: #4b5563;
+                background: #1a1f2e;
+            }
+
+            .form-control {
+                background-color: transparent !important;
+                border: none !important;
+                color: #fff !important;
+
+                &:focus {
+                    box-shadow: none !important;
+                }
+            }
+
+            .form-check-input {
+                background-color: #374151;
+                border-color: #4b5563;
+                cursor: pointer;
+
+                &:checked {
+                    background-color: #9333ea;
+                    border-color: #9333ea;
+                }
+
+                &:focus {
+                    box-shadow: 0 0 0 0.15rem rgba(147, 51, 234, 0.25);
+                }
+            }
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .weekly-table {
+            font-size: 0.9rem;
+
+            th,
+            td {
+                white-space: nowrap;
+            }
+        }
+
+        .questions-section .questions-container {
+            max-height: 50vh;
+        }
+    }
+}

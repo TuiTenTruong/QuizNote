@@ -1,0 +1,120 @@
+.weekly-quiz-page {
+    background: #0b0b0f;
+    min-height: 100vh;
+    color: #fff;
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 999px;
+        padding-inline: 1.5rem;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .pill {
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 0.85rem;
+        color: #d1d5db;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .timer-pill {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(248, 250, 252, 0.06);
+        color: #facc15;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .progress-thin {
+        height: 6px;
+
+        .progress-bar {
+            background: linear-gradient(90deg, #22c55e, #f97316);
+        }
+    }
+
+    .option-btn {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #374151;
+        background: #111827;
+        color: #e5e7eb;
+        padding: 0.8rem 1rem;
+        text-align: left;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        .option-index {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: 1px solid #4b5563;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            border-color: #f97316;
+            background: #020617;
+        }
+
+        &.selected {
+            border-color: #9333ea;
+            background: linear-gradient(90deg,
+                    rgba(147, 51, 234, 0.18),
+                    rgba(249, 115, 22, 0.18));
+
+            .option-index {
+                border-color: transparent;
+                background: #f97316;
+                color: #0b0b0f;
+            }
+        }
+    }
+
+    .result-card {
+        background: rgba(15, 23, 42, 0.9);
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .rules-list {
+        padding-left: 1.25rem;
+        font-size: 0.9rem;
+
+        li {
+            margin-bottom: 0.35rem;
+            color: #d1d5db;
+        }
+    }
+
+    .locked-state {
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px dashed #4b5563;
+    }
+
+    @media (max-width: 767.98px) {
+        .option-btn {
+            padding: 0.7rem 0.85rem;
+        }
+    }
+}

@@ -108,6 +108,24 @@
             font-weight: 600;
         }
 
+        .btn-gradient {
+            background: linear-gradient(to right, #5813c1, #ff6754);
+            color: white;
+            border: 1px solid transparent;
+        }
+
+        .btn-outline-gradient {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+
+            &:hover {
+                background: linear-gradient(to right, #5813c1, #ff6754);
+                color: white;
+                border: 1px solid transparent;
+            }
+        }
+
     }
 
 

@@ -42,7 +42,7 @@ public class Question {
     private String explanation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subject_id", nullable = false)
+    @JoinColumn(name = "subject_id", nullable = true)
     private Subject subject;
     private Double correctnessPercentage = 0.0;
     @ManyToOne(fetch = FetchType.LAZY)

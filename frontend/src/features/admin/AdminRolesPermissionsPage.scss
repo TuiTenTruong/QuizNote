@@ -10,6 +10,10 @@
         -webkit-text-fill-color: transparent;
     }
 
+    input::placeholder {
+        color: #ffffff !important;
+    }
+
     .text-muted {
         color: #9ca3af !important;
     }

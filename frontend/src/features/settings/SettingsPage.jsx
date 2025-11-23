@@ -12,11 +12,11 @@ import {
     uploadAvatar,
 } from "../../services/apiService";
 import { doLogout } from '../../redux/action/userAction';
-import "./SellerSettings.scss";
+import "./SettingsPage.scss";
 import axiosInstance from "../../utils/axiosCustomize";
 import { useNavigate } from "react-router-dom";
-const SellerSettings = () => {
-    const [activeTab, setActiveTab] = useState("Profile");
+const SettingsPage = () => {
+    const [activeTab, setActiveTab] = useState("Thông tin cá nhân");
     const [loading, setLoading] = useState(false);
     const [userData, setUserData] = useState(null);
     const navigate = useNavigate();
@@ -60,11 +60,11 @@ const SellerSettings = () => {
                     gender: data.gender || "MALE",
                     bio: data.bio || ""
                 });
-                setAvatarPreview(backendBaseURL + data.avatarUrl);
+                data.avatarUrl && setAvatarPreview(backendBaseURL + data.avatarUrl);
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            toast.error("Failed to load user data");
+            toast.error("Lỗi khi tải thông tin người dùng");
         } finally {
             setLoading(false);
         }
@@ -90,7 +90,7 @@ const SellerSettings = () => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                toast.error("File size must be less than 5MB");
+                toast.error("Kích thước file phải nhỏ hơn 5MB");
                 return;
             }
             setAvatarFile(file);
@@ -104,20 +104,20 @@ const SellerSettings = () => {
 
     const handleUploadAvatar = async () => {
         if (!avatarFile) {
-            toast.warning("Please select an image first");
+            toast.warning("Vui lòng chọn ảnh trước");
             return;
         }
         try {
             setLoading(true);
             const response = await uploadAvatar(userData?.email, avatarFile);
             if (response && response.data) {
-                toast.success("Avatar updated successfully!");
+                toast.success("Cập nhật ảnh đại diện thành công!");
                 setAvatarFile(null);
                 fetchUserData();
             }
         } catch (error) {
             console.error("Error uploading avatar:", error);
-            toast.error(error.response?.data?.message || "Failed to upload avatar");
+            toast.error(error.response?.data?.message || "Lỗi khi tải ảnh đại diện");
         } finally {
             setLoading(false);
         }
@@ -128,12 +128,12 @@ const SellerSettings = () => {
             setLoading(true);
             const response = await updateUserProfile(profileData);
             if (response && response.data) {
-                toast.success("Profile updated successfully!");
+                toast.success("Cập nhật thông tin cá nhân thành công!");
                 fetchUserData();
             }
         } catch (error) {
             console.error("Error updating profile:", error);
-            toast.error(error.response?.data?.message || "Failed to update profile");
+            toast.error(error.response?.data?.message || "Lỗi khi cập nhật thông tin cá nhân");
         } finally {
             setLoading(false);
         }
@@ -141,24 +141,24 @@ const SellerSettings = () => {
 
     const handleChangePassword = async () => {
         if (!passwordData.currentPassword || !passwordData.newPassword) {
-            toast.warning("Please fill in all password fields");
+            toast.warning("Vui lòng điền đầy đủ các trường mật khẩu");
             return;
         }
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            toast.error("New passwords do not match");
+            toast.error("Mật khẩu mới không khớp");
             return;
         }
         if (passwordData.newPassword.length < 6) {
-            toast.error("Password must be at least 6 characters");
+            toast.error("Mật khẩu phải có ít nhất 6 ký tự");
             return;
         }
         try {
             setLoading(true);
             const response = await changePassword(passwordData.currentPassword, passwordData.newPassword);
             if (response.statusCode === 400) {
-                toast.error(response.message || "Failed to change password");
+                toast.error(response.message || "Lỗi khi đổi mật khẩu");
             } else {
-                toast.success("Password changed successfully!");
+                toast.success("Đổi mật khẩu thành công!");
                 setPasswordData({
                     currentPassword: "",
                     newPassword: "",
@@ -167,22 +167,22 @@ const SellerSettings = () => {
             }
         } catch (error) {
             console.error("Error changing password:", error);
-            toast.error(error.response?.data?.message || "Failed to change password");
+            toast.error(error.response?.data?.message || "Lỗi khi đổi mật khẩu");
         } finally {
             setLoading(false);
         }
     };
     const handleLogout = () => {
         dispatch({ type: "user/logout" });
-        toast.success("Logged out successfully");
+        toast.success("Đăng xuất thành công");
     }
 
     const renderTab = () => {
         switch (activeTab) {
-            case "Profile":
+            case "Thông tin cá nhân":
                 return (
                     <Card className="bg-dark border-0 p-4 shadow-sm">
-                        <h5 className="fw-semibold text-white mb-3">Profile Information</h5>
+                        <h5 className="fw-semibold text-white mb-3">Thông tin cá nhân</h5>
                         {loading && <Spinner animation="border" variant="light" className="mb-3" />}
                         <Row className="g-3 align-items-center">
                             <Col xs={12} md={3} className="text-center">
@@ -216,7 +216,7 @@ const SellerSettings = () => {
                                             onClick={() => document.getElementById('avatar-upload').click()}
                                             className="mb-2 btn-gradient"
                                         >
-                                            Choose Photo
+                                            Chọn ảnh
                                         </Button>
                                         {avatarFile && (
                                             <Button
@@ -226,7 +226,7 @@ const SellerSettings = () => {
                                                 disabled={loading}
                                                 className="mb-2 hover-gradient"
                                             >
-                                                Upload
+                                                Tải lên
                                             </Button>
                                         )}
                                     </div>
@@ -235,7 +235,7 @@ const SellerSettings = () => {
                             <Col xs={12} md={9}>
                                 <Form>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="text-light">Full Name</Form.Label>
+                                        <Form.Label className="text-light">Họ và tên</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="name"
@@ -258,7 +258,7 @@ const SellerSettings = () => {
                                     <Row className="g-3">
                                         <Col md={6}>
                                             <Form.Group>
-                                                <Form.Label className="text-light">Age</Form.Label>
+                                                <Form.Label className="text-light">Tuổi</Form.Label>
                                                 <Form.Control
                                                     type="number"
                                                     name="age"
@@ -270,23 +270,23 @@ const SellerSettings = () => {
                                         </Col>
                                         <Col md={6}>
                                             <Form.Group>
-                                                <Form.Label className="text-light">Gender</Form.Label>
+                                                <Form.Label className="text-light">Giới tính</Form.Label>
                                                 <Form.Select
                                                     name="gender"
                                                     value={profileData.gender}
                                                     onChange={handleProfileChange}
                                                     className="bg-dark text-light border-secondary"
                                                 >
-                                                    <option value="MALE">Male</option>
-                                                    <option value="FEMALE">Female</option>
-                                                    <option value="OTHER">Other</option>
+                                                    <option value="MALE">Nam</option>
+                                                    <option value="FEMALE">Nữ</option>
+                                                    <option value="OTHER">Khác</option>
                                                 </Form.Select>
                                             </Form.Group>
                                         </Col>
                                     </Row>
 
                                     <Form.Group className="mt-3">
-                                        <Form.Label className="text-light">Address</Form.Label>
+                                        <Form.Label className="text-light">Địa chỉ</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="address"
@@ -297,14 +297,14 @@ const SellerSettings = () => {
                                     </Form.Group>
 
                                     <Form.Group className="mt-3">
-                                        <Form.Label className="text-light">Bio</Form.Label>
+                                        <Form.Label className="text-light">Tiểu sử</Form.Label>
                                         <Form.Control
                                             as="textarea"
                                             rows={3}
                                             name="bio"
                                             value={profileData.bio}
                                             onChange={handleProfileChange}
-                                            placeholder="Tell learners about your expertise or teaching style..."
+                                            placeholder="Hãy kể cho người học về chuyên môn hoặc phong cách giảng dạy của bạn..."
                                             className="bg-dark text-light border-secondary"
                                         />
                                     </Form.Group>
@@ -313,7 +313,7 @@ const SellerSettings = () => {
                                         onClick={handleSaveProfile}
                                         disabled={loading}
                                     >
-                                        {loading ? "Saving..." : "Save Changes"}
+                                        {loading ? "Đang cập nhật..." : "Lưu thay đổi"}
                                     </Button>
                                 </Form>
                             </Col>
@@ -321,44 +321,44 @@ const SellerSettings = () => {
                     </Card>
                 );
 
-            case "Account":
+            case "Tài khoản":
                 return (
                     <Card className="bg-dark border-0 p-4 shadow-sm">
-                        <h5 className="fw-semibold text-white mb-3">Account Security</h5>
+                        <h5 className="fw-semibold text-white mb-3">Bảo mật tài khoản</h5>
                         {loading && <Spinner animation="border" variant="light" className="mb-3" />}
                         <Form>
                             <Form.Group className="mb-3">
-                                <Form.Label className="text-light">Current Password</Form.Label>
+                                <Form.Label className="text-light">Mật khẩu hiện tại</Form.Label>
                                 <Form.Control
                                     type="password"
                                     name="currentPassword"
                                     value={passwordData.currentPassword}
                                     onChange={handlePasswordChange}
-                                    placeholder="Enter current password"
+                                    placeholder="Nhập mật khẩu hiện tại"
                                     className="bg-dark text-light border-secondary"
                                 />
                             </Form.Group>
 
                             <Form.Group className="mb-3">
-                                <Form.Label className="text-light">New Password</Form.Label>
+                                <Form.Label className="text-light">Mật khẩu mới</Form.Label>
                                 <Form.Control
                                     type="password"
                                     name="newPassword"
                                     value={passwordData.newPassword}
                                     onChange={handlePasswordChange}
-                                    placeholder="Enter new password (min 6 characters)"
+                                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
                                     className="bg-dark text-light border-secondary"
                                 />
                             </Form.Group>
 
                             <Form.Group className="mb-3">
-                                <Form.Label className="text-light">Confirm New Password</Form.Label>
+                                <Form.Label className="text-light">Xác nhận mật khẩu mới</Form.Label>
                                 <Form.Control
                                     type="password"
                                     name="confirmPassword"
                                     value={passwordData.confirmPassword}
                                     onChange={handlePasswordChange}
-                                    placeholder="Confirm new password"
+                                    placeholder="Xác nhận mật khẩu mới"
                                     className="bg-dark text-light border-secondary"
                                 />
                             </Form.Group>
@@ -368,17 +368,17 @@ const SellerSettings = () => {
                                 onClick={handleChangePassword}
                                 disabled={loading}
                             >
-                                {loading ? "Updating..." : "Update Password"}
+                                {loading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
                             </Button>
                         </Form>
 
                         <hr className="my-4 border-secondary" />
 
-                        <h6 className="fw-semibold text-white mb-2">Connected Accounts</h6>
-                        <p className="text-secondary small mb-3">Link social accounts for faster login.</p>
+                        <h6 className="fw-semibold text-white mb-2">Tài khoản kết nối</h6>
+                        <p className="text-secondary small mb-3">Liên kết tài khoản mạng xã hội để đăng nhập nhanh hơn.</p>
                         <div className="d-flex flex-wrap gap-3">
-                            <Button variant="outline-light" disabled>Connect Google (Coming soon)</Button>
-                            <Button variant="outline-light" disabled>Connect Facebook (Coming soon)</Button>
+                            <Button variant="outline-light" disabled>Kết nối Google (Sắp ra mắt)</Button>
+                            <Button variant="outline-light" disabled>Kết nối Facebook (Sắp ra mắt)</Button>
                         </div>
                         <hr />
                         <Button
@@ -390,62 +390,10 @@ const SellerSettings = () => {
                             }}
 
                         >
-                            Logout
+                            Đăng xuất
                         </Button>
                     </Card>
                 );
-
-            // case "Appearance":
-            //     return (
-            //         <Card className="bg-dark border-0 p-4 shadow-sm">
-            //             <h5 className="fw-semibold text-white mb-3">Appearance Settings</h5>
-            //             {loading && <Spinner animation="border" variant="light" className="mb-3" />}
-            //             <Row>
-            //                 <Col md={6}>
-            //                     <Form.Label className="text-light">Theme</Form.Label>
-            //                     <div className="d-flex gap-3 mb-3">
-            //                         {["dark", "light"].map((mode) => (
-            //                             <Card
-            //                                 key={mode}
-            //                                 onClick={() => handlePreferenceChange("theme", mode)}
-            //                                 className={`theme-box ${preferences.theme === mode ? "active" : ""}`}
-            //                                 style={{ cursor: "pointer" }}
-            //                             >
-            //                                 <div className={`theme-preview ${mode}`} />
-            //                                 <p className="text-capitalize mt-2 mb-0">
-            //                                     {mode}
-            //                                     {preferences.theme === mode && <FaCheck className="ms-2" />}
-            //                                 </p>
-            //                             </Card>
-            //                         ))}
-            //                     </div>
-            //                 </Col>
-            //                 <Col md={6}>
-            //                     <Form.Label className="text-light mt-3 mt-md-0">Accent Color</Form.Label>
-            //                     <div className="d-flex gap-3 flex-wrap">
-            //                         {["purple", "blue", "green", "red", "amber"].map((color) => (
-            //                             <div
-            //                                 key={color}
-            //                                 className={`color-dot ${color} ${preferences.accentColor === color ? "selected" : ""}`}
-            //                                 onClick={() => handlePreferenceChange("accentColor", color)}
-            //                                 style={{
-            //                                     cursor: "pointer",
-            //                                     border: preferences.accentColor === color ? "3px solid white" : "none"
-            //                                 }}
-            //                             />
-            //                         ))}
-            //                     </div>
-            //                 </Col>
-            //             </Row>
-            //             <Button
-            //                 className="btn-gradient mt-4"
-            //                 onClick={handleSavePreferences}
-            //                 disabled={loading}
-            //             >
-            //                 {loading ? "Saving..." : "Save Preferences"}
-            //             </Button>
-            //         </Card>
-            //     );
 
             default:
                 return null;
@@ -455,13 +403,13 @@ const SellerSettings = () => {
     return (
         <div className="seller-settings">
             <Container fluid="sm">
-                <h3 className="fw-bold mb-3 text-gradient">Settings</h3>
+                <h3 className="fw-bold mb-3 text-gradient">Cài đặt</h3>
                 <p className="text-secondary mb-4">
-                    Manage your account preferences and appearance.
+                    Quản lí thông tin cá nhân và bảo mật tài khoản của bạn tại đây.
                 </p>
 
                 <Nav variant="tabs" activeKey={activeTab} className="settings-tabs mb-4">
-                    {["Profile", "Account"].map((tab) => (
+                    {["Thông tin cá nhân", "Tài khoản"].map((tab) => (
                         <Nav.Item key={tab}>
                             <Nav.Link
                                 eventKey={tab}
@@ -480,4 +428,4 @@ const SellerSettings = () => {
     );
 }
 
-export default SellerSettings;
+export default SettingsPage;

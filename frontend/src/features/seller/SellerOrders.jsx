@@ -54,7 +54,7 @@ const SellerOrders = () => {
                 }
             } catch (error) {
                 console.error("Error fetching orders:", error);
-                setError("Failed to load orders. Please try again later.");
+                setError("Lỗi khi tải đơn hàng. Vui lòng thử lại sau.");
             } finally {
                 setLoading(false);
             }
@@ -70,32 +70,32 @@ const SellerOrders = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    console.log("Orders:", orders);
     return (
         <div className="seller-orders">
             <div fluid="sm">
-                <h3 className="fw-bold mb-2 text-gradient">Orders</h3>
+                <h3 className="fw-bold mb-2 text-gradient">Đơn hàng</h3>
                 <p className="text-secondary mb-4">
-                    Manage and track all orders of your quiz sets.
+                    Quản lý và theo dõi tất cả các đơn hàng của bộ đề thi của bạn.
                 </p>
 
                 {/* FILTER BAR */}
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                     <div className="btn-group" role="group">
-                        {["All", "Completed", "Pending", "Cancelled"].map((tab) => (
+                        {["All", "SUCCESS", "FAILED"].map((tab) => (
                             <Button
                                 key={tab}
                                 variant={filter === tab ? "gradient-active" : "outline-light"}
+                                className={filter === tab ? "active" : ""}
                                 onClick={() => setFilter(tab)}
                             >
-                                {tab}
+                                {tab === "All" ? "All" : tab === "SUCCESS" ? "Success" : tab === "FAILED" ? "Failed" : ""}
                             </Button>
                         ))}
                     </div>
 
                     <Form.Control
                         type="text"
-                        placeholder="Search by buyer or quiz title..."
+                        placeholder="Tìm kiếm theo người mua hoặc tiêu đề quiz..."
                         className="search-box bg-dark text-light border-secondary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -108,7 +108,7 @@ const SellerOrders = () => {
                         <div className="spinner-border text-primary" role="status">
                             <span className="visually-hidden">Loading...</span>
                         </div>
-                        <p className="text-secondary mt-2">Loading orders...</p>
+                        <p className="text-secondary mt-2">Đang tải đơn hàng...</p>
                     </div>
                 )}
 
@@ -171,11 +171,11 @@ const SellerOrders = () => {
                                                         variant="outline-light"
                                                         id={`dropdown-${order.id}`}
                                                     >
-                                                        Actions
+                                                        Hành động
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu variant="dark">
-                                                        <Dropdown.Item>View Details</Dropdown.Item>
-                                                        <Dropdown.Item>Download Invoice</Dropdown.Item>
+                                                        <Dropdown.Item>Xem chi tiết</Dropdown.Item>
+                                                        <Dropdown.Item>Tải hóa đơn</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Col>
@@ -186,7 +186,7 @@ const SellerOrders = () => {
 
                             {filteredOrders.length === 0 && (
                                 <p className="text-center text-secondary mt-4">
-                                    No orders found for this filter.
+                                    Không tìm thấy đơn hàng nào cho bộ lọc này.
                                 </p>
                             )}
                         </Row>
@@ -195,7 +195,7 @@ const SellerOrders = () => {
                         {pagination.total > 0 && (
                             <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
                                 <p className="text-secondary mb-0">
-                                    Showing {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} orders
+                                    Hiển thị {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} trong tổng số {pagination.total} đơn hàng
                                 </p>
 
                                 <Pagination className="mb-0">

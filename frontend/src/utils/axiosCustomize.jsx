@@ -2,6 +2,13 @@ import axios from "axios";
 import { store } from "../redux/store";
 import { toast } from "react-toastify";
 
+// Create a navigation event system
+let navigateFunction = null;
+
+export const setNavigate = (navigateFn) => {
+    navigateFunction = navigateFn;
+};
+
 const instance = axios.create({
     baseURL: 'http://localhost:8080/'
 
@@ -12,14 +19,12 @@ instance.interceptors.request.use(function (config) {
     if (access_token) {
         config.headers['Authorization'] = "Bearer " + access_token;
     }
-    // Do something before request is sent
+
     return config;
 }, function (error) {
-    // Do something with request error
     return Promise.reject(error);
 });
 
-// Add a response interceptor
 instance.interceptors.response.use(function (response) {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
@@ -40,7 +45,9 @@ instance.interceptors.response.use(function (response) {
 
         // Redirect to login page after 2 seconds
         setTimeout(() => {
-            window.location.href = '/login';
+            if (navigateFunction) {
+                navigateFunction('/login');
+            }
         }, 2000);
 
         return Promise.reject(error);
@@ -48,16 +55,28 @@ instance.interceptors.response.use(function (response) {
 
     // Handle 401 Unauthorized
     if (error?.response?.status === 401) {
-        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", {
-            position: "top-right",
-        });
+        // Check if current path is a public route that doesn't require authentication
+        const currentPath = window.location.pathname;
+        const publicRoutes = ['/', '/student/quizzes/', '/login', '/register'];
+        const isPublicRoute = publicRoutes.some(route =>
+            currentPath === route || currentPath.startsWith(route)
+        );
 
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
+        // Only redirect to login and show error for protected routes
+        if (!isPublicRoute) {
+            toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", {
+                position: "top-right",
+            });
 
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 1500);
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+
+            setTimeout(() => {
+                if (navigateFunction) {
+                    navigateFunction('/login');
+                }
+            }, 1500);
+        }
     }
 
     // Any status codes that falls outside the range of 2xx cause this function to trigger

@@ -51,6 +51,11 @@ const AdminRolesPermissionsPage = () => {
     const [rolePage, setRolePage] = useState(0);
     const [roleTotalPages, setRoleTotalPages] = useState(0);
 
+    // Filter states
+    const [filterModule, setFilterModule] = useState('');
+    const [filterMethod, setFilterMethod] = useState('');
+    const [searchName, setSearchName] = useState('');
+
     // Fetch data on component mount
     useEffect(() => {
         fetchRoles();
@@ -226,6 +231,14 @@ const AdminRolesPermissionsPage = () => {
         }
     };
 
+    // Filter permissions based on filters
+    const filteredPermissions = permissions.filter(permission => {
+        const matchesModule = !filterModule || permission.module === filterModule;
+        const matchesMethod = !filterMethod || permission.method === filterMethod;
+        const matchesName = !searchName || permission.name.toLowerCase().includes(searchName.toLowerCase());
+        return matchesModule && matchesMethod && matchesName;
+    });
+
     const handleSaveAssignments = async () => {
         try {
             setLoading(true);
@@ -384,6 +397,79 @@ const AdminRolesPermissionsPage = () => {
 
                     {/* Permissions Tab */}
                     <Tab eventKey="permissions" title={<><FaKey className="me-2" />Permissions</>}>
+                        {/* Filter Section */}
+                        <Card className="mb-3 bg-dark">
+                            <Card.Body>
+                                <Row className="align-items-end">
+                                    <Col md={3}>
+                                        <Form.Group>
+                                            <Form.Label>Tìm kiếm theo tên</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Nhập tên quyền hạn..."
+                                                value={searchName}
+                                                onChange={(e) => setSearchName(e.target.value)}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group>
+                                            <Form.Label>Lọc theo Module</Form.Label>
+                                            <Form.Select
+                                                value={filterModule}
+                                                onChange={(e) => setFilterModule(e.target.value)}
+                                            >
+                                                <option value="">Tất cả Module</option>
+                                                <option value="USERS">USERS</option>
+                                                <option value="SUBJECTS">SUBJECTS</option>
+                                                <option value="ORDERS">ORDERS</option>
+                                                <option value="ROLES">ROLES</option>
+                                                <option value="PERMISSIONS">PERMISSIONS</option>
+                                                <option value="PURCHASES">PURCHASES</option>
+                                                <option value="COMMENTS">COMMENTS</option>
+                                                <option value="CHAPTERS">CHAPTERS</option>
+                                                <option value="FILES">FILES</option>
+                                                <option value="SUBMISSIONS">SUBMISSIONS</option>
+                                                <option value="PAYMENTS">PAYMENTS</option>
+                                                <option value="WEEKLY_QUIZZES">WEEKLY_QUIZZES</option>
+                                                <option value="SELLERS">SELLERS</option>
+                                                <option value="ADMINS">ADMINS</option>
+                                                <option value="WITHDRAWS">WITHDRAWS</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group>
+                                            <Form.Label>Lọc theo Phương thức</Form.Label>
+                                            <Form.Select
+                                                value={filterMethod}
+                                                onChange={(e) => setFilterMethod(e.target.value)}
+                                            >
+                                                <option value="">Tất cả Phương thức</option>
+                                                <option value="GET">GET</option>
+                                                <option value="POST">POST</option>
+                                                <option value="PUT">PUT</option>
+                                                <option value="DELETE">DELETE</option>
+                                                <option value="PATCH">PATCH</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Button
+                                            variant="outline-secondary"
+                                            className="w-100"
+                                            onClick={() => {
+                                                setSearchName('');
+                                                setFilterModule('');
+                                                setFilterMethod('');
+                                            }}
+                                        >
+                                            Xóa bộ lọc
+                                        </Button>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
                         <Row className="mb-3">
                             <Col className="text-end">
                                 <Button variant="primary" onClick={() => handleShowPermissionModal('add')}>
@@ -405,8 +491,8 @@ const AdminRolesPermissionsPage = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {permissions && permissions.length > 0 ? (
-                                            permissions.map((permission) => (
+                                        {filteredPermissions && filteredPermissions.length > 0 ? (
+                                            filteredPermissions.map((permission) => (
                                                 <tr key={permission.id}>
                                                     <td className="fw-semibold">{permission.name}</td>
                                                     <td>
@@ -579,12 +665,23 @@ const AdminRolesPermissionsPage = () => {
                                         onChange={(e) => setPermissionFormData({ ...permissionFormData, module: e.target.value })}
                                         required
                                     >
-                                        <option value="USER">USER</option>
-                                        <option value="SUBJECT">SUBJECT</option>
-                                        <option value="ORDER">ORDER</option>
-                                        <option value="QUIZ">QUIZ</option>
-                                        <option value="ROLE">ROLE</option>
-                                        <option value="PERMISSION">PERMISSION</option>
+                                        <option value="USERS">USERS</option>
+                                        <option value="SUBJECTS">SUBJECTS</option>
+                                        <option value="ORDERS">ORDERS</option>
+                                        <option value="ROLES">ROLES</option>
+                                        <option value="PERMISSIONS">PERMISSIONS</option>
+                                        <option value="PURCHASES">PURCHASES</option>
+                                        <option value="COMMENTS">COMMENTS</option>
+                                        <option value="CHAPTERS">CHAPTERS</option>
+                                        <option value="FILES">FILES</option>
+                                        <option value="SUBMISSIONS">SUBMISSIONS</option>
+                                        <option value="PAYMENTS">PAYMENTS</option>
+                                        <option value="WEEKLY_QUIZZES">WEEKLY_QUIZZES</option>
+                                        <option value="SELLERS">SELLERS</option>
+                                        <option value="PAYMENTS">PAYMENTS</option>
+                                        <option value="ADMINS">ADMINS</option>
+                                        <option value="ORDERS">ORDERS</option>
+                                        <option value="WITHDRAWS">WITHDRAWS</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Form>

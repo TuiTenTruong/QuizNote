@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getExploreData } from "../../services/apiService";
 import { FaStar } from "react-icons/fa6";
 import axiosInstance from '../../utils/axiosCustomize';
+import { Link } from "react-router-dom";
 const ExploreQuizCategories = () => {
     const [quizCategories, setQuizCategories] = useState([]);
     useEffect(() => {
@@ -26,16 +27,17 @@ const ExploreQuizCategories = () => {
         <section className="quiz-categories text-light py-5">
             <Container>
                 <h2 className="fw-bold mb-3 text-start text-sm-center">
-                    Explore <span className="text-gradient">Quiz Categories</span>
+                    Khám phá <span className="text-gradient">môn học</span>
                 </h2>
 
                 <p className="text-white mb-4 text-start text-sm-center w-75 w-sm-100 mx-sm-auto">
-                    Discover quizzes across various subjects to test and expand your knowledge.
+                    Khám phá các bài quiz thuộc nhiều chủ đề khác nhau để kiểm tra và mở rộng kiến thức của bạn.
                 </p>
 
                 <div className="row g-3">
                     {quizCategories && quizCategories.length > 0 && quizCategories.map((category) => (
-                        <div className="col-12 col-md-6 col-lg-4">
+
+                        <div key={category.id} className="col-12 col-md-6 col-lg-4">
                             <div className="category-card p-4 rounded-4 h-100 position-relative">
                                 {category.imageUrl && (
                                     <div
@@ -56,7 +58,7 @@ const ExploreQuizCategories = () => {
                                 <p className="text-white small mb-3">
                                     {category.description}
                                 </p>
-                                <Button variant="link" Link to={`/quizzes/${category.id}`} className="text-primary p-0">Explore Quizzes →</Button>
+                                <Button as={Link} to={`/student/quizzes/${category.id}`} variant="link" className="text-primary p-0">Khám phá →</Button>
                             </div>
                         </div>
                     ))}

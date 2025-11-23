@@ -25,15 +25,12 @@ public class AdminService {
 
         private final SubjectRepository subjectRepository;
         private final UserRepository userRepository;
-        private final PurchaseRepository purchaseRepository;
         private final PaymentTransactionRepository paymentTransactionRepository;
 
         public AdminService(SubjectRepository subjectRepository, UserRepository userRepository,
-                        PurchaseRepository purchaseRepository,
                         PaymentTransactionRepository paymentTransactionRepository) {
                 this.subjectRepository = subjectRepository;
                 this.userRepository = userRepository;
-                this.purchaseRepository = purchaseRepository;
                 this.paymentTransactionRepository = paymentTransactionRepository;
         }
 
@@ -45,7 +42,7 @@ public class AdminService {
                 Instant oneMonthAgo = Instant.now().minus(30, java.time.temporal.ChronoUnit.DAYS);
                 long usersLastMonth = userRepository.countUsersRegisteredAfter(oneMonthAgo);
                 long increasedUsers = totalUsers - usersLastMonth;
-                double userChange = increasedUsers == 0 ? 0.0
+                double userChange = usersLastMonth == 0 ? 0.0
                                 : ((double) increasedUsers / usersLastMonth) * 100;
                 ResAdminAnalyticsDTO.StatusCard userStatus = new ResAdminAnalyticsDTO.StatusCard();
                 userStatus.setTitle("Total Users");
@@ -57,9 +54,10 @@ public class AdminService {
                 // get total subjects and change in last month
                 long totalSubjects = subjectRepository.count();
                 long subjectsLastMonth = subjectRepository.countSubjectsCreatedAfter(oneMonthAgo);
-                long previousSubjects = totalSubjects - subjectsLastMonth;
-                double subjectChange = previousSubjects == 0 ? (subjectsLastMonth > 0 ? 100.0 : 0.0)
-                                : ((double) subjectsLastMonth / previousSubjects) * 100;
+                long increasedSubjects = totalSubjects - subjectsLastMonth;
+
+                double subjectChange = subjectsLastMonth == 0 ? 0.0
+                                : ((double) increasedSubjects / subjectsLastMonth) * 100;
                 ResAdminAnalyticsDTO.StatusCard subjectStatus = new ResAdminAnalyticsDTO.StatusCard();
                 subjectStatus.setTitle("Total Subjects");
                 subjectStatus.setValue(totalSubjects);
@@ -67,11 +65,11 @@ public class AdminService {
                 analytics.getStatusCards().add(subjectStatus);
 
                 // get total revenue and change in last month
-                Double totalRevenue = purchaseRepository.sumAllPurchaseAmount();
-                Double revenueLastMonth = purchaseRepository.sumPurchaseAmountAfter(oneMonthAgo);
-                Double previousRevenue = totalRevenue - revenueLastMonth;
-                double revenueChange = previousRevenue == 0 ? (revenueLastMonth > 0 ? 100.0 : 0.0)
-                                : (revenueLastMonth / previousRevenue) * 100;
+                Double totalRevenue = paymentTransactionRepository.sumAllPurchaseAmount();
+                Double revenueLastMonth = paymentTransactionRepository.sumPurchaseAmountAfter(oneMonthAgo);
+                Double increasedRevenue = totalRevenue - revenueLastMonth;
+                double revenueChange = revenueLastMonth == 0 ? 0.0
+                                : (increasedRevenue / revenueLastMonth) * 100;
                 ResAdminAnalyticsDTO.StatusCard revenueStatus = new ResAdminAnalyticsDTO.StatusCard();
                 revenueStatus.setTitle("Total Revenue");
                 revenueStatus.setValue(totalRevenue.longValue());
@@ -79,11 +77,11 @@ public class AdminService {
                 analytics.getStatusCards().add(revenueStatus);
 
                 // get total order and change in last month
-                long totalOrders = purchaseRepository.count();
-                long ordersLastMonth = purchaseRepository.countPurchaseAfter(oneMonthAgo);
-                long previousOrders = totalOrders - ordersLastMonth;
-                double orderChange = previousOrders == 0 ? (ordersLastMonth > 0 ? 100.0 : 0.0)
-                                : ((double) ordersLastMonth / previousOrders) * 100;
+                long totalOrders = paymentTransactionRepository.count();
+                long ordersLastMonth = paymentTransactionRepository.countByCreatedAtAfter(oneMonthAgo);
+                long increasedOrders = totalOrders - ordersLastMonth;
+                double orderChange = ordersLastMonth == 0 ? 0
+                                : ((double) increasedOrders / ordersLastMonth) * 100;
                 ResAdminAnalyticsDTO.StatusCard orderStatus = new ResAdminAnalyticsDTO.StatusCard();
                 orderStatus.setTitle("Total Orders");
                 orderStatus.setValue(totalOrders);
@@ -97,7 +95,8 @@ public class AdminService {
 
                 for (int i = 0; i < 12; i++) {
                         YearMonth ym = currentYearMonth.minusMonths(i);
-                        Double revenue = purchaseRepository.sumPurchaseAmountByMonth(ym.getYear(), ym.getMonthValue());
+                        Double revenue = paymentTransactionRepository.sumPurchaseAmountByMonth(ym.getYear(),
+                                        ym.getMonthValue());
 
                         ResAdminAnalyticsDTO.MonthlyRevenue monthlyRevenue = new ResAdminAnalyticsDTO.MonthlyRevenue();
                         monthlyRevenue.setMonth(ym.format(monthFormatter));

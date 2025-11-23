@@ -30,7 +30,7 @@ const SellerQuizzes = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState("All");
-    const [priceRange, setPriceRange] = useState("All Prices");
+    const [priceRange, setPriceRange] = useState("Tất cả");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch] = useState("");
@@ -68,7 +68,7 @@ const SellerQuizzes = () => {
         if (seller?.id) {
             fetchQuizzes();
         }
-    }, [seller?.id, filter]);
+    }, [seller?.id]); // Removed filter from here
 
     // Client-side filtering
     useEffect(() => {
@@ -92,13 +92,13 @@ const SellerQuizzes = () => {
             filtered = filtered.filter(quiz => {
                 const price = quiz.price || 0;
                 switch (priceRange) {
-                    case "Free":
+                    case "Miễn phí":
                         return price === 0;
-                    case "Under 50k":
+                    case "Dưới 50k":
                         return price > 0 && price < 50000;
                     case "50k - 100k":
                         return price >= 50000 && price <= 100000;
-                    case "Over 100k":
+                    case "Trên 100k":
                         return price > 100000;
                     default:
                         return true;
@@ -109,7 +109,7 @@ const SellerQuizzes = () => {
         setFilteredQuizList(filtered);
         setTotalPages(Math.ceil(filtered.length / itemsPerPage));
         setCurrentPage(1);
-    }, [quizList, searchDebounced, priceRange]);
+    }, [quizList, filter, searchDebounced, priceRange]); // Added filter here
 
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
@@ -124,7 +124,7 @@ const SellerQuizzes = () => {
 
     const handleClearFilters = () => {
         setFilter("All");
-        setPriceRange("All Prices");
+        setPriceRange("Tất cả");
         setSearch("");
         setCurrentPage(1);
     };
@@ -151,10 +151,10 @@ const SellerQuizzes = () => {
     return (
         <div className="seller-quizzes">
             <h3 className="fw-bold mb-3 text-white text-center text-md-start">
-                My Quiz Library
+                Môn học của tôi
             </h3>
             <p className="text-secondary mb-4 text-center text-md-start">
-                Browse and manage all your quizzes in one place.
+                Duyệt và quản lý tất cả các môn học của bạn trong một nơi.
             </p>
 
             {/* FILTER BAR */}
@@ -164,7 +164,7 @@ const SellerQuizzes = () => {
                         <Button
                             key={tab}
                             variant={filter === tab ? "gradient-active" : "outline-light"}
-                            className="flex-fill text-capitalize"
+                            className={`flex-fill text-capitalize ${filter === tab ? "active" : ""}`}
                             onClick={() => handleFilterChange(tab)}
                         >
                             {tab}
@@ -190,24 +190,24 @@ const SellerQuizzes = () => {
                             <FaFilter className="me-2" /> {priceRange}
                         </Dropdown.Toggle>
                         <Dropdown.Menu variant="dark">
-                            <Dropdown.Item eventKey="All Prices" active={priceRange === "All Prices"}>
-                                All Prices
+                            <Dropdown.Item eventKey="Tất cả" active={priceRange === "Tất cả"}>
+                                Tất cả
                             </Dropdown.Item>
-                            <Dropdown.Item eventKey="Free" active={priceRange === "Free"}>
-                                Free
+                            <Dropdown.Item eventKey="Miễn phí" active={priceRange === "Miễn phí"}>
+                                Miễn phí
                             </Dropdown.Item>
-                            <Dropdown.Item eventKey="Under 50k" active={priceRange === "Under 50k"}>
-                                Under 50k ₫
+                            <Dropdown.Item eventKey="Dưới 50k" active={priceRange === "Dưới 50k"}>
+                                Dưới 50k ₫
                             </Dropdown.Item>
                             <Dropdown.Item eventKey="50k - 100k" active={priceRange === "50k - 100k"}>
                                 50k - 100k ₫
                             </Dropdown.Item>
-                            <Dropdown.Item eventKey="Over 100k" active={priceRange === "Over 100k"}>
-                                Over 100k ₫
+                            <Dropdown.Item eventKey="Trên 100k" active={priceRange === "Trên 100k"}>
+                                Trên 100k ₫
                             </Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
-                    {(filter !== "All" || priceRange !== "All Prices" || search) && (
+                    {(filter !== "All" || priceRange !== "Tất cả" || search) && (
                         <Button
                             variant="outline-secondary"
                             className="w-100 w-sm-auto"
@@ -222,11 +222,11 @@ const SellerQuizzes = () => {
             {/* QUIZ LIST */}
             <Row className="g-3">
                 {loading && (
-                    <p className="text-center text-secondary mt-4">Loading quizzes...</p>
+                    <p className="text-center text-secondary mt-4">Đang tải môn học...</p>
                 )}
 
                 {error && (
-                    <p className="text-center text-danger mt-4">Error: {error}</p>
+                    <p className="text-center text-danger mt-4">Lỗi: {error}</p>
                 )}
 
                 {!loading && currentItems.map((quiz, i) => (
@@ -245,9 +245,9 @@ const SellerQuizzes = () => {
                                         <p className="text-secondary small mb-2 text-ellipsis">{quiz.description}</p>
                                         <div className="quiz-meta d-flex flex-wrap gap-3 small text-white-50">
                                             <span>
-                                                <FaUser className="me-1" /> {quiz.purchaseCount || 0} purchases
+                                                <FaUser className="me-1" /> {quiz.purchaseCount || 0} lượt mua
                                             </span>
-                                            <span>{quiz.questionCount || 0} questions</span>
+                                            <span>{quiz.questionCount || 0} câu hỏi</span>
                                             <span>₫{(quiz.price || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
@@ -266,7 +266,7 @@ const SellerQuizzes = () => {
                                         {quiz.status?.toLowerCase()}
                                     </Badge>
                                     <Button className="hover-gradient" onClick={() => navigate(`/seller/quizzes/${quiz.id}`)}>
-                                        View
+                                        Xem
                                     </Button>
                                     <Button
 
@@ -284,7 +284,7 @@ const SellerQuizzes = () => {
 
                 {!loading && !error && filteredQuizList.length === 0 && (
                     <p className="text-center text-secondary mt-4">
-                        No quizzes found for this filter.
+                        Không tìm thấy môn học nào phù hợp với bộ lọc này.
                     </p>
                 )}
             </Row>

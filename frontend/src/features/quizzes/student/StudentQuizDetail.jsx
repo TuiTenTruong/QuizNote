@@ -49,6 +49,7 @@ const StudentQuizDetail = () => {
     const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
     const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
     const hasPurchased = location.state?.hasPurchased || false;
+    const isAuthenticated = account && account.id;
     console.log("Has purchased:", hasPurchased);
 
     useEffect(() => {
@@ -65,13 +66,15 @@ const StudentQuizDetail = () => {
                 console.error("Error fetching quiz detail:", error);
                 // Nếu là subject INACTIVE và chưa mua, backend sẽ trả error
                 alert("Không thể truy cập môn học này. Môn học có thể đã được ẩn hoặc không tồn tại.");
-                navigate('/student/quizzes');
+                navigate('/');
             }
         };
         fetchQuizDetail();
-    }, [quizId, navigate, account]);
+    }, [quizId, navigate]);
     useEffect(() => {
         const fetchMyRatings = async () => {
+            if (!isAuthenticated) return;
+
             const response = await getMyRatings(account.id, quizId);
             if (response && response.statusCode === 200) {
                 setIsRating(response.data);
@@ -80,7 +83,7 @@ const StudentQuizDetail = () => {
             }
         };
         fetchMyRatings();
-    }, [account, quizId]);
+    }, [isAuthenticated, account, quizId]);
     useEffect(() => {
         const fetchQuizDemo = async () => {
             const response = await getQuizDemo(quizId);
@@ -189,7 +192,14 @@ const StudentQuizDetail = () => {
                                     : "Miễn phí"}
                             </h4>
 
-                            {quiz.price == 0 || hasPurchased ? (
+                            {!isAuthenticated ? (
+                                <Button
+                                    className="btn-gradient w-100"
+                                    onClick={() => navigate('/login', { state: { from: `/student/quizzes/${quiz.id}` } })}
+                                >
+                                    Đăng nhập để tiếp tục
+                                </Button>
+                            ) : quiz.price == 0 || hasPurchased ? (
                                 <Button className="btn-gradient w-100" onClick={() => navigateToSelectMode(navigate, quiz)}>Bắt đầu làm bài</Button>
                             ) : (
                                 <>
@@ -229,8 +239,8 @@ const StudentQuizDetail = () => {
                         <Card className="bg-dark text-light border-0 shadow-sm p-4">
                             <h5 className="fw-bold mb-3">Đánh giá từ học viên {countReviews > 0 && `(${countReviews})`}</h5>
 
-                            {/* Review Form - Only show if user has purchased */}
-                            {(!isRating) && (quiz.price === 0 || hasPurchased) && (
+                            {/* Review Form - Only show if user is authenticated and has purchased */}
+                            {isAuthenticated && (!isRating) && (quiz.price === 0 || hasPurchased) && (
                                 <Card className="bg-secondary bg-opacity-25 border-0 p-3 mb-4">
                                     <h6 className="fw-semibold mb-3 text-white">Đánh giá của bạn</h6>
                                     <Form onSubmit={handleSubmitReview}>

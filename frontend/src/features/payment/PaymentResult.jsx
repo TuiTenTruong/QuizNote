@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Container, Card, Spinner, Button } from "react-bootstrap";
 import { FaCheckCircle, FaTimesCircle, FaReceipt } from "react-icons/fa";
+import { toast } from "react-toastify";
 import "./PaymentResult.scss";
 
 const PaymentResult = () => {
@@ -17,13 +18,28 @@ const PaymentResult = () => {
         const transactionNo = searchParams.get("transactionNo");
         const amount = searchParams.get("amount");
         const paymentTime = searchParams.get("paymentTime");
+        const responseCode = searchParams.get("responseCode");
+
+        // Xử lý thông báo dựa trên response code
+        if (status !== "success" && responseCode) {
+            let message = "Giao dịch không thành công.";
+            if (responseCode === "24") {
+                message = "Giao dịch đã bị hủy.";
+            } else if (responseCode === "51") {
+                message = "Tài khoản không đủ số dư.";
+            } else if (responseCode === "11") {
+                message = "Đã hết hạn chờ thanh toán.";
+            }
+            toast.warning(message);
+        }
 
         setPaymentData({
             status: status === "success",
             orderInfo: orderInfo || "",
             transactionNo: transactionNo || "",
             amount: amount ? parseInt(amount) : 0,
-            paymentTime: paymentTime || ""
+            paymentTime: paymentTime || "",
+            responseCode: responseCode || ""
         });
 
         setLoading(false);
@@ -136,13 +152,33 @@ const PaymentResult = () => {
                                     </Button>
                                 </>
                             ) : (
-                                <Button
-                                    variant="outline-light"
-                                    className="w-100 py-2"
-                                    onClick={() => navigate(-4)}
-                                >
-                                    Quay lại
-                                </Button>
+                                <>
+                                    <Button
+                                        className="btn-gradient w-100 py-2"
+                                        onClick={() => {
+                                            // Parse orderInfo để lấy subjectId và redirect về trang thanh toán
+                                            try {
+                                                const subjectMatch = paymentData.orderInfo.match(/subject:(\d+)/);
+                                                if (subjectMatch && subjectMatch[1]) {
+                                                    navigate(`/student/quiz-payment/${subjectMatch[1]}`);
+                                                } else {
+                                                    navigate('/student');
+                                                }
+                                            } catch (error) {
+                                                navigate('/student');
+                                            }
+                                        }}
+                                    >
+                                        Thử lại
+                                    </Button>
+                                    <Button
+                                        variant="outline-light"
+                                        className="w-100 py-2"
+                                        onClick={handleGoToHome}
+                                    >
+                                        Về trang chủ
+                                    </Button>
+                                </>
                             )}
                         </div>
                     </Card>

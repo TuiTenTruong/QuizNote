@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
 import { FaShoppingCart, FaLock, FaCreditCard } from "react-icons/fa";
 import "./QuizPayment.scss";
 import { useEffect } from "react";
@@ -64,6 +65,7 @@ const QuizPayment = () => {
         setLoading(true);
         try {
             // Gọi API backend (Spring Boot) để tạo link VNPay
+            // Thêm quizId vào orderInfo để có thể quay lại trang thanh toán nếu hủy
             const response = await VNPayCreateOrder(quizData.price || 0, `buyer:${user.id};subject:${quizData.id}`);
             // Axios interceptor đã unwrap response.data, nên response chính là URL string
             const url = response.data || response;

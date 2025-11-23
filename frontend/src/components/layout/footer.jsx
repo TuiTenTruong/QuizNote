@@ -10,7 +10,7 @@ import {
     FaMapMarkerAlt,
 } from "react-icons/fa";
 import "./Footer.scss";
-
+import { Link } from "react-router-dom";
 const Footer = () => {
     return (
         <footer className="footer text-light pt-5">
@@ -20,15 +20,15 @@ const Footer = () => {
                     <Col xs={12} md={4}>
                         <h4 className="fw-bold text-gradient mb-3">QuizNote</h4>
                         <p className="text-white-50 mb-3">
-                            A modern platform for students and teachers to create, buy, and practice quiz sets
-                            anytime, anywhere.
+
+                            Một nền tảng hiện đại cho học sinh và giáo viên để tạo, mua và luyện tập các bộ câu đố bất cứ lúc nào, bất cứ nơi đâu.
                         </p>
                         <div className="d-flex gap-3 fs-5 mt-3">
-                            <a href="#" className="text-light social-link"><FaFacebookF /></a>
-                            <a href="#" className="text-light social-link"><FaTwitter /></a>
-                            <a href="#" className="text-light social-link"><FaInstagram /></a>
-                            <a href="#" className="text-light social-link"><FaLinkedinIn /></a>
-                            <a href="#" className="text-light social-link"><FaYoutube /></a>
+                            <Link to="#" className="text-light social-link"><FaFacebookF /></Link>
+                            <Link to="#" className="text-light social-link"><FaTwitter /></Link>
+                            <Link to="#" className="text-light social-link"><FaInstagram /></Link>
+                            <Link to="#" className="text-light social-link"><FaLinkedinIn /></Link>
+                            <Link to="#" className="text-light social-link"><FaYoutube /></Link>
                         </div>
                     </Col>
 
@@ -36,11 +36,11 @@ const Footer = () => {
                     <Col xs={6} md={3}>
                         <h6 className="fw-semibold mb-3">Quick Links</h6>
                         <ul className="list-unstyled text-white-50">
-                            <li><a href="#" className="footer-link">Home</a></li>
-                            <li><a href="#" className="footer-link">About</a></li>
-                            <li><a href="#" className="footer-link">Features</a></li>
-                            <li><a href="#" className="footer-link">Pricing</a></li>
-                            <li><a href="#" className="footer-link">Contact</a></li>
+                            <li><Link to="#" className="footer-link"></Link></li>
+                            <li><Link to="/" className="footer-link">Giới thiệu</Link></li>
+                            <li><Link to="/student" className="footer-link">Môn học</Link></li>
+                            <li><Link to="/rewards" className="footer-link">Đổi thưởng</Link></li>
+                            <li><Link to="/about" className="footer-link">Liên hệ</Link></li>
                         </ul>
                     </Col>
 
@@ -48,10 +48,10 @@ const Footer = () => {
                     <Col xs={6} md={3}>
                         <h6 className="fw-semibold mb-3">For Teachers</h6>
                         <ul className="list-unstyled text-white-50">
-                            <li><a href="#" className="footer-link">Create Quiz</a></li>
-                            <li><a href="#" className="footer-link">Dashboard</a></li>
-                            <li><a href="#" className="footer-link">Guidelines</a></li>
-                            <li><a href="#" className="footer-link">Blog</a></li>
+                            <li><Link to="/seller/quizzes/create" className="footer-link">Tạo câu đố</Link></li>
+                            <li><Link to="/seller" className="footer-link">Bảng điều khiển</Link></li>
+                            <li><Link to="#" className="footer-link">Hướng dẫn</Link></li>
+                            <li><Link to="#" className="footer-link">Blog</Link></li>
                         </ul>
                     </Col>
 

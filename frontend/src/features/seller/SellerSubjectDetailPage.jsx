@@ -19,6 +19,7 @@ import {
     FaTrash,
     FaCheckCircle,
     FaBan,
+    FaTimes,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import "./SellerSubjectDetailPage.scss";
@@ -38,6 +39,7 @@ const SellerSubjectDetailPage = () => {
     const [originalQuestions, setOriginalQuestions] = useState([]);
     const [questionToDelete, setQuestionToDelete] = useState([]);
     const [questionImageFiles, setQuestionImageFiles] = useState({});
+    const [questionImagesToDelete, setQuestionImagesToDelete] = useState([]);
     const backendBaseURL = instance.defaults.baseURL + "storage/subjects/";
     const questionImageBaseURL = instance.defaults.baseURL + "storage/questions/";
 
@@ -114,12 +116,12 @@ const SellerSubjectDetailPage = () => {
 
     const handleQuestionImageChange = (qIndex, e) => {
         const file = e.target.files[0];
-        if (file) {
-            setQuestionImageFiles({
-                ...questionImageFiles,
-                [qIndex]: file
-            });
-        }
+
+        setQuestionImageFiles({
+            ...questionImageFiles,
+            [qIndex]: file
+        });
+
     };
 
     const handleOptionChange = (qIndex, oIndex, value) => {
@@ -154,6 +156,7 @@ const SellerSubjectDetailPage = () => {
         if ((question.explanation || '') !== (originalQuestion.explanation || '')) return true;
         if (question.options.length !== originalQuestion.options.length) return true;
         if (questionImageFiles[qIndex]) return true; // New image uploaded
+        if (questionImagesToDelete.includes(question.id)) return true; // Image deleted
 
         for (let i = 0; i < question.options.length; i++) {
             const opt = question.options[i];
@@ -312,8 +315,12 @@ const SellerSubjectDetailPage = () => {
                     type: 'application/json'
                 }));
 
+                // Handle image upload or deletion
                 if (questionImageFiles[qIndex]) {
                     updateFormData.append('image', questionImageFiles[qIndex]);
+                } else if (questionImagesToDelete.includes(q.id)) {
+                    // Send empty blob to indicate image deletion
+                    updateFormData.append('image', new Blob());
                 }
 
                 const response = await updateQuestion(updateFormData);
@@ -332,6 +339,7 @@ const SellerSubjectDetailPage = () => {
             setOriginalQuestions(JSON.parse(JSON.stringify(questionsResponse.data)));
             setImageFile(null);
             setQuestionImageFiles({});
+            setQuestionImagesToDelete([]);
         } catch (error) {
             console.error('Error saving subject:', error);
             setMessage({
@@ -428,7 +436,7 @@ const SellerSubjectDetailPage = () => {
                                         )}
                                     </Button>
                                 )}
-                                
+
                                 <Button
                                     className="btn-gradient"
                                     onClick={handleSaveSubject}

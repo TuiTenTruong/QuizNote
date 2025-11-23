@@ -229,6 +229,62 @@ public class VNPayService {
         System.out.println("Payment saved successfully for order " + orderInfo);
     }
 
+    public void handleFailedPayment(String orderInfo, String transactionNo,
+            String paymentTime, long totalPrice, String reason) throws InvalidException {
+
+        System.out.println("Processing failed payment - TransactionNo: " + transactionNo);
+        System.out.println("OrderInfo: " + orderInfo);
+        System.out.println("Amount: " + totalPrice);
+        System.out.println("PaymentTime: " + paymentTime);
+        System.out.println("Reason: " + reason);
+
+        if (paymentRepo.existsByTransactionNo(transactionNo)) {
+            System.out.println("Transaction already exists, skip saving...");
+            return;
+        }
+
+        Map<String, String> infoMap = parseOrderInfo(orderInfo);
+        String buyerIdStr = infoMap.get("buyer");
+        String subjectIdStr = infoMap.get("subject");
+
+        if (buyerIdStr == null || subjectIdStr == null) {
+            System.err.println("Invalid orderInfo format: " + orderInfo);
+            throw new InvalidException("Invalid order information");
+        }
+
+        Long buyerId = Long.parseLong(buyerIdStr);
+        Long subjectId = Long.parseLong(subjectIdStr);
+
+        System.out.println("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
+
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> {
+                    System.err.println("Buyer not found with id: " + buyerId);
+                    return new RuntimeException("Buyer not found");
+                });
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> {
+                    System.err.println("Subject not found with id: " + subjectId);
+                    return new RuntimeException("Subject not found");
+                });
+        User seller = subject.getSeller();
+
+        PaymentTransaction tx = new PaymentTransaction();
+        tx.setTransactionNo(transactionNo);
+        tx.setOrderInfo(orderInfo);
+        tx.setPaymentTime(paymentTime);
+        tx.setAmount(totalPrice);
+        tx.setStatus("FAILED");
+        tx.setPaymentMethod("VNPAY");
+        tx.setBuyer(buyer);
+        tx.setSeller(seller);
+        tx.setSubject(subject);
+        tx.setCreatedAt(Instant.now());
+        paymentRepo.save(tx);
+
+        System.out.println("Failed payment saved for order " + orderInfo + " with reason: " + reason);
+    }
+
     private Map<String, String> parseOrderInfo(String orderInfo) {
         Map<String, String> map = new HashMap<>();
         String[] pairs = orderInfo.split(";");

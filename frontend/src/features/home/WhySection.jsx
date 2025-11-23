@@ -1,42 +1,43 @@
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import { FaBrain, FaGift, FaChalkboardTeacher, FaChartLine, FaTrophy, FaMobileAlt } from "react-icons/fa";
 import "./HomePage.scss";
 import ColorImage from '../../assets/images/undraw_questions_g2px.svg'
+import { Link } from "react-router-dom";
 const features = [
     {
         icon: <FaBrain />,
-        title: "Diverse Quiz Collections",
-        desc: "Access hundreds of carefully designed quiz sets from teachers and top students across subjects.",
+        title: "Đa dạng môn học",
+        desc: "Truy cập hàng trăm bộ câu hỏi được thiết kế cẩn thận từ giáo viên và học sinh hàng đầu trên nhiều môn học.",
         color: "#9333ea",
     },
     {
         icon: <FaGift />,
-        title: "Buy & Share Quiz Sets",
-        desc: "Easily purchase, sell, or share quiz collections to help others learn and practice effectively.",
+        title: "Mua & Chia sẻ môn học",
+        desc: "Dễ dàng mua, bán hoặc chia sẻ các bộ quiz để giúp người khác học tập và luyện tập hiệu quả.",
         color: "#f97316",
     },
     {
         icon: <FaChalkboardTeacher />,
-        title: "For Teachers & Creators",
-        desc: "Create and manage your own quiz sets with detailed explanations and structured topics.",
+        title: "Dành cho Giáo viên & Người tạo nội dung",
+        desc: "Tạo và quản lý các bộ quiz của riêng bạn với giải thích chi tiết và các chủ đề có cấu trúc.",
         color: "#2563eb",
     },
     {
         icon: <FaChartLine />,
-        title: "Smart Progress Tracking",
-        desc: "Track your learning journey with detailed stats and improvement insights.",
+        title: "Theo dõi tiến trình thông minh",
+        desc: "Theo dõi hành trình học tập của bạn với các thống kê chi tiết và những hiểu biết về sự tiến bộ.",
         color: "#22c55e",
     },
     {
         icon: <FaTrophy />,
-        title: "Practice & Improve",
-        desc: "Enhance your knowledge through continuous testing and self-evaluation.",
+        title: "Luyện tập & Cải thiện",
+        desc: "Nâng cao kiến thức của bạn thông qua việc kiểm tra liên tục và tự đánh giá.",
         color: "#eab308",
     },
     {
         icon: <FaMobileAlt />,
-        title: "Responsive & Accessible",
-        desc: "Use the platform seamlessly on any device, anytime, anywhere.",
+        title: "Phản hồi & Truy cập Mọi lúc Mọi nơi",
+        desc: "Sử dụng nền tảng một cách liền mạch trên bất kỳ thiết bị nào, bất cứ lúc nào, bất cứ nơi đâu.",
         color: "#8b5cf6",
     },
 ];
@@ -50,7 +51,7 @@ const WhySection = () => {
                         Why <span className="text-gradient">QuizNote</span>
                     </h2>
                     <p className="text-white mb-5">
-                        Discover quizzes across various subjects to test and expand your knowledge.
+                        Khám phá các bài quiz thuộc nhiều môn học khác nhau để kiểm tra và mở rộng kiến thức của bạn.
                     </p>
                 </div>
 
@@ -73,14 +74,14 @@ const WhySection = () => {
                 <div className="box-container mt-5 mx-auto w-100 d-block d-sm-flex">
                     <div className="left-box w-100">
                         <h2 className="text-white">
-                            Ready to Start Your Quiz Journey?
+                            Sẵn sàng bắt đầu hành trình Quiz của bạn?
                         </h2>
                         <p className="my-3">
-                            Join thousands of students and teachers. Sign up today and get access to all features
+                            Tham gia cùng hàng ngàn học sinh và giáo viên. Đăng ký ngay hôm nay để truy cập tất cả các tính năng
                         </p>
                         <div className="d-sm-flex">
-                            <button className="create-button btn btn-light w-100 m-1">Create Account</button>
-                            <button className="create-button btn w-100 btn-outline-light m-1">Explore Quizzes</button>
+                            <Button as={Link} to="/register" className="create-button btn btn-light w-100 m-1">Tạo tài khoản</Button>
+                            <Button as={Link} to="/student" className="create-button btn w-100 btn-outline-gradient m-1">Khám phá</Button>
                         </div>
                     </div>
                     <div className="demo_image w-100">

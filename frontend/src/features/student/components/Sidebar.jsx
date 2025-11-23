@@ -1,5 +1,6 @@
 import { Nav, NavbarBrand } from "react-bootstrap";
-import { FaHome, FaBook, FaShoppingCart, FaChartLine, FaWallet, FaCog, FaTimes } from "react-icons/fa";
+import { FaHome, FaBook, FaShoppingCart, FaChartLine, FaWallet, FaCog, FaTimes, FaCalendarAlt } from "react-icons/fa";
+import { FaC } from "react-icons/fa6";
 import { NavLink, Link } from "react-router-dom";
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
@@ -43,6 +44,15 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     </Nav.Item>
                     <Nav.Item>
                         <NavLink
+                            to="/student/weekly-quiz"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaCalendarAlt className="me-2" /> <span>Weekly Quiz</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
                             to="/student/history"
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
@@ -70,7 +80,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaCog className="me-2" /> <span>Settings</span>
+                            <FaCog className="me-2" /> <span>Cài đặt</span>
                         </NavLink>
                     </Nav.Item>
                 </Nav>

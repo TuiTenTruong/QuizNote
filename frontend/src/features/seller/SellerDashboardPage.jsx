@@ -20,7 +20,7 @@ import { Badge } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { getSellerAnalytics } from "../../services/apiService";
 import { useSelector } from "react-redux";
-
+import { useNavigate } from "react-router-dom";
 // Format currency to VNĐ with commas
 const formatVND = (value) => {
     if (!value) return "0đ";
@@ -32,6 +32,7 @@ const SellerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const user = useSelector(state => state.user.account);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (user?.id) {
@@ -49,7 +50,7 @@ const SellerDashboard = () => {
             setSellerAnalytics(data);
         } catch (error) {
             console.error("Error fetching seller analytics:", error);
-            setError("Failed to load analytics data. Please try again later.");
+            setError("Lỗi khi tải dữ liệu. Vui lòng thử lại.");
         } finally {
             setLoading(false);
         }
@@ -60,24 +61,24 @@ const SellerDashboard = () => {
         {
             icon: <FaMoneyBillWave className="text-success" />,
             value: formatVND(sellerAnalytics?.totalRevenue),
-            label: "Total Revenue",
+            label: "Tổng doanh thu",
         },
         {
             icon: <FaShoppingCart className="text-primary" />,
             value: sellerAnalytics?.totalSubjects || 0,
-            label: "Total Subjects",
+            label: "Tổng số môn học",
         },
         {
             icon: <FaStar className="text-warning" />,
             value: sellerAnalytics?.averageRating
                 ? sellerAnalytics.averageRating.toFixed(1)
                 : "0.0",
-            label: "Average Rating",
+            label: "Đánh giá trung bình",
         },
         {
             icon: <FaEye className="text-info" />,
             value: sellerAnalytics?.totalViews || 0,
-            label: "Total Views",
+            label: "Tổng lượt xem",
         },
     ];
 
@@ -116,7 +117,7 @@ const SellerDashboard = () => {
                         className="ms-3"
                         onClick={fetchSellerAnalytics}
                     >
-                        Retry
+                        Thử lại
                     </Button>
                 </Alert>
             </div>
@@ -127,7 +128,7 @@ const SellerDashboard = () => {
 
 
         <div className="seller-dashboard ">
-            <h3 className="fw-bold mb-2 text-gradient">Seller Dashboard</h3>
+            <h3 className="fw-bold mb-2 text-gradient">Bảng điều khiển người bán</h3>
             {/* STATS CARDS */}
             <Row className="g-3 mb-4">
                 {stats.map((item, i) => (
@@ -145,7 +146,7 @@ const SellerDashboard = () => {
             <Card className="bg-secondary bg-opacity-10 p-4 mb-4">
                 <div className="d-flex align-items-center mb-3">
                     <FaChartBar className="me-2 text-gradient" />
-                    <h5 className="fw-semibold mb-0 text-white">Revenue Overview</h5>
+                    <h5 className="fw-semibold mb-0 text-white">Tổng quan doanh thu</h5>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={revenueData}>
@@ -175,7 +176,7 @@ const SellerDashboard = () => {
                 {/* RECENT ORDERS */}
                 <Col lg={6}>
                     <Card className="bg-secondary bg-opacity-10 p-4 h-100">
-                        <h5 className="fw-semibold mb-3 text-white">Recent Orders</h5>
+                        <h5 className="fw-semibold mb-3 text-white">Đơn hàng gần đây</h5>
                         {orders.length > 0 ? (
                             <div className="d-flex flex-column gap-3">
                                 {orders.map((order, index) => (
@@ -186,7 +187,7 @@ const SellerDashboard = () => {
                                                     {order.quizTitle || order.quiz}
                                                 </h6>
                                                 <small className="text-white">
-                                                    Buyer: {order.buyerName} • {order.purchasedAt}
+                                                    Người mua: {order.buyerName} • {order.purchasedAt}
                                                 </small>
                                             </div>
                                             <Badge
@@ -207,7 +208,7 @@ const SellerDashboard = () => {
                             </div>
                         ) : (
                             <div className="text-center text-secondary py-4">
-                                No recent orders yet
+                                Chưa có đơn hàng gần đây
                             </div>
                         )}
                     </Card>
@@ -216,7 +217,7 @@ const SellerDashboard = () => {
                 {/* MY QUIZZES */}
                 <Col lg={6}>
                     <Card className="bg-secondary bg-opacity-10 p-4 h-100">
-                        <h5 className="fw-semibold mb-3 text-white">My Quizzes</h5>
+                        <h5 className="fw-semibold mb-3 text-white">Các Quiz của tôi</h5>
                         {quizzes.length > 0 ? (
                             <div className="d-flex flex-column gap-3">
                                 {quizzes.map((quiz, index) => (
@@ -232,8 +233,9 @@ const SellerDashboard = () => {
                                                 size="sm"
                                                 variant="outline-light"
                                                 className="mt-2 mt-md-0"
+                                                onClick={() => navigate(`/seller/quizzes/${quiz.subjectId}`)}
                                             >
-                                                View
+                                                Xem
                                             </Button>
                                         </div>
                                         <div className="mt-2 text-end text-success fw-semibold">
@@ -244,7 +246,7 @@ const SellerDashboard = () => {
                             </div>
                         ) : (
                             <div className="text-center text-secondary py-4">
-                                No quizzes created yet
+                                Chưa có quiz nào được tạo
                             </div>
                         )}
                     </Card>

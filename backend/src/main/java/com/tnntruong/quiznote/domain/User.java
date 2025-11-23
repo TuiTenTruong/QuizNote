@@ -57,6 +57,7 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String bio;
+    private int coins = 0;
     private boolean isActive = true;
 
     private Instant createdAt;

@@ -271,6 +271,38 @@ const replyComment = async (parentCommentId, content) => {
     };
     return Axios.post(`/api/v1/comments/reply/${parentCommentId}`, data);
 }
+const getCurrentWeeklyQuiz = async () => {
+    return Axios.get("/api/v1/weekly-quiz/current");
+}
+const getUserStatusInWeeklyQuiz = async (quizId) => {
+    return Axios.get(`/api/v1/weekly-quiz/${quizId}/status`);
+}
+const submitWeeklyQuiz = async (submitData) => {
+    return Axios.post("/api/v1/weekly-quiz/submit", submitData);
+}
+const getAllWeeklyQuizzes = async () => {
+    return Axios.get("/api/v1/admin/weekly-quizzes");
+}
+const getWeeklyQuizQuestions = async (quizId) => {
+    return Axios.get(`/api/v1/admin/weekly-quizzes/${quizId}`);
+}
+const createWeeklyQuiz = async (quizData) => {
+    return Axios.post("/api/v1/admin/weekly-quizzes", quizData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+const updateWeeklyQuiz = async (quizId, quizData) => {
+    return Axios.put(`/api/v1/admin/weekly-quizzes/${quizId}`, quizData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+const deletedWeeklyQuiz = async (quizId) => {
+    return Axios.delete(`/api/v1/admin/weekly-quizzes/${quizId}`);
+}
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllActiveSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
@@ -281,5 +313,6 @@ export {
     AdminAnalytics, GetAllUsers, UpdateUser, CreateUser, DeleteUser, getAllRoles, changeStatusUser,
     createRole, updateRole, deleteRole, getRolesPaginated, getAllPermissions, createPermission, updatePermission, deletePermission, getAllSubjects,
     approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion, getAllAdminOrders, sellerGetRecentOrders,
-    createComment, getMyRatings, replyComment, createQuestionBatch
+    createComment, getMyRatings, replyComment, createQuestionBatch, getCurrentWeeklyQuiz
+    , getUserStatusInWeeklyQuiz, submitWeeklyQuiz, getAllWeeklyQuizzes, createWeeklyQuiz, updateWeeklyQuiz, deletedWeeklyQuiz, getWeeklyQuizQuestions
 };

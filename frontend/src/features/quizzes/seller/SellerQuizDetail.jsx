@@ -249,7 +249,7 @@ function SellerQuizDetail() {
                                     </p>
                                     <ProgressBar
                                         now={question.correctnessPercentage}
-                                        label={`${question.correctnessPercentage}%`}
+                                        label={`${question.correctnessPercentage.toFixed(2)}%`}
                                         className="progress-custom"
                                         variant="purple"
                                     />

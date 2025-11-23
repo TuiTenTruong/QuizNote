@@ -67,6 +67,7 @@ public class VNPayController {
 
             // Xây dựng URL redirect về frontend
             String frontendUrl = "http://localhost:5173/student/payment-result";
+            String responseCode = request.getParameter("vnp_ResponseCode");
 
             if (paymentStatus == 1) {
                 // Xử lý payment thành công
@@ -80,12 +81,17 @@ public class VNPayController {
                 System.out.println("Payment successful, redirecting to: " + redirectUrl);
                 response.sendRedirect(redirectUrl);
             } else {
-                // Redirect với thông báo thất bại
-                String redirectUrl = String.format(
-                        "%s?status=failed&orderInfo=%s&transactionNo=%s",
-                        frontendUrl, orderInfo, transactionId);
+                // Xử lý payment thất bại - lưu transaction với status FAILED
+                String failureReason = getVNPayResponseMessage(responseCode);
 
-                System.out.println("Payment failed, redirecting to: " + redirectUrl);
+                vnPayService.handleFailedPayment(orderInfo, transactionId, paymentTime, amount, failureReason);
+
+                // Redirect với thông báo thất bại và responseCode
+                String redirectUrl = String.format(
+                        "%s?status=failed&orderInfo=%s&transactionNo=%s&amount=%d&paymentTime=%s&responseCode=%s",
+                        frontendUrl, orderInfo, transactionId, amount, paymentTime, responseCode);
+
+                System.out.println("Payment failed (Code: " + responseCode + "), redirecting to: " + redirectUrl);
                 response.sendRedirect(redirectUrl);
             }
         } catch (InvalidException e) {
@@ -101,20 +107,37 @@ public class VNPayController {
         }
     }
 
-    // @GetMapping("/ipn")
-    // public ResponseEntity<String> ipn(HttpServletRequest request) {
-    // int paymentStatus = vnPayService.orderReturn(request);
+    private String getVNPayResponseMessage(String responseCode) {
+        if (responseCode == null)
+            return "Unknown error";
 
-    // String orderInfo = request.getParameter("vnp_OrderInfo");
-    // String transactionId = request.getParameter("vnp_TransactionNo");
-    // long amount = Long.parseLong(request.getParameter("vnp_Amount")) / 100;
-
-    // if (paymentStatus == 1) {
-    // vnPayService.handleSuccessfulPayment(orderInfo, transactionId,
-    // request.getParameter("vnp_PayDate"), amount);
-    // // phải trả về đúng chữ “OK” cho VNPay để họ ngừng gửi lại
-    // return ResponseEntity.ok("OK");
-    // }
-    // return ResponseEntity.ok("FAILED");
-    // }
+        switch (responseCode) {
+            case "00":
+                return "Giao dịch thành công";
+            case "07":
+                return "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường)";
+            case "09":
+                return "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng";
+            case "10":
+                return "Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần";
+            case "11":
+                return "Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch";
+            case "12":
+                return "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa";
+            case "13":
+                return "Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP)";
+            case "24":
+                return "Giao dịch không thành công do: Khách hàng hủy giao dịch";
+            case "51":
+                return "Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch";
+            case "65":
+                return "Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày";
+            case "75":
+                return "Ngân hàng thanh toán đang bảo trì";
+            case "79":
+                return "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định";
+            default:
+                return "Giao dịch thất bại - Mã lỗi: " + responseCode;
+        }
+    }
 }

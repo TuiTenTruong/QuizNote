@@ -26,22 +26,22 @@ const Header = () => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="mx-auto">
-                        <NavLink className='nav-link mx-2 text-white' to="/student">Quiz</NavLink>
-                        <NavLink className='nav-link mx-2 text-white' to="/weekly">Weekly Quiz</NavLink>
-                        <NavLink className='nav-link mx-2 text-white' to="/rewards">Rewards</NavLink>
-                        <NavLink className='nav-link mx-2 text-white' to="/about">About</NavLink>
+                        <NavLink className='nav-link mx-2 text-white' to="/student">Môn học</NavLink>
+                        <NavLink className='nav-link mx-2 text-white' to="/student/weekly-quiz">Môn học tuần</NavLink>
+                        <NavLink className='nav-link mx-2 text-white' to="/rewards">Phần thưởng</NavLink>
+                        <NavLink className='nav-link mx-2 text-white' to="/about">Giới thiệu</NavLink>
                     </Nav>
                     {!isAuthenticated ? (
-                        <><Button as={Link} to="/login" variant="light" className="me-2">Sign In</Button>
-                            <Button as={Link} to="/register" variant="gradient" className="bg-primary border-0 px-3">Register</Button>
+                        <><Button as={Link} to="/login" variant="light" className="me-2">Đăng nhập</Button>
+                            <Button as={Link} to="/register" variant="gradient" className="bg-primary border-0 px-3">Đăng ký</Button>
                         </>
                     ) : (
                         <>
                             <div className="d-flex align-items-center">
                                 <img src={userAvatarSrc} alt={account.username} className="rounded-circle me-2" width="40" height="40" />
                                 <NavDropdown title={account.username} id="basic-nav-dropdown" className='text-white'>
-                                    <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
-                                    <NavDropdown.Item as={Link} onClick={() => dispatch(doLogout())}>Logout</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/student/settings">Hồ sơ</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} onClick={() => dispatch(doLogout())}>Đăng xuất</NavDropdown.Item>
                                 </NavDropdown>
                             </div>
                         </>

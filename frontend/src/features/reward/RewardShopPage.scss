@@ -1,0 +1,102 @@
+.reward-shop-page {
+    background: #0b0b0f;
+    min-height: 100vh;
+    color: #fff;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .coin-box {
+        background: #181825;
+        color: #facc15;
+        box-shadow: 0 3px 16px rgba(147, 51, 234, .14);
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: .02em;
+        border-radius: 999px;
+    }
+
+    .gift-card {
+        background: #181825;
+        border: 1px solid #2a2a2a;
+        border-radius: 18px;
+        transition: all 0.22s;
+        box-shadow: 0 4px 24px rgba(80, 24, 144, 0.14);
+
+        &:hover {
+            border-color: #f97316;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 32px rgba(249, 115, 22, 0.14);
+
+            .gift-img {
+                filter: brightness(1.12);
+            }
+        }
+
+        &.disabled {
+            opacity: .5;
+            filter: grayscale(.6);
+            pointer-events: none;
+        }
+
+        &.can-redeem {
+            border-color: #9333ea;
+            box-shadow: 0 0 12px rgba(147, 51, 234, .10);
+        }
+
+        .gift-img {
+            height: 130px;
+            width: 100%;
+            padding: 1rem;
+            background: #1e1b2d;
+            object-fit: contain;
+            border-bottom: 1px solid #232136;
+            border-radius: 18px 18px 0 0;
+        }
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 999px;
+        transition: .23s;
+
+        &:hover,
+        &:focus {
+            opacity: 0.88;
+            background: linear-gradient(90deg, #f97316, #9333ea);
+        }
+
+        &:disabled {
+            opacity: .7 !important;
+        }
+    }
+
+    .reward-modal {
+        .modal-content {
+            background: #181825;
+            border-radius: 18px;
+        }
+
+        .btn-gradient {
+            min-width: 180px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .gift-card .gift-img {
+            height: 110px;
+            padding: 0.7rem;
+        }
+
+        .coin-box {
+            padding-inline: 1rem;
+            font-size: 1rem;
+        }
+    }
+}

@@ -30,7 +30,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaHome className="me-2" /> <span>Dashboard</span>
+                            <FaHome className="me-2" /> <span>Trang chủ</span>
                         </NavLink>
                     </Nav.Item>
                     <Nav.Item>
@@ -39,7 +39,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaBook className="me-2" /> <span>Quizzes</span>
+                            <FaBook className="me-2" /> <span>Môn học</span>
                         </NavLink>
                     </Nav.Item>
                     <Nav.Item>
@@ -48,7 +48,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaShoppingCart className="me-2" /> <span>Orders</span>
+                            <FaShoppingCart className="me-2" /> <span>Đơn hàng</span>
                         </NavLink>
                     </Nav.Item>
                     <Nav.Item>
@@ -57,7 +57,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaWallet className="me-2" /> <span>Wallet</span>
+                            <FaWallet className="me-2" /> <span>Ví</span>
                         </NavLink>
                     </Nav.Item>
                 </Nav>
@@ -71,7 +71,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
-                            <FaCog className="me-2" /> <span>Settings</span>
+                            <FaCog className="me-2" /> <span>Cài đặt</span>
                         </NavLink>
                     </Nav.Item>
                 </Nav>

@@ -70,7 +70,7 @@ function SellerAnalytics() {
         return (
             <div className="seller-analytics text-center py-5">
                 <Spinner animation="border" variant="primary" />
-                <p className="text-secondary mt-3">Loading analytics...</p>
+                <p className="text-secondary mt-3">Đang tải thống kê...</p>
             </div>
         );
     }
@@ -87,9 +87,9 @@ function SellerAnalytics() {
 
     return (
         <div className="seller-analytics">
-            <h3 className="fw-bold mb-2 text-gradient">Analytics Overview</h3>
+            <h3 className="fw-bold mb-2 text-gradient">Tổng quan thống kê</h3>
             <p className="text-secondary mb-4">
-                Track your quiz sales performance and revenue growth.
+                Theo dõi hiệu suất bán quiz và tăng trưởng doanh thu của bạn.
             </p>
 
             {/* SUMMARY CARDS */}
@@ -100,10 +100,10 @@ function SellerAnalytics() {
                         <h5 className="fw-bold text-white">
                             ₫{analytics?.totalRevenue?.toLocaleString("vi-VN") || "0"}
                         </h5>
-                        <p className="text-secondary small mb-1">Total Revenue</p>
+                        <p className="text-secondary small mb-1">Tổng doanh thu</p>
                         {analytics?.pendingBalance > 0 && (
                             <Badge bg="warning" text="dark">
-                                Pending: ₫{analytics.pendingBalance.toLocaleString("vi-VN")}
+                                Đang chờ: ₫{analytics.pendingBalance.toLocaleString("vi-VN")}
                             </Badge>
                         )}
                     </Card>
@@ -113,8 +113,8 @@ function SellerAnalytics() {
                     <Card className="stat-card text-center p-3 bg-dark border-0 shadow-sm">
                         <FaBookOpen className="icon text-info mb-2" />
                         <h5 className="fw-bold text-white">{analytics?.totalQuizzesSold || 0}</h5>
-                        <p className="text-secondary small mb-1">Quizzes Sold</p>
-                        <Badge bg="info">{analytics?.totalSubjects || 0} Subjects</Badge>
+                        <p className="text-secondary small mb-1">Số quiz đã bán</p>
+                        <Badge bg="info">{analytics?.totalSubjects || 0} Chủ đề</Badge>
                     </Card>
                 </Col>
 
@@ -124,7 +124,7 @@ function SellerAnalytics() {
                         <h5 className="fw-bold text-white">
                             {analytics?.averageRating?.toFixed(1) || "0.0"}
                         </h5>
-                        <p className="text-secondary small mb-1">Average Rating</p>
+                        <p className="text-secondary small mb-1">Đánh giá trung bình</p>
                         <Badge bg="warning" text="dark">
                             ⭐ {analytics?.averageRating?.toFixed(1) || "0.0"}/5
                         </Badge>
@@ -135,8 +135,8 @@ function SellerAnalytics() {
                     <Card className="stat-card text-center p-3 bg-dark border-0 shadow-sm">
                         <FaEye className="icon text-danger mb-2" />
                         <h5 className="fw-bold text-white">{analytics?.totalViews?.toLocaleString("vi-VN") || 0}</h5>
-                        <p className="text-secondary small mb-1">Total Views</p>
-                        <Badge bg="danger">Views</Badge>
+                        <p className="text-secondary small mb-1">Tổng lượt xem</p>
+                        <Badge bg="danger">Lượt xem</Badge>
                     </Card>
                 </Col>
             </Row>
@@ -146,7 +146,7 @@ function SellerAnalytics() {
                 <Col xs={12} lg={8}>
                     <Card className="chart-card bg-dark border-0 p-3 shadow-sm">
                         <h6 className="fw-semibold mb-3 text-white">
-                            Monthly Revenue (Millions ₫)
+                            Doanh thu tháng ( ₫)
                         </h6>
                         {monthlyRevenueData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={280}>
@@ -177,7 +177,7 @@ function SellerAnalytics() {
                             </ResponsiveContainer>
                         ) : (
                             <div className="text-center text-secondary py-5">
-                                No revenue data available
+                                Không có dữ liệu doanh thu
                             </div>
                         )}
                     </Card>
@@ -185,7 +185,7 @@ function SellerAnalytics() {
 
                 <Col xs={12} lg={4}>
                     <Card className="chart-card bg-dark border-0 p-3 shadow-sm">
-                        <h6 className="fw-semibold mb-3 text-white">Top Selling Subjects</h6>
+                        <h6 className="fw-semibold mb-3 text-white">Môn học bán chạy</h6>
                         {topSubjectsData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={280}>
                                 <BarChart data={topSubjectsData} layout="vertical" margin={{ left: 20 }}>
@@ -220,7 +220,7 @@ function SellerAnalytics() {
                             </ResponsiveContainer>
                         ) : (
                             <div className="text-center text-secondary py-5">
-                                No subjects data available
+                                Không có dữ liệu môn học
                             </div>
                         )}
                     </Card>
@@ -232,16 +232,16 @@ function SellerAnalytics() {
                 <Row className="g-4 mt-2">
                     <Col xs={12}>
                         <Card className="bg-dark border-0 p-3 shadow-sm">
-                            <h6 className="fw-semibold mb-3 text-white">Recent Orders</h6>
+                            <h6 className="fw-semibold mb-3 text-white">Đơn hàng gần đây</h6>
                             <div className="table-responsive">
                                 <table className="table table-dark table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Buyer</th>
-                                            <th>Subject</th>
-                                            <th>Price</th>
-                                            <th>Date</th>
-                                            <th>Status</th>
+                                            <th>Người mua</th>
+                                            <th>Môn học</th>
+                                            <th>Giá</th>
+                                            <th>Ngày</th>
+                                            <th>Trạng thái</th>
                                         </tr>
                                     </thead>
                                     <tbody>

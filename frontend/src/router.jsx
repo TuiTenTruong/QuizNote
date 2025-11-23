@@ -11,7 +11,7 @@ import SellerQuizzes from "./features/seller/SellerQuizzes";
 import SellerOrders from "./features/seller/SellerOrders";
 import SellerAnalytics from "./features/seller/SellerAnalytics";
 import SellerWallet from "./features/seller/SellerWallet";
-import SettingsPage from "./features/seller/SellerSettings";
+import SettingsPage from "./features/settings/SettingsPage";
 import CreateQuiz from "./features/quizzes/CreateQuiz";
 import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
 import StudentDashboard from "./features/quizzes/student/StudentQuizDashboard";
@@ -32,13 +32,19 @@ import AdminRolesPermissionsPage from "./features/admin/AdminRolesPermissionsPag
 import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminOrdersPage from "./features/admin/AdminOrdersPage";
-import AdminSettingsPage from "./features/admin/AdminSettingsPage";
+import WeeklyQuizPage from "./features/weeklyquiz/WeeklyQuizPage";
+import AdminWeeklyQuizPage from "./features/weeklyquiz/AdminWeeklyQuizPage";
+import RewardShopPage from "./features/reward/RewardShopPage";
 const router = createBrowserRouter([
     {
         path: "/",
         element: <App />,
         children: [
             { index: true, element: <HomePage /> },
+            {
+                path: "/rewards",
+                element: <RewardShopPage />
+            },
         ]
     },
     {
@@ -49,22 +55,25 @@ const router = createBrowserRouter([
         path: "/register",
         element: <RegisterPage />
     },
+
     {
         path: "/student",
-        element: <ProtectedRoute allowedRoles={['STUDENT']}><DashboardStudent /></ProtectedRoute>,
+        element: <DashboardStudent />,
         children: [
             { index: true, element: <StudentDashboard /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
-            { path: "quiz-payment/:quizId", element: <QuizPayment /> },
-            { path: "payment-result", element: <PaymentResult /> },
-            { path: "quizzes/:quizId/mode-select", element: <QuizModeSelect /> },
-            { path: "quizzes/:quizId/exam", element: <ExamQuiz /> },
-            { path: "quizzes/:quizId/practice", element: <QuizPracticePage /> },
-            { path: "quizzes/my", element: <StudentMyQuizzes /> },
-            { path: "history", element: <StudentHistory /> },
-            { path: "history/quiz/:quizId", element: <StudentQuizHistoryDetail /> },
-            { path: "analytics", element: <StudentAnalytics /> },
-            { path: "settings", element: <SettingsPage /> }
+
+            { path: "weekly-quiz", element: <ProtectedRoute allowedRoles={['STUDENT']}><WeeklyQuizPage /></ProtectedRoute> },
+            { path: "quiz-payment/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPayment /></ProtectedRoute> },
+            { path: "payment-result", element: <ProtectedRoute allowedRoles={['STUDENT']}><PaymentResult /></ProtectedRoute> },
+            { path: "quizzes/:quizId/mode-select", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizModeSelect /></ProtectedRoute> },
+            { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><ExamQuiz /></ProtectedRoute> },
+            { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPracticePage /></ProtectedRoute> },
+            { path: "quizzes/my", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentMyQuizzes /></ProtectedRoute> },
+            { path: "history", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistory /></ProtectedRoute> },
+            { path: "history/quiz/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizHistoryDetail /></ProtectedRoute> },
+            { path: "analytics", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentAnalytics /></ProtectedRoute> },
+            { path: "settings", element: <ProtectedRoute allowedRoles={['STUDENT']}><SettingsPage /></ProtectedRoute> }
         ]
     },
     {
@@ -91,7 +100,8 @@ const router = createBrowserRouter([
             { path: "permissions", element: <AdminRolesPermissionsPage /> },
             { path: "subjects", element: <AdminSubjectsPage /> },
             { path: "orders", element: <AdminOrdersPage /> },
-            { path: "settings", element: <AdminSettingsPage /> }
+            { path: "weekly-quizzes", element: <AdminWeeklyQuizPage /> },
+            { path: "settings", element: <SettingsPage /> }
         ]
     }
 
