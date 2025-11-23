@@ -435,6 +435,7 @@ const AdminRolesPermissionsPage = () => {
                                                 <option value="SELLERS">SELLERS</option>
                                                 <option value="ADMINS">ADMINS</option>
                                                 <option value="WITHDRAWS">WITHDRAWS</option>
+                                                <option value="REWARDS">REWARDS</option>
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
@@ -682,6 +683,7 @@ const AdminRolesPermissionsPage = () => {
                                         <option value="ADMINS">ADMINS</option>
                                         <option value="ORDERS">ORDERS</option>
                                         <option value="WITHDRAWS">WITHDRAWS</option>
+                                        <option value="REWARDS">REWARDS</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Form>

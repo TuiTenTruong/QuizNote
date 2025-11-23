@@ -1,0 +1,167 @@
+.my-reward-transactions-page {
+    background: #0b0b0f;
+    min-height: 100vh;
+    color: #fff;
+    padding: 2rem 1rem;
+
+    .text-gradient {
+        background: linear-gradient(90deg, #a855f7, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .text-muted {
+        color: #6b7280 !important;
+    }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid transparent;
+        background-image: linear-gradient(#0b0b0f, #0b0b0f),
+            linear-gradient(90deg, #a855f7, #f97316);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        color: #fff;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        transition: all 0.3s;
+
+        &:hover {
+            background-image: linear-gradient(90deg, #a855f7, #f97316),
+                linear-gradient(90deg, #a855f7, #f97316);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+    }
+
+    .stats-box {
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        background: #111827;
+        border: 1px solid #2a2a2a;
+        box-shadow: 0 2px 12px rgba(168, 85, 247, 0.15);
+    }
+
+    .transactions-card {
+        border-radius: 12px;
+        background: #0d0d0d !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+
+        .card-body {
+            background: #0d0d0d !important;
+        }
+    }
+
+    .transactions-table {
+        background: transparent;
+
+        thead {
+            th {
+                background: #0d0d0d !important;
+                border-color: #1a1a1a;
+                color: #9ca3af !important;
+                font-weight: 600;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                white-space: nowrap;
+                padding: 1rem 0.75rem;
+            }
+        }
+
+        tbody {
+            tr {
+                background: #0d0d0d !important;
+                border-color: #1a1a1a;
+                transition: background 0.2s ease;
+
+                &:hover {
+                    background: #1a1a1a !important;
+                }
+
+                td {
+                    background: #0d0d0d !important;
+                    border-color: #1a1a1a;
+                    vertical-align: middle;
+                    padding: 1rem 0.75rem;
+                    color: #e5e7eb !important;
+                }
+            }
+        }
+    }
+
+    .transaction-thumb {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #2a2a2a;
+        background: #0a0a0a;
+
+        &.placeholder {
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+    }
+
+    .custom-pagination {
+        .page-item {
+            .page-link {
+                background: #111827;
+                border: 1px solid #2a2a2a;
+                color: #9ca3af;
+                border-radius: 8px;
+                margin: 0 0.25rem;
+                transition: all 0.2s;
+
+                &:hover {
+                    background: #1a1a1a;
+                    border-color: #a855f7;
+                    color: #fff;
+                }
+            }
+
+            &.active .page-link {
+                background: linear-gradient(90deg, #a855f7, #f97316);
+                border-color: transparent;
+                color: #fff;
+                font-weight: 600;
+            }
+
+            &.disabled .page-link {
+                background: #0b0b0f;
+                border-color: #1a1a1a;
+                color: #4b5563;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem 0.5rem;
+
+        .transactions-table {
+            font-size: 0.85rem;
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+                white-space: nowrap;
+            }
+        }
+
+        .stats-box {
+            padding: 0.75rem 1rem;
+        }
+    }
+}

@@ -9,6 +9,10 @@
         -webkit-text-fill-color: transparent;
     }
 
+    .text-muted {
+        color: #6b7280 !important;
+    }
+
     .coin-box {
         background: #181825;
         color: #facc15;
@@ -74,6 +78,26 @@
 
         &:disabled {
             opacity: .7 !important;
+        }
+    }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid transparent;
+        background-image: linear-gradient(#0b0b0f, #0b0b0f),
+            linear-gradient(90deg, #a855f7, #f97316);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        color: #fff;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        transition: all 0.3s;
+
+        &:hover {
+            background-image: linear-gradient(90deg, #a855f7, #f97316),
+                linear-gradient(90deg, #a855f7, #f97316);
+            color: #fff;
+            transform: translateY(-1px);
         }
     }
 

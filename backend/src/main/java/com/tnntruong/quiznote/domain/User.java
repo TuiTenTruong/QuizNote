@@ -90,6 +90,9 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<RewardTransaction> rewardTransactions = new ArrayList<>();
+
     @PrePersist
     public void handleCreate() {
         this.createdAt = Instant.now();

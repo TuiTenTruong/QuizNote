@@ -10,6 +10,7 @@ import {
     FaFileAlt,
     FaShieldAlt
     , FaClock
+    , FaGift
 } from "react-icons/fa";
 import { NavLink, Link } from "react-router-dom";
 import "./AdminAppbar.scss";
@@ -87,6 +88,15 @@ const SideBar = ({ isSidebarOpen, toggleSidebar }) => {
                             onClick={() => window.innerWidth < 768 && toggleSidebar()}
                         >
                             <FaClock className="me-2" /> <span>Weekly Quiz</span>
+                        </NavLink>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <NavLink
+                            to="/admin/rewards"
+                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            onClick={() => window.innerWidth < 768 && toggleSidebar()}
+                        >
+                            <FaGift className="me-2" /> <span>Rewards</span>
                         </NavLink>
                     </Nav.Item>
                 </Nav>

@@ -30,7 +30,7 @@ const Dashboard = () => {
                             <FaBars />
                         </button>
                     </div>
-                    <Topbar />
+
                     <Outlet />
                 </div>
             </div>

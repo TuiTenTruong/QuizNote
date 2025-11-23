@@ -35,6 +35,9 @@ import AdminOrdersPage from "./features/admin/AdminOrdersPage";
 import WeeklyQuizPage from "./features/weeklyquiz/WeeklyQuizPage";
 import AdminWeeklyQuizPage from "./features/weeklyquiz/AdminWeeklyQuizPage";
 import RewardShopPage from "./features/reward/RewardShopPage";
+import AdminRewardsPage from "./features/admin/AdminRewardsPage";
+import AdminRewardTransactionsPage from "./features/admin/AdminRewardTransactionsPage";
+import MyRewardTransactions from "./features/reward/MyRewardTransactions";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -45,6 +48,10 @@ const router = createBrowserRouter([
                 path: "/rewards",
                 element: <RewardShopPage />
             },
+            {
+                path: "/my-reward-transactions",
+                element: <ProtectedRoute allowedRoles={['STUDENT', 'SELLER', 'SUPER_ADMIN']}><MyRewardTransactions /></ProtectedRoute>
+            }
         ]
     },
     {
@@ -101,7 +108,9 @@ const router = createBrowserRouter([
             { path: "subjects", element: <AdminSubjectsPage /> },
             { path: "orders", element: <AdminOrdersPage /> },
             { path: "weekly-quizzes", element: <AdminWeeklyQuizPage /> },
-            { path: "settings", element: <SettingsPage /> }
+            { path: "settings", element: <SettingsPage /> },
+            { path: "rewards", element: <AdminRewardsPage /> },
+            { path: "rewards/transactions", element: <AdminRewardTransactionsPage /> }
         ]
     }
 

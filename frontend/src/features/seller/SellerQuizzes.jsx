@@ -18,11 +18,9 @@ import {
     FaTrash,
 } from "react-icons/fa";
 import "./SellerQuizzes.scss";
-import { FaEllipsisV } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { getSubjectBySellerId } from "../../services/apiService";
 import { useNavigate } from "react-router-dom";
-import { FaDeleteLeft } from "react-icons/fa6";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 const SellerQuizzes = () => {
     const [quizList, setQuizList] = useState([]);

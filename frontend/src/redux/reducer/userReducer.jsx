@@ -1,4 +1,4 @@
-import { FETCH_USER_SUCCESS } from '../action/userAction';
+import { FETCH_USER_SUCCESS, UPDATE_COINS } from '../action/userAction';
 const INITIAL_STATE = {
     account: {
         id: '',
@@ -7,6 +7,7 @@ const INITIAL_STATE = {
         username: '',
         role: '',
         image: '',
+        coins: ''
     },
     isauthenticated: false,
 };
@@ -21,6 +22,7 @@ const userReducer = (state = INITIAL_STATE, action) => {
                     username: action.payload.user.name,
                     role: action.payload.user.role,
                     image: action.payload.user.avatarUrl,
+                    coins: action.payload.user.coins,
                 }, isauthenticated: true,
             };
         case 'LOGOUT':
@@ -31,7 +33,16 @@ const userReducer = (state = INITIAL_STATE, action) => {
                     username: '',
                     role: '',
                     image: '',
+                    coins: '',
                 }, isauthenticated: false,
+            };
+        case UPDATE_COINS:
+            return {
+                ...state,
+                account: {
+                    ...state.account,
+                    coins: action.payload,
+                },
             };
         default: return state;
     }

@@ -303,6 +303,56 @@ const updateWeeklyQuiz = async (quizId, quizData) => {
 const deletedWeeklyQuiz = async (quizId) => {
     return Axios.delete(`/api/v1/admin/weekly-quizzes/${quizId}`);
 }
+
+// Reward API
+const getAvailableRewards = async () => {
+    return Axios.get("/api/v1/rewards/available");
+}
+
+const getAllRewards = async (page = 0, size = 10) => {
+    return Axios.get(`/api/v1/rewards?page=${page}&size=${size}`);
+}
+
+const getRewardById = async (rewardId) => {
+    return Axios.get(`/api/v1/rewards/${rewardId}`);
+}
+
+const createReward = async (rewardData) => {
+    return Axios.post("/api/v1/rewards", rewardData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+
+const updateReward = async (rewardId, rewardData) => {
+    return Axios.put(`/api/v1/rewards/${rewardId}`, rewardData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+}
+
+const deleteReward = async (rewardId) => {
+    return Axios.delete(`/api/v1/rewards/${rewardId}`);
+}
+
+const redeemReward = async (rewardId, deliveryData) => {
+    return Axios.post("/api/v1/rewards/redeem", { rewardId, ...deliveryData });
+}
+
+const updateTransactionStatus = async (transactionId, status) => {
+    return Axios.put(`/api/v1/rewards/transactions/${transactionId}/status`, { status });
+}
+
+const getMyRewardTransactions = async (page = 0, size = 10) => {
+    return Axios.get(`/api/v1/rewards/my-transactions?page=${page}&size=${size}`);
+}
+
+const getAllRewardTransactions = async (page = 0, size = 10) => {
+    return Axios.get(`/api/v1/rewards/transactions?page=${page}&size=${size}`);
+}
+
 export {
     postCreateNewUser, postLogin, postLogout, getExploreData,
     getAllActiveSubjects, getQuizDetail, getQuizDemo, getQuizQuestions,
@@ -314,5 +364,6 @@ export {
     createRole, updateRole, deleteRole, getRolesPaginated, getAllPermissions, createPermission, updatePermission, deletePermission, getAllSubjects,
     approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion, getAllAdminOrders, sellerGetRecentOrders,
     createComment, getMyRatings, replyComment, createQuestionBatch, getCurrentWeeklyQuiz
-    , getUserStatusInWeeklyQuiz, submitWeeklyQuiz, getAllWeeklyQuizzes, createWeeklyQuiz, updateWeeklyQuiz, deletedWeeklyQuiz, getWeeklyQuizQuestions
+    , getUserStatusInWeeklyQuiz, submitWeeklyQuiz, getAllWeeklyQuizzes, createWeeklyQuiz, updateWeeklyQuiz, deletedWeeklyQuiz, getWeeklyQuizQuestions,
+    getAvailableRewards, getAllRewards, getRewardById, createReward, updateReward, deleteReward, redeemReward, getMyRewardTransactions, getAllRewardTransactions, updateTransactionStatus
 };

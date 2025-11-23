@@ -383,7 +383,7 @@ function AdminWeeklyQuizPage() {
 
     return (
         <div className="admin-weekly-quiz-page">
-            <Container fluid className="py-4">
+            <Container fluid >
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
