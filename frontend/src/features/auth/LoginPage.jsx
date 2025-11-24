@@ -36,7 +36,15 @@ const LoginPage = () => {
         if (response && (response.statusCode === 200 || response.statusCode === 201)) {
             dispatch(doLogin(response.data));
             toast.success("Login successful!");
-            navigate("/");
+            if (response.data.user.role.name === 'SUPER_ADMIN') {
+                navigate("/admin");
+            } else if (response.data.user.role.name === 'SELLER') {
+                navigate("/seller");
+            } else if (response.data.user.role.name === 'STUDENT') {
+                navigate("/");
+            } else {
+                navigate("/");
+            }
         } else {
             response.message !== null ?
                 toast.error(response.message) :

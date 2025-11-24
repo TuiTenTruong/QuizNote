@@ -110,10 +110,12 @@ const SettingsPage = () => {
         try {
             setLoading(true);
             const response = await uploadAvatar(userData?.email, avatarFile);
-            if (response && response.data) {
+            if (response && response.data && response.statusCode == 200) {
                 toast.success("Cập nhật ảnh đại diện thành công!");
                 setAvatarFile(null);
                 fetchUserData();
+            } else {
+                toast.error(response.message || "Lỗi khi tải ảnh đại diện");
             }
         } catch (error) {
             console.error("Error uploading avatar:", error);

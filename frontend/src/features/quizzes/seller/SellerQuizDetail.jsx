@@ -137,17 +137,20 @@ function SellerQuizDetail() {
         const response = await replyComment(reviewId, replyContent);
         if (response && response.statusCode === 200) {
             toast.success("Phản hồi đã được gửi thành công");
+            
+            // Reset state after successful submission
+            setReplyingTo(null);
+            setReplyContent("");
+            
+            // Reset reviews and fetch from beginning
+            setReviews([]);
+            setReviewsPage(0);
+            setHasMoreReviews(true);
+            fetchReviews(0);
         } else {
             toast.error("Có lỗi xảy ra khi gửi phản hồi");
             console.error("Failed to send reply", response);
         }
-
-
-        // Reset state after submission
-        setReplyingTo(null);
-        setReplyContent("");
-
-        fetchReviews(0);
     };
 
     if (!quiz) {

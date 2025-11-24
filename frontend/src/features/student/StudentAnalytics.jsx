@@ -257,7 +257,7 @@ const StudentAnalytics = () => {
                                         {activity.quizCount} quiz hoàn thành
                                     </h6>
                                     <p className="text-secondary small mb-0">
-                                        Điểm trung bình: {activity.avgScore?.toFixed(1)}%
+                                        Điểm trung bình: {activity.avgScore?.toFixed(1)}đ
                                     </p>
                                 </div>
                                 <Badge bg="secondary">

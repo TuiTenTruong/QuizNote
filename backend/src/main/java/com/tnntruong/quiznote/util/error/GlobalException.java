@@ -1,5 +1,6 @@
 package com.tnntruong.quiznote.util.error;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,6 +70,15 @@ public class GlobalException {
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError("Exception upload file...");
         res.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    @ExceptionHandler(URISyntaxException.class)
+    public ResponseEntity<RestResponse<Object>> handleURISyntaxException(URISyntaxException ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError("Invalid file name");
+        res.setMessage("Tên file chứa ký tự không hợp lệ. Vui lòng đổi tên file và thử lại.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 }

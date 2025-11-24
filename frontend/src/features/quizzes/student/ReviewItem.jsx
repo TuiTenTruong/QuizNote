@@ -20,7 +20,7 @@ const ReviewItem = ({
     const isSeller = review.user.role && (review.user.role.name === 'SELLER' || review.user.role.name === 'SUPER_ADMIN');
 
     // Check if this review already has a reply from seller
-    const hasSellerReply = review.replies != [];
+    const hasSellerReply = review.replies && review.replies.length > 0;
 
     // Only show reply button if seller hasn't replied yet
     const showReplyButton = canReply && !isReply && !hasSellerReply;

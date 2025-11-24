@@ -85,7 +85,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/seller",
-        element: <DashboardSeller />,
+        element: <ProtectedRoute allowedRoles={['SELLER']}><DashboardSeller /></ProtectedRoute>,
         children: [
             { index: true, element: <SellerDashboard /> },
             { path: "quizzes", element: <SellerQuizzes /> },
