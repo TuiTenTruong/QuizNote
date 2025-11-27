@@ -23,7 +23,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import "./SellerSubjectDetailPage.scss";
-import { getQuizQuestions, getQuizDetail } from "../../services/apiService";
+import { getQuizQuestions, getSellerQuizDetail } from "../../services/apiService";
 import instance from "../../utils/axiosCustomize";
 import { updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion } from "../../services/apiService";
 import { toast } from "react-toastify"
@@ -47,7 +47,7 @@ const SellerSubjectDetailPage = () => {
         const fetchSubjectDetail = async () => {
             setLoading(true);
             try {
-                const subjectResponse = await getQuizDetail(quizId);
+                const subjectResponse = await getSellerQuizDetail(quizId);
                 const questionsResponse = await getQuizQuestions(quizId);
                 setSubject(subjectResponse.data);
                 setQuestions(questionsResponse.data);
@@ -87,6 +87,7 @@ const SellerSubjectDetailPage = () => {
             ...questions,
             {
                 content: "",
+                type: "ONE_CHOICE",
                 explanation: "",
                 imageUrl: null,
                 options: [
@@ -132,8 +133,16 @@ const SellerSubjectDetailPage = () => {
 
     const toggleCorrect = (qIndex, oIndex) => {
         const updated = [...questions];
-        updated[qIndex].options[oIndex].isCorrect =
-            !updated[qIndex].options[oIndex].isCorrect;
+        if (updated[qIndex].type === "ONE_CHOICE") {
+            // Set all answers to false
+            updated[qIndex].options = updated[qIndex].options.map((opt, index) => ({
+                ...opt,
+                isCorrect: index === oIndex,
+            }));
+        } else {
+            updated[qIndex].options[oIndex].isCorrect =
+                !updated[qIndex].options[oIndex].isCorrect;
+        }
         setQuestions(updated);
     };
 
@@ -149,10 +158,17 @@ const SellerSubjectDetailPage = () => {
         setQuestions(updated);
     };
 
+    const handleQuestionTypeChange = (qIndex, newType) => {
+        const updated = [...questions];
+        updated[qIndex].type = newType;
+        setQuestions(updated);
+    };
+
     const isQuestionModified = (question, originalQuestion, qIndex) => {
         if (!originalQuestion) return true;
 
         if (question.content !== originalQuestion.content) return true;
+        if ((question.type || 'ONE_CHOICE') !== (originalQuestion.type || 'ONE_CHOICE')) return true;
         if ((question.explanation || '') !== (originalQuestion.explanation || '')) return true;
         if (question.options.length !== originalQuestion.options.length) return true;
         if (questionImageFiles[qIndex]) return true; // New image uploaded
@@ -203,6 +219,11 @@ const SellerSubjectDetailPage = () => {
                     toast.error(`Câu hỏi ${i + 1}, Đáp án ${j + 1} không được để trống`);
                     return false;
                 }
+            }
+            const hasManyCorrect = q.options.filter(o => o.isCorrect).length > 1;
+            if (q.type === "ONE_CHOICE" && hasManyCorrect) {
+                toast.error(`Câu hỏi ${i + 1} chỉ được có một đáp án đúng`);
+                return false;
             }
         }
         return true;
@@ -257,6 +278,7 @@ const SellerSubjectDetailPage = () => {
                 const createDTOs = newQuestions.map(q => ({
                     subjectId: subject.id,
                     content: q.content,
+                    type: q.type || 'ONE_CHOICE',
                     explanation: q.explanation || '',
                     options: q.options.map((opt, idx) => ({
                         content: opt.content,
@@ -303,6 +325,7 @@ const SellerSubjectDetailPage = () => {
                     id: q.id,
                     subjectId: subject.id,
                     content: q.content,
+                    type: q.type || 'ONE_CHOICE',
                     explanation: q.explanation || '',
                     options: q.options.map((opt, idx) => ({
                         content: opt.content,
@@ -551,9 +574,21 @@ const SellerSubjectDetailPage = () => {
                                     <Card key={qIndex} className="bg-secondary bg-opacity-10 border-0 p-3 mb-3">
                                         <div className="d-flex justify-content-between align-items-center mb-3">
                                             <h6 className="text-light mb-0">Câu Hỏi {qIndex + 1}</h6>
-                                            <Button variant="outline-light" onClick={() => removeQuestion(qIndex)}>
-                                                <FaTrash />
-                                            </Button>
+                                            <div className="d-flex gap-2">
+                                                <Form.Group>
+                                                    <Form.Select
+                                                        value={q.type || "ONE_CHOICE"}
+                                                        onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
+                                                        className="bg-dark text-light border-secondary"
+                                                    >
+                                                        <option value="ONE_CHOICE">One Choice</option>
+                                                        <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+                                                    </Form.Select>
+                                                </Form.Group>
+                                                <Button variant="outline-light" onClick={() => removeQuestion(qIndex)}>
+                                                    <FaTrash />
+                                                </Button>
+                                            </div>
                                         </div>
 
                                         <Form.Control

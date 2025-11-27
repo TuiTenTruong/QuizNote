@@ -23,11 +23,12 @@ import "./StudentQuizDashboard.scss";
 import { useEffect } from "react";
 import { getAllActiveSubjects, fetchMyQuizzes } from "../../../services/apiService";
 import axiosInstance from "../../../utils/axiosCustomize";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const StudentQuizDashboard = () => {
     const [activeTab, setActiveTab] = useState("All Quizzes");
+    const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("Popular");
     const [subjectsData, setSubjectsData] = useState([]);
@@ -126,7 +127,7 @@ const StudentQuizDashboard = () => {
                 {/* HERO CAROUSEL */}
                 <Carousel fade interval={5000} indicators={false} className="hero-carousel mb-5">
                     {subjectsData.slice(0, 3).map((subject, i) => (
-                        <Carousel.Item key={i}>
+                        <Carousel.Item key={i} onClick={(e) => e.stopPropagation()}>
                             <div
                                 className="hero-slide"
                                 style={{
@@ -136,7 +137,9 @@ const StudentQuizDashboard = () => {
                                 <div className="hero-content">
                                     <h2 className="fw-bold mb-2">{subject.name}</h2>
                                     <p className="mb-3">{subject.createUser?.username}</p>
-                                    <Button className="btn-gradient" as={Link} to={`/student/quizzes/${subject.id}`}>
+                                    <Button className="btn-gradient z-5" onClick={(e) => {
+                                        navigate(`/student/quizzes/${subject.id}`);
+                                    }}>
                                         <FaPlay className="me-2" /> Start Now
                                     </Button>
                                 </div>

@@ -69,7 +69,6 @@ public class WeeklyQuizService {
     // Admin: Tạo Weekly Quiz mới
     @Transactional
     public ResWeeklyQuizDTO createWeeklyQuiz(ReqWeeklyQuizDTO reqDTO, String[] imageFiles) throws InvalidException {
-        // Kiểm tra xem đã tồn tại weekly quiz cho tuần này chưa
         Optional<WeeklyQuiz> existing = weeklyQuizRepository.findByYearAndWeekNumber(
                 reqDTO.getYear(), reqDTO.getWeekNumber());
         if (existing.isPresent()) {
@@ -88,14 +87,11 @@ public class WeeklyQuizService {
 
         weeklyQuiz = weeklyQuizRepository.save(weeklyQuiz);
 
-        // Tạo các câu hỏi mới cho weekly quiz
         for (int i = 0; i < reqDTO.getQuestions().size(); i++) {
             ReqWeeklyQuizDTO.QuestionDTO qDto = reqDTO.getQuestions().get(i);
 
-            // Tạo Question mới
             Question question = new Question();
             question.setContent(qDto.getContent());
-            // Set imageUrl from uploaded file
             if (imageFiles != null && i < imageFiles.length && imageFiles[i] != null) {
                 question.setImageUrl(imageFiles[i]);
             }
@@ -207,7 +203,13 @@ public class WeeklyQuizService {
     public void deleteWeeklyQuiz(long id) throws InvalidException {
         WeeklyQuiz weeklyQuiz = weeklyQuizRepository.findById(id)
                 .orElseThrow(() -> new InvalidException("Không tìm thấy weekly quiz"));
-
+        // Xóa tất cả answers của các submissions thuộc weekly quiz này
+        weeklyQuizAnswerRepository.deleteByWeeklySubmission_WeeklyQuizId(id);
+        // Xóa các liên kết WeeklyQuizQuestion trước
+        weeklyQuizQuestionRepository.deleteByWeeklyQuizId(id);
+        // Xóa tất cả submissions của weekly quiz này
+        weeklyQuizSubmissionRepository.deleteByWeeklyQuizId(id);
+        // Cuối cùng xóa weekly quiz
         weeklyQuizRepository.delete(weeklyQuiz);
     }
 

@@ -2,6 +2,8 @@ package com.tnntruong.quiznote.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.WeeklyQuizService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
@@ -49,13 +52,21 @@ public class WeeklyQuizController {
     @ApiMessage("Tạo weekly quiz thành công")
     public ResponseEntity<?> createWeeklyQuiz(@Valid @RequestPart("weeklyQuiz") ReqWeeklyQuizDTO reqDTO,
             @RequestPart(name = "images", required = false) MultipartFile[] images)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String[] storedFiles = null;
         if (images != null && images.length > 0) {
             this.fileService.createDirectory(baseURI + "questions");
             storedFiles = new String[images.length];
             for (int i = 0; i < images.length; i++) {
                 if (images[i] != null && !images[i].isEmpty()) {
+                    String fileName = images[i].getOriginalFilename();
+                    List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+                    boolean isValid = allowedExtensions.stream()
+                            .anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+                    if (!isValid) {
+                        throw new StorageException("File không hợp lệ. Chỉ cho phép " + allowedExtensions.toString());
+                    }
                     storedFiles[i] = this.fileService.store(images[i], "questions");
                 }
             }

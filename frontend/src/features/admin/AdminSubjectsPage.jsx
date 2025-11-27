@@ -20,12 +20,13 @@ import {
 } from 'react-icons/fa';
 import './AdminSubjectsPage.scss';
 import { getAllSubjects, approveSubject, rejectSubject, deleteSubject } from '../../services/apiService';
+import { toast } from 'react-toastify';
 const AdminSubjectsPage = () => {
     const [subjects, setSubjects] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState(''); // 'view', 'approve', 'reject', 'delete'
+    const [modalType, setModalType] = useState('');
     const [selectedSubject, setSelectedSubject] = useState(null);
 
     useEffect(() => {
@@ -35,6 +36,7 @@ const AdminSubjectsPage = () => {
                 setSubjects(response.data.result);
             } else {
                 console.error('Failed to fetch subjects data', response);
+                toast.error('Không thể tải dữ liệu môn học. Vui lòng thử lại sau.');
             }
         };
         fetchSubjects();
@@ -69,11 +71,11 @@ const AdminSubjectsPage = () => {
                 handleCloseModal();
             } else {
                 console.error('Failed to approve subject', response);
-                alert('Không thể duyệt môn học. Vui lòng thử lại.');
+                toast.error('Không thể duyệt môn học. Vui lòng thử lại.');
             }
         } catch (error) {
             console.error('Error approving subject:', error);
-            alert('Lỗi khi duyệt môn học. Vui lòng thử lại.');
+            toast.error('Lỗi khi duyệt môn học. Vui lòng thử lại.');
         }
     };
 
@@ -87,11 +89,11 @@ const AdminSubjectsPage = () => {
                 handleCloseModal();
             } else {
                 console.error('Failed to reject subject', response);
-                alert('Không thể từ chối môn học. Vui lòng thử lại.');
+                toast.error('Không thể từ chối môn học. Vui lòng thử lại.');
             }
         } catch (error) {
             console.error('Error rejecting subject:', error);
-            alert('Lỗi khi từ chối môn học. Vui lòng thử lại.');
+            toast.error('Lỗi khi từ chối môn học. Vui lòng thử lại.');
         }
     };
 
@@ -103,11 +105,11 @@ const AdminSubjectsPage = () => {
                 handleCloseModal();
             } else {
                 console.error('Failed to delete subject', response);
-                alert('Không thể xóa môn học. Vui lòng thử lại.');
+                toast.error('Không thể xóa môn học. Vui lòng thử lại.');
             }
         } catch (error) {
             console.error('Error deleting subject:', error);
-            alert('Lỗi khi xóa môn học. Vui lòng thử lại.');
+            toast.error('Lỗi khi xóa môn học. Vui lòng thử lại.');
         }
     };
 

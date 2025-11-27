@@ -12,7 +12,6 @@ import {
     Tabs,
     Tab,
     Spinner,
-    Alert,
     Pagination
 } from 'react-bootstrap';
 import {
@@ -42,11 +41,11 @@ const AdminRolesPermissionsPage = () => {
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
-    const [modalType, setModalType] = useState(''); // 'add', 'edit', 'delete'
+    const [modalType, setModalType] = useState('');
     const [selectedRole, setSelectedRole] = useState(null);
     const [selectedPermission, setSelectedPermission] = useState(null);
     const [roleFormData, setRoleFormData] = useState({ name: '', description: '', active: true });
-    const [permissionFormData, setPermissionFormData] = useState({ name: '', apiPath: '', method: 'GET', module: 'USER' });
+    const [permissionFormData, setPermissionFormData] = useState({ name: '', apiPath: '', method: 'GET', module: 'USERS' });
     const [selectedPermissionsForRole, setSelectedPermissionsForRole] = useState([]);
     const [rolePage, setRolePage] = useState(0);
     const [roleTotalPages, setRoleTotalPages] = useState(0);
@@ -163,7 +162,7 @@ const AdminRolesPermissionsPage = () => {
                 module: permission.module
             });
         } else {
-            setPermissionFormData({ name: '', apiPath: '', method: 'GET', module: 'USER' });
+            setPermissionFormData({ name: '', apiPath: '', method: 'GET', module: 'USERS' });
         }
         setShowPermissionModal(true);
     };
@@ -202,7 +201,7 @@ const AdminRolesPermissionsPage = () => {
             if (response) {
                 toast.success('Xóa quyền hạn thành công');
                 fetchPermissions();
-                fetchRoles(); // Refresh roles as permissions might be removed from roles
+                fetchRoles();
             }
             setShowPermissionModal(false);
         } catch (error) {

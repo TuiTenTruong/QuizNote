@@ -107,9 +107,15 @@ function RewardShopPage() {
         setRedeeming(true);
 
         try {
-            // Format delivery info as backend expects
-            const deliveryInfo = `Name: ${recipientInfo.recipientName}, Phone: ${recipientInfo.recipientPhone}, Address: ${recipientInfo.recipientAddress}`;
-            const res = await redeemReward(selected.id, { deliveryInfo });
+            // Send the correct payload to the backend
+            const payload = {
+                rewardId: selected.id,
+                recipientName: recipientInfo.recipientName,
+                recipientPhone: recipientInfo.recipientPhone,
+                recipientAddress: recipientInfo.recipientAddress
+            };
+
+            const res = await redeemReward(selected.id, recipientInfo.recipientName, recipientInfo.recipientPhone, recipientInfo.recipientAddress);
             if (res && res.data) {
                 const newCoinBalance = coinBalance - selected.cost;
                 setCoinBalance(newCoinBalance);

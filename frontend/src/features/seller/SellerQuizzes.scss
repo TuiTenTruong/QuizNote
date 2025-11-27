@@ -28,6 +28,28 @@
         }
     }
 
+    .pagination {
+        .page-item {
+            .page-link {
+                background: #1a1a1a;
+                border-color: #3a3a42;
+                color: #e5e5e5;
+
+                &:hover {
+                    background: #2a2a32;
+                }
+            }
+
+            &.active {
+                .page-link {
+                    background: #9333ea;
+                    border-color: #9333ea;
+                    color: #fff;
+                }
+            }
+        }
+    }
+
     /* Filter Buttons */
     .btn-group {
         button {

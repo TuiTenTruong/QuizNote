@@ -2,6 +2,8 @@ package com.tnntruong.quiznote.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,7 @@ import com.tnntruong.quiznote.dto.request.ReqUpdateQuestionDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.QuestionService;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
@@ -47,10 +49,17 @@ public class QuestionController {
     @PostMapping(value = "/questions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> createQuestion(@Valid @RequestPart("question") ReqCreateQuestionDTO questionDTO,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
 
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "questions");
             stored = this.fileService.store(image, "questions");
         }
@@ -63,7 +72,7 @@ public class QuestionController {
     public ResponseEntity<?> createQuestions(
             @Valid @RequestPart("questions") ReqCreateQuestionDTO[] questionDTOs,
             @RequestPart(name = "images", required = false) MultipartFile[] images)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
 
         String[] storedFiles = null;
         if (images != null && images.length > 0) {
@@ -71,6 +80,14 @@ public class QuestionController {
             storedFiles = new String[images.length];
             for (int i = 0; i < images.length; i++) {
                 if (images[i] != null && !images[i].isEmpty()) {
+                    String fileName = images[i].getOriginalFilename();
+                    List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+                    boolean isValid = allowedExtensions.stream()
+                            .anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+                    if (!isValid) {
+                        throw new StorageException("File không hợp lệ. Chỉ cho phép " + allowedExtensions.toString());
+                    }
                     storedFiles[i] = this.fileService.store(images[i], "questions");
                 }
             }
@@ -83,9 +100,16 @@ public class QuestionController {
     @PutMapping(value = "/questions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> updateQuestion(@Valid @RequestPart("question") ReqUpdateQuestionDTO questionDTO,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "questions");
             stored = this.fileService.store(image, "questions");
         }

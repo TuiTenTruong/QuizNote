@@ -246,6 +246,20 @@ public class UserService {
             this.userRepository.save(currentUser);
         }
     }
+    
+    public void updateUserTokenAndSession(String token, String sessionId, String email) {
+        User currentUser = this.handleGetUserByUsername(email);
+        if (currentUser != null) {
+            currentUser.setRefreshToken(token);
+            currentUser.setSessionId(sessionId);
+            this.userRepository.save(currentUser);
+        }
+    }
+    
+    public Optional<User> handleGetUserByEmail(String email) {
+        User user = this.userRepository.findByEmail(email);
+        return Optional.ofNullable(user);
+    }
 
     public Role getDefaultRole() {
         return this.roleService.findById(2).orElseThrow(() -> new RuntimeException("Default USER role not found"));

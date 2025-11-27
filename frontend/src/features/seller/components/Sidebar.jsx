@@ -17,7 +17,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 </button>
 
                 <div className="brand mb-4 text-center">
-                    <NavbarBrand as={Link} to="/">
+                    <NavbarBrand as={Link} to="/seller">
                         <h4 className="text-gradient fw-bold">QuizNote</h4>
                     </NavbarBrand>
                 </div>

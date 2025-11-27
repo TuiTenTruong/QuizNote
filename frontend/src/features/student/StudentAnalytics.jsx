@@ -137,7 +137,7 @@ const StudentAnalytics = () => {
                         <Card className="bg-dark border-secondary p-3 text-center">
                             <FaChartPie size={28} className="text-info mb-2" />
                             <h5 className="fw-semibold text-white">
-                                {analytics?.averageAccuracy ? `${analytics.averageAccuracy.toFixed(1)}%` : '0%'}
+                                {analytics?.averageAccuracy ? `${analytics.averageAccuracy.toFixed(1)}đ` : '0đ'}
                             </h5>
                             <p className="text-secondary small mb-0">Tỉ lệ đúng trung bình</p>
                         </Card>

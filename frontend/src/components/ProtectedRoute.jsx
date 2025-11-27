@@ -7,7 +7,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // Kiểm tra xem user đã đăng nhập chưa
     if (!isAuthenticated) {
-        // Chưa đăng nhập -> redirect về trang login
         return <Navigate to="/login" replace />;
     }
     console.log("User role:", userRole);
@@ -15,12 +14,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     // Kiểm tra role nếu có yêu cầu
     if (allowedRoles && allowedRoles.length > 0) {
         if (!allowedRoles.includes(userRole)) {
-            // Không có quyền truy cập -> redirect về trang chủ
             return <Navigate to="/" replace />;
         }
     }
 
-    // Đã đăng nhập và có quyền -> render component
     return children;
 };
 

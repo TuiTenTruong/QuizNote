@@ -67,15 +67,19 @@ public class AuthController {
                     currentUser.getEmail(), currentUser.getAvatarUrl(), currentUser.getRole(), currentUser.getCoins());
             res.setUser(user);
         }
-        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), res);
+
+        // Tạo sessionId mới cho phiên đăng nhập này
+        String sessionId = java.util.UUID.randomUUID().toString();
+
+        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), res, sessionId);
         res.setAccessToken(accessToken);
 
         // create refesh token
-        String refeshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
+        String refeshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(), res, sessionId);
         res.setRefreshToken(refeshToken);
         System.out.println("refeshToken: " + refeshToken);
-        // update user
-        this.userService.updateUserToken(refeshToken, loginDto.getUsername());
+        // update user (bao gồm cả sessionId)
+        this.userService.updateUserTokenAndSession(refeshToken, sessionId, loginDto.getUsername());
         // set cookies
         ResponseCookie responseCookie = ResponseCookie.from("refreshCookie", refeshToken)
                 .httpOnly(true)
@@ -126,13 +130,20 @@ public class AuthController {
                     currentUser.getCoins());
             res.setUser(user);
         }
-        String accessToken = this.securityUtil.createAccessToken(email, res);
+        res.setRefreshToken(refreshCookie);
+        // Giữ nguyên sessionId cũ khi refresh token
+        String sessionId = currentUser.getSessionId();
+        if (sessionId == null) {
+            sessionId = java.util.UUID.randomUUID().toString();
+        }
+
+        String accessToken = this.securityUtil.createAccessToken(email, res, sessionId);
         res.setAccessToken(accessToken);
 
         // create refesh token
-        String newRefeshToken = this.securityUtil.createRefreshToken(email, res);
+        String newRefeshToken = this.securityUtil.createRefreshToken(email, res, sessionId);
         // update user
-        this.userService.updateUserToken(newRefeshToken, email);
+        this.userService.updateUserTokenAndSession(newRefeshToken, sessionId, email);
         // set cookies
         ResponseCookie responseCookie = ResponseCookie.from("refreshCookie", newRefeshToken)
                 .httpOnly(true)
@@ -152,7 +163,7 @@ public class AuthController {
             throw new InvalidException("access token không hợp lệ");
         }
 
-        this.userService.updateUserToken(null, email);
+        this.userService.updateUserTokenAndSession(null, null, email);
 
         ResponseCookie deleteSpringCookie = ResponseCookie.from("refreshCookie", null)
                 .httpOnly(true)

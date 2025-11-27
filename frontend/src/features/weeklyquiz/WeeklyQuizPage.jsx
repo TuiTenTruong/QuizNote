@@ -115,7 +115,6 @@ function WeeklyQuizPage() {
             // Tính thời gian làm bài
             const timeTaken = Math.floor((Date.now() - startTime) / 1000);
 
-            // Chuyển đổi answers từ {questionId: optionIndex} sang {questionId: optionId}
             const formattedAnswers = {};
             quiz.questions.forEach((question) => {
                 const selectedIndex = answers[question.id];
@@ -188,7 +187,6 @@ function WeeklyQuizPage() {
         );
     }
 
-    // Nếu không có quiz hoặc status (trường hợp API trả về 400 - không có weekly quiz)
     if (!quiz || !status) {
         return (
             <div className="weekly-quiz-page">

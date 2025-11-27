@@ -10,7 +10,6 @@ import {
     Modal,
     Badge,
     Spinner,
-    Alert,
     InputGroup,
 } from "react-bootstrap";
 import {
@@ -30,14 +29,16 @@ import {
 } from "../../services/apiService";
 import { toast } from "react-toastify";
 import axiosInstance from "../../utils/axiosCustomize";
+import DeleteConfirmModal from "./components/DeleteComfirmModal";
 
 function AdminWeeklyQuizPage() {
     const [weeklyQuizzes, setWeeklyQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [quizToDelete, setQuizToDelete] = useState(null);
     const [currentQuiz, setCurrentQuiz] = useState(null);
-    const [message, setMessage] = useState({ type: "", text: "" });
     const [quizData, setQuizData] = useState([]);
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
     // Hàm tính tuần tiếp theo
@@ -61,33 +62,32 @@ function AdminWeeklyQuizPage() {
         return { year: currentYear, weekNumber: nextWeek };
     };
 
-    // Hàm tạo thời gian bắt đầu tuần (Thứ 2 00:00)
+    // Hàm tạo thời gian bắt đầu tuần (Thứ 2 00:00) theo ISO 8601
     const getWeekStartDate = (year, weekNumber) => {
-        const jan1 = new Date(year, 0, 1);
-        const daysToAdd = (weekNumber - 1) * 7;
-        const targetDate = new Date(jan1.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
-
-        // Tìm thứ 2 của tuần đó
-        const dayOfWeek = targetDate.getDay();
-        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(targetDate.getTime() + diff * 24 * 60 * 60 * 1000);
-
-        monday.setHours(0, 0, 0, 0);
-        return monday.toISOString().slice(0, 16);
+        // Tìm thứ 2 đầu tiên của năm
+        const jan4 = new Date(year, 0, 4); // Ngày 4/1 luôn thuộc tuần 1
+        const jan4Day = jan4.getDay() || 7; // Chuyển Chủ nhật (0) thành 7
+        const firstMonday = new Date(jan4);
+        firstMonday.setDate(jan4.getDate() - jan4Day + 1); // Tìm thứ 2 của tuần đó
+        
+        // Tính thứ 2 của tuần cần tìm
+        const targetMonday = new Date(firstMonday);
+        targetMonday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+        targetMonday.setHours(0, 0, 0, 0);
+        
+        return targetMonday.toISOString().slice(0, 16);
     };
 
     // Hàm tạo thời gian kết thúc tuần (Chủ nhật 23:59)
     const getWeekEndDate = (year, weekNumber) => {
-        const jan1 = new Date(year, 0, 1);
-        const daysToAdd = weekNumber * 7 - 1;
-        const targetDate = new Date(jan1.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
-
-        // Tìm chủ nhật của tuần đó
-        const dayOfWeek = targetDate.getDay();
-        const diff = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
-        const sunday = new Date(targetDate.getTime() + diff * 24 * 60 * 60 * 1000);
-
+        // Lấy thứ 2 đầu tuần
+        const monday = new Date(getWeekStartDate(year, weekNumber));
+        
+        // Cộng 6 ngày để đến Chủ nhật
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
         sunday.setHours(23, 59, 0, 0);
+        
         return sunday.toISOString().slice(0, 16);
     };
 
@@ -118,24 +118,6 @@ function AdminWeeklyQuizPage() {
     useEffect(() => {
         fetchWeeklyQuizzes();
     }, []);
-    useEffect(() => {
-        const fetchDetailsQuiz = async () => {
-            try {
-                setLoading(true);
-                const response = await getWeeklyQuizQuestions(currentQuiz?.id);
-                setQuizData(response.data);
-            } catch (error) {
-                toast.error("Lỗi khi tải chi tiết weekly quiz");
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (currentQuiz) {
-            fetchDetailsQuiz();
-        } else {
-            setQuizData([]);
-        }
-    }, [currentQuiz]);
     const fetchWeeklyQuizzes = async () => {
         try {
             setLoading(true);
@@ -143,59 +125,73 @@ function AdminWeeklyQuizPage() {
             setWeeklyQuizzes(response.data.result || []);
 
         } catch (error) {
-            setMessage({
-                type: "danger",
-                text: "Lỗi khi tải danh sách weekly quiz",
-            });
+            toast.error("Lỗi khi tải danh sách weekly quiz");
         } finally {
             setLoading(false);
         }
     };
 
 
-    const handleOpenModal = (quiz = null) => {
+    const handleOpenModal = async (quiz = null) => {
         if (quiz) {
-            setEditMode(true);
-            setCurrentQuiz(quiz);
-            setFormData({
-                title: quizData.title,
-                description: quizData.description,
-                year: quizData.year,
-                weekNumber: quizData.weekNumber,
-                difficulty: quizData.difficulty,
-                startDate: quizData.startDate
-                    ? new Date(quizData.startDate).toISOString().slice(0, 16)
-                    : getWeekStartDate(quizData.year, quizData.weekNumber),
-                endDate: quizData.endDate
-                    ? new Date(quizData.endDate).toISOString().slice(0, 16)
-                    : getWeekEndDate(quizData.year, quizData.weekNumber),
-                questions:
-                    quizData.questions && quizData.questions.length === 10
-                        ? quizData.questions.map((q) => ({
-                            content: q.content,
-                            imageFile: null,
-                            imagePreview: q.imageUrl ? (backendBaseURL + q.imageUrl) : null,
-                            options: q.options.map((opt) => ({
-                                content: opt.content,
-                                isCorrect: opt.isCorrect,
-                            })),
-                        }))
-                        : Array(10)
-                            .fill(null)
-                            .map(() => ({
-                                content: "",
+            try {
+                setLoading(true);
+                // Fetch quiz details first
+                const response = await getWeeklyQuizQuestions(quiz.id);
+                const fetchedQuizData = response.data;
+
+                setEditMode(true);
+                setCurrentQuiz(quiz);
+                setQuizData(fetchedQuizData);
+
+                // Set form data with fetched data
+                setFormData({
+                    title: fetchedQuizData.title,
+                    description: fetchedQuizData.description,
+                    year: fetchedQuizData.year,
+                    weekNumber: fetchedQuizData.weekNumber,
+                    difficulty: fetchedQuizData.difficulty,
+                    startDate: fetchedQuizData.startDate
+                        ? new Date(fetchedQuizData.startDate).toISOString().slice(0, 16)
+                        : getWeekStartDate(fetchedQuizData.year, fetchedQuizData.weekNumber),
+                    endDate: fetchedQuizData.endDate
+                        ? new Date(fetchedQuizData.endDate).toISOString().slice(0, 16)
+                        : getWeekEndDate(fetchedQuizData.year, fetchedQuizData.weekNumber),
+                    questions:
+                        fetchedQuizData.questions && fetchedQuizData.questions.length === 10
+                            ? fetchedQuizData.questions.map((q) => ({
+                                content: q.content,
                                 imageFile: null,
-                                options: [
-                                    { content: "", isCorrect: false },
-                                    { content: "", isCorrect: false },
-                                    { content: "", isCorrect: false },
-                                    { content: "", isCorrect: false },
-                                ],
-                            })),
-            });
+                                imagePreview: q.imageUrl ? (backendBaseURL + q.imageUrl) : null,
+                                options: q.options.map((opt) => ({
+                                    content: opt.content,
+                                    isCorrect: opt.isCorrect,
+                                })),
+                            }))
+                            : Array(10)
+                                .fill(null)
+                                .map(() => ({
+                                    content: "",
+                                    imageFile: null,
+                                    options: [
+                                        { content: "", isCorrect: false },
+                                        { content: "", isCorrect: false },
+                                        { content: "", isCorrect: false },
+                                        { content: "", isCorrect: false },
+                                    ],
+                                })),
+                });
+
+                setShowModal(true);
+            } catch (error) {
+                toast.error("Lỗi khi tải chi tiết weekly quiz");
+            } finally {
+                setLoading(false);
+            }
         } else {
             setEditMode(false);
             setCurrentQuiz(null);
+            setQuizData([]);
             const newWeekInfo = getNextWeekInfo();
             setFormData({
                 title: "",
@@ -218,8 +214,8 @@ function AdminWeeklyQuizPage() {
                         ],
                     })),
             });
+            setShowModal(true);
         }
-        setShowModal(true);
     };
 
     const handleCloseModal = () => {
@@ -260,26 +256,17 @@ function AdminWeeklyQuizPage() {
         for (let i = 0; i < formData.questions.length; i++) {
             const q = formData.questions[i];
             if (!q.content.trim()) {
-                setMessage({
-                    type: "danger",
-                    text: `Câu hỏi ${i + 1} không được để trống`,
-                });
+                toast.error(`Câu hỏi ${i + 1} không được để trống`);
                 return;
             }
             const validOptions = q.options.filter((opt) => opt.content.trim());
             if (validOptions.length < 2) {
-                setMessage({
-                    type: "danger",
-                    text: `Câu hỏi ${i + 1} phải có ít nhất 2 đáp án`,
-                });
+                toast.error(`Câu hỏi ${i + 1} phải có ít nhất 2 đáp án`);
                 return;
             }
             const correctCount = q.options.filter((opt) => opt.isCorrect).length;
             if (correctCount !== 1) {
-                setMessage({
-                    type: "danger",
-                    text: `Câu hỏi ${i + 1} phải có đúng 1 đáp án đúng`,
-                });
+                toast.error(`Câu hỏi ${i + 1} phải có đúng 1 đáp án đúng`);
                 return;
             }
         }
@@ -354,23 +341,32 @@ function AdminWeeklyQuizPage() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa weekly quiz này?")) {
-            return;
-        }
+    const handleDeleteClick = (id) => {
+        setQuizToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleCloseDeleteConfirm = () => {
+        setShowDeleteConfirm(false);
+        setQuizToDelete(null);
+    };
+
+    const handleConfirmDelete = async () => {
         try {
-            const response = await deletedWeeklyQuiz(id);
+            const response = await deletedWeeklyQuiz(quizToDelete);
             if (response.status !== 200) {
                 toast.error(
                     response.data?.message ||
                     "Có lỗi xảy ra khi xóa weekly quiz, vui lòng thử lại."
                 );
-                return;
+            } else {
+                toast.success("Xóa weekly quiz thành công");
+                fetchWeeklyQuizzes();
             }
-            toast.success("Xóa weekly quiz thành công");
-            fetchWeeklyQuizzes();
         } catch (error) {
             toast.error(error.response?.data?.message || "Có lỗi xảy ra");
+        } finally {
+            handleCloseDeleteConfirm();
         }
     };
 
@@ -397,17 +393,6 @@ function AdminWeeklyQuizPage() {
                         Tạo Weekly Quiz
                     </Button>
                 </div>
-
-                {message.text && (
-                    <Alert
-                        variant={message.type}
-                        onClose={() => setMessage({ type: "", text: "" })}
-                        dismissible
-                        className="mb-3"
-                    >
-                        {message.text}
-                    </Alert>
-                )}
 
                 {loading ? (
                     <div className="text-center py-5 text-light">
@@ -498,7 +483,7 @@ function AdminWeeklyQuizPage() {
                                                     <Button
                                                         variant="outline-danger"
                                                         size="sm"
-                                                        onClick={() => handleDelete(quiz.id)}
+                                                        onClick={() => handleDeleteClick(quiz.id)}
                                                     >
                                                         <FaTrash />
                                                     </Button>
@@ -511,6 +496,13 @@ function AdminWeeklyQuizPage() {
                         </Card.Body>
                     </Card>
                 )}
+
+                {/* Delete Confirmation Modal */}
+                <DeleteConfirmModal
+                    isOpen={showDeleteConfirm}
+                    onClose={handleCloseDeleteConfirm}
+                    onConfirm={handleConfirmDelete}
+                />
 
                 {/* Modal */}
                 <Modal

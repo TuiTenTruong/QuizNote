@@ -53,6 +53,10 @@ public class User {
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
+    
+    @Column(columnDefinition = "TEXT")
+    private String sessionId;
+    
     private String avatarUrl;
 
     @Column(columnDefinition = "TEXT")

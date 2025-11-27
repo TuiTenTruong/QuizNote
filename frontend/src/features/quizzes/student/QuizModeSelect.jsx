@@ -1,7 +1,6 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { FaClock, FaBookOpen, FaTrophy, FaBrain } from "react-icons/fa";
-import { CiCircleQuestion } from "react-icons/ci";
 import "./QuizModeSelect.scss";
 import { useEffect, useState } from "react";
 import { getQuizDetail } from "../../../services/apiService";
@@ -129,8 +128,9 @@ const QuizModeSelect = () => {
                                             <Form.Control className="bg-dark text-white"
                                                 type="number"
                                                 placeholder="Nhập thời gian"
-                                                value={quiz.time}
-                                                onChange={(e) => setQuiz({ ...quiz, time: e.target.value })}
+                                                value={quiz.time < 0 ? 1 : quiz.time}
+                                                onChange={(e) => setQuiz({ ...quiz, time: e.target.value < 0 ? 1 : e.target.value })}
+                                                min={1}
                                             />
                                         </Form.Group >
                                         <Form.Group controlId="formNumberOfQuestions" className="mb-3">

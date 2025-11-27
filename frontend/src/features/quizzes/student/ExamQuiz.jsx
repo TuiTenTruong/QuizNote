@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Container, Row, Col, Button, Card, ProgressBar, Modal, Badge } from "react-bootstrap";
 import { FaClock, FaChevronLeft, FaChevronRight, FaFlagCheckered, FaArrowLeft, FaFlag } from "react-icons/fa";
 import "./ExamQuiz.scss";
@@ -26,6 +26,8 @@ function ExamQuiz() {
     const QUESTIONS_PER_PAGE = 5;
     const [imageModal, setImageModal] = useState({ show: false, url: '' });
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
+    const questionRefs = useRef([]);
+    const containerTopRef = useRef(null);
     const quizId = location.state?.quizId || 0;
     const duration = location.state?.duration || 10;
 
@@ -184,7 +186,7 @@ function ExamQuiz() {
 
             try {
                 // Start submission first to get submissionId and timestamps
-                const startResponse = await startSubmission(quizId, account.id, duration);
+                const startResponse = await startSubmission(quizId, account.id, duration, true);
                 const newSubmissionId = startResponse.data.id;
                 setSubmissionId(newSubmissionId);
                 console.log("Submission started with ID:", newSubmissionId);
@@ -379,6 +381,18 @@ function ExamQuiz() {
     const handleQuestionNumberClick = (questionIndex) => {
         const newPage = Math.floor(questionIndex / QUESTIONS_PER_PAGE);
         setCurrentPage(newPage);
+
+        // Cuộn đến câu hỏi sau khi trang được render
+        setTimeout(() => {
+            const questionElement = questionRefs.current[questionIndex];
+            if (questionElement) {
+                questionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
+        }, 100);
     };
 
     const formatTime = (seconds) => {
@@ -422,12 +436,26 @@ function ExamQuiz() {
     const handlePrevPage = () => {
         if (currentPage > 0) {
             setCurrentPage(currentPage - 1);
+            // Cuộn lên đầu container sau khi render
+            setTimeout(() => {
+                containerTopRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
         }
     };
 
     const handleNextPage = () => {
         if (currentPage < totalPages - 1) {
             setCurrentPage(currentPage + 1);
+            // Cuộn lên đầu container sau khi render
+            setTimeout(() => {
+                containerTopRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
         }
     };
 
@@ -459,7 +487,7 @@ function ExamQuiz() {
     return (
         <div className="exam-quiz">
             <Container fluid className="py-4">
-                <div className="mb-3">
+                <div className="mb-3" ref={containerTopRef}>
                     <Button variant="outline-light" onClick={handleBack}>
                         <FaArrowLeft className="me-2" /> Trở về
                     </Button>
@@ -473,7 +501,10 @@ function ExamQuiz() {
                                 (!prevQuestion || prevQuestion.chapterName !== question.chapterName);
 
                             return (
-                                <div key={question.id}>
+                                <div
+                                    key={question.id}
+                                    ref={(el) => questionRefs.current[questionIndex] = el}
+                                >
                                     <Card className="bg-dark text-light border-0 p-4 shadow-sm mb-4">
                                         <div className="d-flex justify-content-between align-items-center mb-3">
                                             <h5 className="fw-bold">

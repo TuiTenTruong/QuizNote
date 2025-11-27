@@ -52,7 +52,7 @@ const ExploreQuizCategories = () => {
                                     </div>
                                 )}
                                 <h5 className="fw-semibold">{category.name}</h5>
-                                {category.averageRating && (
+                                {category.averageRating != 0 && (
                                     <span className="align-items-center d-flex position-absolute top-0 end-0 m-3"><FaStar className="pe-1 text-warning" />{category.averageRating}</span>
                                 )}
                                 <p className="text-white small mb-3">

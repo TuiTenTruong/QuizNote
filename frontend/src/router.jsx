@@ -38,6 +38,7 @@ import RewardShopPage from "./features/reward/RewardShopPage";
 import AdminRewardsPage from "./features/admin/AdminRewardsPage";
 import AdminRewardTransactionsPage from "./features/admin/AdminRewardTransactionsPage";
 import MyRewardTransactions from "./features/reward/MyRewardTransactions";
+import AboutPage from "./features/about/AboutPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
             {
                 path: "/my-reward-transactions",
                 element: <ProtectedRoute allowedRoles={['STUDENT', 'SELLER', 'SUPER_ADMIN']}><MyRewardTransactions /></ProtectedRoute>
+            },
+            {
+                path: "/about",
+                element: <AboutPage />
             }
         ]
     },

@@ -8,12 +8,15 @@ import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.SubjectService;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -45,9 +48,17 @@ public class SubjectController {
     // create subject with image
     public ResponseEntity<?> createSubject(@Valid @RequestPart("subject") Subject subject,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
+
             this.fileService.createDirectory(baseURI + "subjects");
             stored = this.fileService.store(image, "subjects");
         }
@@ -58,8 +69,15 @@ public class SubjectController {
     // create subject with image
     public ResponseEntity<?> saveDraftSubject(@Valid @RequestPart("subject") Subject subject,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "subjects");
             String stored = this.fileService.store(image, "subjects");
             subject.setImageUrl(stored);
@@ -70,9 +88,16 @@ public class SubjectController {
     @PutMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> updateSubject(@Valid @RequestPart("subject") Subject subject,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "subjects");
             stored = this.fileService.store(image, "subjects");
         }
@@ -88,6 +113,11 @@ public class SubjectController {
     @GetMapping("/subjects/{id}")
     public ResponseEntity<?> getSubjectById(@PathVariable long id) throws InvalidException {
         return ResponseEntity.ok().body(this.subjectService.handleGetSubjectById(id));
+    }
+
+    @GetMapping("/subjects/my/{subjectId}")
+    public ResponseEntity<?> getSubjectByIdAndSeller(@PathVariable long subjectId) throws InvalidException {
+        return ResponseEntity.ok().body(this.subjectService.handleGetSubjectByIdAndSeller(subjectId));
     }
 
     @GetMapping("/subjects")

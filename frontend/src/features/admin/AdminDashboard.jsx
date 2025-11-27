@@ -114,7 +114,7 @@ const AdminDashboard = () => {
 
                 {/* Stats Cards */}
                 <Row className="g-4 mb-4">
-                    {statsData.map((stat, index) => {
+                    {statsData?.map((stat, index) => {
                         const cardData = Array.isArray(statusCards)
                             ? statusCards.find(card => card.title === stat.key)
                             : null;
@@ -207,7 +207,7 @@ const AdminDashboard = () => {
                                             dataKey="value"
                                             label={(entry) => `${entry.name}: ${entry.value}`}
                                         >
-                                            {getUserRoleData().map((entry, index) => (
+                                            {getUserRoleData()?.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -246,7 +246,7 @@ const AdminDashboard = () => {
                                         </thead>
                                         <tbody>
                                             {currentUsers && currentUsers.length > 0 ? (
-                                                currentUsers.map((user) => (
+                                                currentUsers?.map((user) => (
                                                     <tr key={user.id}>
                                                         <td className="fw-semibold">{user.name}</td>
                                                         <td className="text-white">{user.email}</td>

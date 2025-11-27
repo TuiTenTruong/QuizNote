@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Container, Row, Col, Button, Card, ProgressBar, Modal, Badge } from "react-bootstrap";
 import { FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaFlagCheckered, FaArrowLeft } from "react-icons/fa";
 import "./QuizPracticePage.scss";
@@ -23,6 +23,8 @@ const QuizPracticePage = () => {
     const navigate = useNavigate();
     const QUESTIONS_PER_PAGE = 5;
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
+    const questionRefs = useRef([]);
+    const containerTopRef = useRef(null);
 
     const quizId = location.state?.quizId || 0;
     const account = useSelector(state => state.user.account);
@@ -30,32 +32,63 @@ const QuizPracticePage = () => {
     // Session storage key
     const SESSION_KEY = `quiz_practice_${quizId}_${account?.id}`;
 
-    // Save state to sessionStorage
-    const saveToSession = (data) => {
+    // // Save state to sessionStorage
+    // const saveToSession = (data) => {
+    //     try {
+    //         sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    //     } catch (error) {
+    //         console.error("Error saving to sessionStorage:", error);
+    //     }
+    // };
+
+
+    // // Clear sessionStorage
+    // const clearSession = () => {
+    //     try {
+    //         sessionStorage.removeItem(SESSION_KEY);
+    //     } catch (error) {
+    //         console.error("Error clearing sessionStorage:", error);
+    //     }
+    // };
+
+    // Save quiz progress into localStorage with expiration
+    const saveToLocalStorage = (data) => {
         try {
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 30); // Set expiration to 30 days
+            const dataWithExpiration = {
+                data,
+                expiration: expirationDate.getTime(),
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(dataWithExpiration));
         } catch (error) {
-            console.error("Error saving to sessionStorage:", error);
+            console.error("Error saving to localStorage:", error);
         }
     };
 
-    // Load state from sessionStorage
-    const loadFromSession = () => {
+    const loadFromLocalStorage = () => {
         try {
-            const saved = sessionStorage.getItem(SESSION_KEY);
-            return saved ? JSON.parse(saved) : null;
+            const saved = localStorage.getItem(SESSION_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.expiration > Date.now()) {
+                    return parsed.data;
+                } else {
+                    localStorage.removeItem(SESSION_KEY); // Remove expired data
+                }
+            }
+            return null;
         } catch (error) {
-            console.error("Error loading from sessionStorage:", error);
+            console.error("Error loading from localStorage:", error);
             return null;
         }
     };
 
-    // Clear sessionStorage
-    const clearSession = () => {
+    const clearLocalStorage = () => {
         try {
-            sessionStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(SESSION_KEY);
         } catch (error) {
-            console.error("Error clearing sessionStorage:", error);
+            console.error("Error clearing localStorage:", error);
         }
     };
 
@@ -71,8 +104,8 @@ const QuizPracticePage = () => {
         const fetchQuizData = async () => {
             if (!account || !account.id) return;
 
-            // Try to restore from session first
-            const savedState = loadFromSession();
+            // Try to restore from localStorage first
+            const savedState = loadFromLocalStorage();
 
             try {
                 let newSubmissionId;
@@ -83,7 +116,7 @@ const QuizPracticePage = () => {
                     console.log("Resuming practice with submission ID:", newSubmissionId);
                 } else {
                     // Start new submission
-                    const startResponse = await startSubmission(quizId, account.id);
+                    const startResponse = await startSubmission(quizId, account.id, null, false);
                     newSubmissionId = startResponse.data.id || startResponse.data.submissionId;
                     console.log("Practice submission started with ID:", newSubmissionId);
                 }
@@ -111,7 +144,7 @@ const QuizPracticePage = () => {
                 };
 
                 setQuizData(transformedData);
-
+                console.log("Quiz data loaded for practice:", transformedData);
                 // Restore state or initialize new
                 if (savedState) {
                     setAnswers(savedState.answers || new Array(transformedData.totalQuestions).fill(null));
@@ -139,10 +172,10 @@ const QuizPracticePage = () => {
         }
     }, [quizId, navigate, account]);
 
-    // Save to session when state changes
+    // Save to session and local storage when state changes
     useEffect(() => {
         if (quizData && submissionId) {
-            saveToSession({
+            saveToLocalStorage({
                 answers,
                 feedback,
                 currentPage,
@@ -187,13 +220,17 @@ const QuizPracticePage = () => {
         if (selectedOptions.length === 0) return;
 
         const question = quizData.questions[questionIndex];
-        const correctOptionId = question.correctOptionId;
-        const correctCount = question.correctCount || 0;
+
+        // Lấy tất cả các option đúng
+        const correctOptionIds = question.options
+            .filter(opt => opt.isCorrect)
+            .map(opt => opt.id);
 
         // Kiểm tra xem tất cả đáp án đúng đã được chọn và không có đáp án sai
         const isCorrect =
-            selectedOptions.length === correctCount &&
-            selectedOptions.every(id => correctOptionId === id);
+            selectedOptions.length === correctOptionIds.length &&
+            selectedOptions.every(id => correctOptionIds.includes(id)) &&
+            correctOptionIds.every(id => selectedOptions.includes(id));
 
         const newAnswers = [...answers];
         newAnswers[questionIndex] = selectedOptions;
@@ -208,7 +245,8 @@ const QuizPracticePage = () => {
         if (!submissionId) return;
 
         const correctCount = feedback.filter((f) => f === true).length;
-        const calculatedScore = Math.round((correctCount / quizData.totalQuestions) * 100);
+        const totalQuestions = quizData.totalQuestions; // Use total questions for score calculation
+        const calculatedScore = Math.round((correctCount / totalQuestions) * 10);
 
         // Prepare answers for backend - only send answered questions
         const formattedAnswers = quizData.questions
@@ -236,19 +274,19 @@ const QuizPracticePage = () => {
             const response = await submitQuizResult(submissionId, formattedAnswers);
             console.log("Practice submission response:", response.data);
 
-            const finalScore = response.data.score || response.data.percentage || calculatedScore;
+            const finalScore = calculatedScore;
 
             setScore(finalScore);
             setShowResult(true);
 
-            // Clear session after finishing
-            clearSession();
+            // Clear localStorage after finishing
+            clearLocalStorage();
         } catch (error) {
             console.error("Error submitting practice result:", error);
             // Still show result even if submit fails
             setScore(calculatedScore);
             setShowResult(true);
-            clearSession();
+            clearLocalStorage();
         }
     };
 
@@ -268,6 +306,18 @@ const QuizPracticePage = () => {
     const handleQuestionNumberClick = (questionIndex) => {
         const newPage = Math.floor(questionIndex / QUESTIONS_PER_PAGE);
         setCurrentPage(newPage);
+
+        // Cuộn đến câu hỏi sau khi trang được render
+        setTimeout(() => {
+            const questionElement = questionRefs.current[questionIndex];
+            if (questionElement) {
+                questionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
+        }, 100);
     };
 
     // Add loading check
@@ -301,12 +351,26 @@ const QuizPracticePage = () => {
     const handlePrevPage = () => {
         if (currentPage > 0) {
             setCurrentPage(currentPage - 1);
+            // Scroll to the top of the container
+            setTimeout(() => {
+                containerTopRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 0);
         }
     };
 
     const handleNextPage = () => {
         if (currentPage < totalPages - 1) {
             setCurrentPage(currentPage + 1);
+            // Scroll to the top of the container
+            setTimeout(() => {
+                containerTopRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 0);
         }
     };
 
@@ -326,13 +390,13 @@ const QuizPracticePage = () => {
                     </p>
                     <div className="d-flex gap-2 justify-content-center">
                         <Button variant="outline-light" onClick={() => {
-                            clearSession();
-                            window.location.reload();
+                            clearLocalStorage();
+                            navigate(0);
                         }}>
                             Làm lại
                         </Button>
                         <Button variant="outline-primary" onClick={() => {
-                            clearSession();
+                            clearLocalStorage();
                             navigate(-1);
                         }}>
                             <FaArrowLeft className="me-2" /> Trở về
@@ -346,7 +410,7 @@ const QuizPracticePage = () => {
     return (
         <div className="practice-quiz">
             <Container fluid className="py-4">
-                <div className="mb-3">
+                <div className="mb-3" ref={containerTopRef}>
                     <Button variant="outline-light" onClick={handleBack}>
                         <FaArrowLeft className="me-2" /> Trở về
                     </Button>
@@ -360,7 +424,10 @@ const QuizPracticePage = () => {
                                 (!prevQuestion || prevQuestion.chapterName !== question.chapterName);
 
                             return (
-                                <div key={question.id}>
+                                <div
+                                    key={question.id}
+                                    ref={(el) => questionRefs.current[questionIndex] = el}
+                                >
                                     {showChapterHeader && (
                                         <div className="chapter-divider mb-3 mt-4">
                                             <h5 className="text-light fw-bold">
@@ -422,7 +489,10 @@ const QuizPracticePage = () => {
                                                         } ${showFeedback && isCorrect ? "correct" : ""
                                                         } ${showFeedback && finalSelected && !isCorrect ? "wrong" : ""
                                                         }`}
-                                                    onClick={() => handleSelect(questionIndex, opt.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent event propagation
+                                                        handleSelect(questionIndex, opt.id);
+                                                    }}
                                                 >
                                                     {opt.content}
                                                 </Card>

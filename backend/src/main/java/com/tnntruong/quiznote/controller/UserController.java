@@ -2,6 +2,8 @@ package com.tnntruong.quiznote.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -74,7 +76,13 @@ public class UserController {
         if (file == null || file.isEmpty()) {
             throw new InvalidException("file is required");
         }
+        String fileName = file.getOriginalFilename();
+        List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+        boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
 
+        if (!isValid) {
+            throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+        }
         this.fileService.createDirectory(baseURI + "/users");
         String stored = this.fileService.store(file, "/users"); // có thể là relative path hoặc filename
         updateUser.setAvatarUrl(stored);

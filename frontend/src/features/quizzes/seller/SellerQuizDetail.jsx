@@ -18,8 +18,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axiosCustomize";
 import ReviewItem from "../student/ReviewItem";
-import { getQuizDetail, getQuizDemo, getQuizReviews, sellerGetRecentOrders, replyComment } from "../../../services/apiService";
+import { getSellerQuizDetail, getQuizDemo, getQuizReviews, sellerGetRecentOrders, replyComment, deleteSubject } from "../../../services/apiService";
 import { toast } from "react-toastify";
+import DeleteConfirmModal from "./components/DeleteComfirmModal";
 
 function SellerQuizDetail() {
     const [quiz, setQuiz] = useState(null);
@@ -33,6 +34,7 @@ function SellerQuizDetail() {
     const [recentOrders, setRecentOrders] = useState([]);
     const [replyingTo, setReplyingTo] = useState(null);
     const [replyContent, setReplyContent] = useState("");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { quizId } = useParams();
     const navigate = useNavigate();
     const backendBaseSubjectURL = axiosInstance.defaults.baseURL + "storage/subjects/";
@@ -41,11 +43,12 @@ function SellerQuizDetail() {
     useEffect(() => {
         // Fetch quiz detail from API
         const fetchQuizDetail = async () => {
-            const response = await getQuizDetail(quizId);
+            const response = await getSellerQuizDetail(quizId);
             if (response && response.statusCode === 200) {
                 setQuiz(response.data);
             } else {
                 console.error("Failed to fetch quiz detail", response);
+                toast.error("Không thể tải chi tiết quiz. Vui lòng thử lại sau.");
             }
         };
         fetchQuizDetail();
@@ -58,6 +61,7 @@ function SellerQuizDetail() {
                 setQuizDemo(response.data);
             } else {
                 console.error("Failed to fetch quiz demo", response);
+                toast.error("Không thể tải câu hỏi mẫu. Vui lòng thử lại sau.");
             }
         };
         fetchQuizDemo();
@@ -76,6 +80,7 @@ function SellerQuizDetail() {
             setCountReviews(res.data.meta.total);
         } else {
             console.error("Failed to fetch reviews");
+            toast.error("Không thể tải đánh giá. Vui lòng thử lại sau.");
         }
         setReviewsLoading(false);
     };
@@ -95,6 +100,7 @@ function SellerQuizDetail() {
                     setRecentOrders(response.data);
                 } else {
                     console.error("Failed to fetch recent orders", response);
+                    toast.error("Không thể tải người mua gần đây. Vui lòng thử lại sau.");
                 }
             }
         };
@@ -111,10 +117,18 @@ function SellerQuizDetail() {
         navigate(`/seller/detail/${quizId}`);
     };
 
-    const handleDeleteQuiz = () => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa quiz này?")) {
-            // Implement delete functionality
-            console.log("Delete quiz:", quizId);
+    const handleConfirmDelete = async () => {
+        try {
+            const response = await deleteSubject(quizId);
+            if (response && response.statusCode === 200) {
+                toast.success("Xóa quiz thành công!");
+                navigate("/seller/quizzes");
+            } else {
+                toast.error(response?.message || "Có lỗi xảy ra khi xóa quiz.");
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra khi xóa quiz.");
+            console.error("Delete quiz error:", error);
         }
     };
 
@@ -137,11 +151,11 @@ function SellerQuizDetail() {
         const response = await replyComment(reviewId, replyContent);
         if (response && response.statusCode === 200) {
             toast.success("Phản hồi đã được gửi thành công");
-            
+
             // Reset state after successful submission
             setReplyingTo(null);
             setReplyContent("");
-            
+
             // Reset reviews and fetch from beginning
             setReviews([]);
             setReviewsPage(0);
@@ -172,7 +186,7 @@ function SellerQuizDetail() {
                         <Button variant="outline-light" size="sm" onClick={handleEditQuiz}>
                             <FaEdit className="me-1" /> Chỉnh sửa
                         </Button>
-                        <Button variant="danger" size="sm" onClick={handleDeleteQuiz}>
+                        <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
                             <FaTrash className="me-1" /> Xóa
                         </Button>
                     </div>
@@ -333,6 +347,13 @@ function SellerQuizDetail() {
                         </div>
                     )}
                 </Card>
+
+                <DeleteConfirmModal
+                    isOpen={showDeleteModal}
+                    onClose={() => setShowDeleteModal(false)}
+                    onConfirm={handleConfirmDelete}
+                />
+
             </Container>
         </div>
     );

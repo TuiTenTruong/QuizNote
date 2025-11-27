@@ -78,7 +78,6 @@ public class SubmissionService {
                     !purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
                 throw new InvalidException("This subject is currently inactive and not available for submission");
             }
-            // Nếu đã mua hoặc subject miễn phí thì vẫn cho phép làm bài
         }
         Submission submission = new Submission();
         submission.setStudent(student);
@@ -86,6 +85,7 @@ public class SubmissionService {
         submission.setDuration(dto.getDuration());
         submission.setStatus(SubmissionStatus.IN_PROGRESS);
         submission.setStartedAt(Instant.now());
+        submission.setIsPractice(dto.isPractice());
 
         Submission savedSubmission = this.submissionRepository.save(submission);
 
@@ -260,11 +260,12 @@ public class SubmissionService {
 
         submission.getAnswers().addAll(submissionAnswers);
         Submission saved = submissionRepository.save(submission);
-
-        for (Long qId : questionIds) {
-            updateQuestionCorrectnessPercentage(qId);
+        if (submission.getIsPractice()) {
+            for (Long qId : questionIds) {
+                updateQuestionCorrectnessPercentage(qId);
+            }
+            updateSubjectHighestScore(subjectId);
         }
-        updateSubjectHighestScore(subjectId);
 
         return convertToDTO(saved);
     }

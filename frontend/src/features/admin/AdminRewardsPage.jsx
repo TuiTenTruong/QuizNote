@@ -32,6 +32,7 @@ import {
 } from '../../services/apiService';
 import axiosInstance from "../../utils/axiosCustomize";
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 const AdminRewardsPage = () => {
     const [rewards, setRewards] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -40,7 +41,6 @@ const AdminRewardsPage = () => {
     const [modalType, setModalType] = useState('');
     const [selectedReward, setSelectedReward] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [alert, setAlert] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/rewards/";
@@ -67,15 +67,10 @@ const AdminRewardsPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch rewards:', error);
-            showAlert('danger', 'Không thể tải danh sách quà tặng');
+            toast.error('Không thể tải danh sách quà tặng');
         } finally {
             setLoading(false);
         }
-    };
-
-    const showAlert = (type, text) => {
-        setAlert({ type, text });
-        setTimeout(() => setAlert(null), 5000);
     };
 
     const filteredRewards = rewards.filter(reward => {
@@ -192,10 +187,10 @@ const AdminRewardsPage = () => {
             let response;
             if (modalType === 'create') {
                 response = await createReward(formDataToSend);
-                showAlert('success', 'Tạo quà tặng thành công!');
+                toast.success('Tạo quà tặng thành công!');
             } else if (modalType === 'edit') {
                 response = await updateReward(selectedReward.id, formDataToSend);
-                showAlert('success', 'Cập nhật quà tặng thành công!');
+                toast.success('Cập nhật quà tặng thành công!');
             }
 
             if (response) {
@@ -205,7 +200,7 @@ const AdminRewardsPage = () => {
         } catch (error) {
             console.error('Error submitting reward:', error);
             const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
-            showAlert('danger', errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -216,14 +211,14 @@ const AdminRewardsPage = () => {
         try {
             const response = await deleteReward(selectedReward.id);
             if (response) {
-                showAlert('success', 'Xóa quà tặng thành công!');
+                toast.success('Xóa quà tặng thành công!');
                 await fetchRewards();
                 handleCloseModal();
             }
         } catch (error) {
             console.error('Error deleting reward:', error);
             const errorMsg = error.response?.data?.message || 'Không thể xóa quà tặng.';
-            showAlert('danger', errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -264,17 +259,6 @@ const AdminRewardsPage = () => {
                         </Button>
                     </Col>
                 </Row>
-
-                {alert && (
-                    <Alert
-                        variant={alert.type}
-                        onClose={() => setAlert(null)}
-                        dismissible
-                        className="mb-3"
-                    >
-                        {alert.text}
-                    </Alert>
-                )}
 
                 <Card className="bg-dark text-light border-0 shadow-sm rewards-table-card">
                     <Card.Body>

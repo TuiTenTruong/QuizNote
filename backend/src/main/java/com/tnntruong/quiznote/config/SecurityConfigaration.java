@@ -66,7 +66,7 @@ public class SecurityConfigaration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-            UserValidationFilter userValidationFilter) throws Exception {
+            SessionValidationFilter sessionValidationFilter) throws Exception {
 
         // Define paths that should be publicly accessible without authentication
         String[] generalPermitAllPaths = {
@@ -75,6 +75,7 @@ public class SecurityConfigaration {
                 "/api/v1/files/**",
                 "/api/v1/users/register",
                 "/api/v1/payments/vnpay/**",
+
         };
         http
                 .csrf(c -> c.disable())
@@ -82,16 +83,30 @@ public class SecurityConfigaration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers(generalPermitAllPaths).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/companies/**", "/api/v1/subjects/**",
+                                .requestMatchers(HttpMethod.GET, "/api/v1/subjects/**",
                                         "/api/v1/questions/**", "/api/v1/comments/**",
-                                        "/api/v1/seller/analytics/{sellerId}")
+                                        "/api/v1/seller/analytics/{sellerId}", "/api/v1/seller/getWallet/{sellerId}")
                                 .permitAll()
                                 .anyRequest().authenticated())
 
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        // Bỏ qua JWT validation cho các endpoint trong permitAll
+                        .bearerTokenResolver(request -> {
+                            String path = request.getRequestURI();
+                            // Không yêu cầu Bearer token cho auth endpoints
+                            if (path.startsWith("/api/v1/auth/")) {
+                                return null;
+                            }
+                            // Lấy token từ Authorization header cho các endpoint khác
+                            String authorization = request.getHeader("Authorization");
+                            if (authorization != null && authorization.startsWith("Bearer ")) {
+                                return authorization.substring(7);
+                            }
+                            return null;
+                        }))
                 // Thêm filter để kiểm tra user có tồn tại và còn active không
-                .addFilterAfter(userValidationFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(sessionValidationFilter, BearerTokenAuthenticationFilter.class)
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

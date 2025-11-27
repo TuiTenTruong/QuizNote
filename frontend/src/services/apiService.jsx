@@ -31,6 +31,9 @@ const getAllActiveSubjects = async () => {
 const getQuizDetail = async (subjectId) => {
     return Axios.get(`/api/v1/subjects/${subjectId}`);
 }
+const getSellerQuizDetail = async (subjectId) => {
+    return Axios.get(`/api/v1/subjects/my/${subjectId}`);
+}
 const getQuizDemo = async (subjectId) => {
     return Axios.get(`/api/v1/questions/subject/${subjectId}?page=0&size=5`);
 }
@@ -46,11 +49,13 @@ const getQuizRandom = async (subjectId, numberOfQuestions) => {
 const fetchMyQuizzes = async (userId) => {
     return Axios.get(`/api/v1/purchases/user/${userId}`);
 }
-const startSubmission = async (quizId, userId, duration) => {
+const startSubmission = async (quizId, userId, duration, isPractice) => {
     const data = {
         userId: userId,
         subjectId: quizId,
-        duration: duration
+        duration: duration,
+        isPractice: isPractice
+
     };
     return Axios.post(`/api/v1/submissions/start`, data);
 }
@@ -337,8 +342,8 @@ const deleteReward = async (rewardId) => {
     return Axios.delete(`/api/v1/rewards/${rewardId}`);
 }
 
-const redeemReward = async (rewardId, deliveryData) => {
-    return Axios.post("/api/v1/rewards/redeem", { rewardId, ...deliveryData });
+const redeemReward = async (rewardId, recipientName, recipientPhone, recipientAddress) => {
+    return Axios.post("/api/v1/rewards/redeem", { rewardId, recipientName, recipientPhone, recipientAddress });
 }
 
 const updateTransactionStatus = async (transactionId, status) => {
@@ -365,5 +370,5 @@ export {
     approveSubject, rejectSubject, deleteSubject, updateSubject, deleteQuestion, createQuestionsBatch, updateQuestion, getAllAdminOrders, sellerGetRecentOrders,
     createComment, getMyRatings, replyComment, createQuestionBatch, getCurrentWeeklyQuiz
     , getUserStatusInWeeklyQuiz, submitWeeklyQuiz, getAllWeeklyQuizzes, createWeeklyQuiz, updateWeeklyQuiz, deletedWeeklyQuiz, getWeeklyQuizQuestions,
-    getAvailableRewards, getAllRewards, getRewardById, createReward, updateReward, deleteReward, redeemReward, getMyRewardTransactions, getAllRewardTransactions, updateTransactionStatus
+    getAvailableRewards, getAllRewards, getRewardById, createReward, updateReward, deleteReward, redeemReward, getMyRewardTransactions, getAllRewardTransactions, updateTransactionStatus, getSellerQuizDetail
 };

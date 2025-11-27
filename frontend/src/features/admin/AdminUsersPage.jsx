@@ -169,7 +169,7 @@ const AdminUsersPage = () => {
                         setErrorMessages([response.message || 'Có lỗi xảy ra khi cập nhật người dùng']);
                     }
                     toast.error('Không thể cập nhật người dùng. Vui lòng kiểm tra lại thông tin.');
-                    return; // Don't close modal on error
+                    return;
                 }
 
                 toast.success('Cập nhật người dùng thành công');
@@ -203,7 +203,6 @@ const AdminUsersPage = () => {
             }
 
             toast.success('Xóa người dùng thành công');
-            // Refresh the user list
             const usersResponse = await GetAllUsers(currentPage - 1);
             setUsers(usersResponse.data.result);
             setMeta(usersResponse.data.meta);

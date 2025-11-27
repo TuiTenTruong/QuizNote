@@ -40,7 +40,7 @@ public class FileController {
         boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
 
         if (!isValid) {
-            throw new StorageException("Invalid file exception. only allows " + allowedExtensions.toString());
+            throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
         }
         this.fileService.createDirectory(baseURI + folder);
         String uploadFile = this.fileService.store(file, folder);

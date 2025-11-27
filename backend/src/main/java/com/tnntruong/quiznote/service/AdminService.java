@@ -169,6 +169,7 @@ public class AdminService {
 
                         orders.add(res);
                 }
+
                 ResAdminOrderDTO res = new ResAdminOrderDTO();
                 res.setOrders(orders);
                 res.setTotalOrders(orders.size());

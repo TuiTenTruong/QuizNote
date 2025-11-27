@@ -45,7 +45,6 @@ public class Subject {
     private String description;
 
     @NotNull(message = "Giá không được để trống")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Giá phải lớn hơn hoặc bằng 0")
     private double price;
 
     @Enumerated(EnumType.STRING)

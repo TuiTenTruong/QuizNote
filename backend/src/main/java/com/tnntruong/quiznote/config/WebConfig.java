@@ -16,6 +16,6 @@ public class WebConfig implements WebMvcConfigurer {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         // Cấu hình converter để hỗ trợ cả application/json và application/octet-stream
         converter.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM));
-        converters.add(0, converter); // Thêm vào đầu danh sách để được ưu tiên
+        converters.add(0, converter);
     }
 }

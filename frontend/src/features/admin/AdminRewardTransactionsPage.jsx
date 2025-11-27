@@ -34,7 +34,7 @@ import { useNavigate } from 'react-router-dom';
 import './AdminRewardTransactionsPage.scss';
 import { getAllRewardTransactions, updateTransactionStatus } from '../../services/apiService';
 import axiosInstance from '../../utils/axiosCustomize';
-
+import { toast } from 'react-toastify';
 const AdminRewardTransactionsPage = () => {
     const navigate = useNavigate();
     const [transactions, setTransactions] = useState([]);
@@ -80,15 +80,10 @@ const AdminRewardTransactionsPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch transactions:', error);
-            showAlert('danger', 'Không thể tải danh sách giao dịch');
+            toast.error('Không thể tải danh sách giao dịch');
         } finally {
             setLoading(false);
         }
-    };
-
-    const showAlert = (type, text) => {
-        setAlert({ type, text });
-        setTimeout(() => setAlert(null), 5000);
     };
 
     const filteredTransactions = transactions.filter((transaction) => {
@@ -104,8 +99,6 @@ const AdminRewardTransactionsPage = () => {
         console.log('Match Search:', matchSearch, 'Match Status:', matchStatus);
         return matchSearch && matchStatus;
     });
-    console.log('All Transactions:', transactions);
-    console.log('Filtered Transactions:', filteredTransactions);
     const getStatusBadge = (status) => {
         switch (status) {
             case 'COMPLETED':
@@ -167,14 +160,14 @@ const AdminRewardTransactionsPage = () => {
         try {
             const response = await updateTransactionStatus(selectedTransaction.id, newStatus);
             if (response) {
-                showAlert('success', 'Cập nhật trạng thái thành công!');
+                toast.success('Cập nhật trạng thái thành công!');
                 await fetchTransactions();
                 handleCloseDetail();
             }
         } catch (error) {
             console.error('Error updating status:', error);
             const errorMsg = error.response?.data?.message || 'Không thể cập nhật trạng thái.';
-            showAlert('danger', errorMsg);
+            toast.error(errorMsg);
         } finally {
             setUpdatingStatus(false);
         }
@@ -267,18 +260,6 @@ const AdminRewardTransactionsPage = () => {
                         </div>
                     </Col>
                 </Row>
-
-                {alert && (
-                    <Alert
-                        variant={alert.type}
-                        onClose={() => setAlert(null)}
-                        dismissible
-                        className="mb-3"
-                    >
-                        {alert.text}
-                    </Alert>
-                )}
-
                 <Card className="bg-dark text-light border-0 shadow-sm transactions-table-card">
                     <Card.Body>
                         {/* Filters */}

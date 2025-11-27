@@ -147,13 +147,34 @@ public class SubjectService {
         return this.convertSubjectToDTO(subject);
     }
 
+    public ResSubjectDTO handleGetSubjectByIdAndSeller(long id) throws InvalidException {
+        Optional<Subject> subjectOptional = this.subjectRepository.findById(id);
+        if (subjectOptional.isEmpty()) {
+            throw new InvalidException("subject with id = " + id + " not found");
+        }
+
+        Subject subject = subjectOptional.get();
+
+        // Kiểm tra nếu subject có status DELETED - không cho phép truy cập
+        if (subject.getStatus() == SubjectStatus.DELETED) {
+            throw new InvalidException("subject with id = " + id + " not found");
+        }
+        // Kiểm tra nếu user hiện tại là người bán của subject này
+        User currentUser = this.userService.handleGetCurrentUser();
+        if (currentUser == null || subject.getSeller().getId() != (currentUser.getId())) {
+            throw new InvalidException("You do not have permission to access this subject");
+        }
+
+        return this.convertSubjectToDTO(subject);
+    }
+
     public ResResultPagination handleGetAllSubject(Specification<Subject> spec, Pageable page) {
         // Thêm filter để loại bỏ các subject có status DELETED
-        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> 
-            criteriaBuilder.notEqual(root.get("status"), SubjectStatus.DELETED);
-        
+        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                .notEqual(root.get("status"), SubjectStatus.DELETED);
+
         Specification<Subject> combinedSpec = spec == null ? notDeletedSpec : spec.and(notDeletedSpec);
-        
+
         Page<Subject> subjectPage = this.subjectRepository.findAll(combinedSpec, page);
         List<ResSubjectDTO> subjectList = subjectPage.stream().map((item) -> this.convertSubjectToDTO(item))
                 .collect(Collectors.toList());
@@ -174,12 +195,13 @@ public class SubjectService {
     public ResResultPagination handleGetSubjectBySellerId(long sellerId, Specification<Subject> spec, Pageable page) {
         Specification<Subject> sellerSpec = (root, query, criteriaBuilder) -> criteriaBuilder
                 .equal(root.get("seller").get("id"), sellerId);
-        
+
         // Thêm filter để loại bỏ các subject có status DELETED
-        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> 
-            criteriaBuilder.notEqual(root.get("status"), SubjectStatus.DELETED);
-        
-        Specification<Subject> combinedSpec = spec == null ? sellerSpec.and(notDeletedSpec) : spec.and(sellerSpec).and(notDeletedSpec);
+        Specification<Subject> notDeletedSpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                .notEqual(root.get("status"), SubjectStatus.DELETED);
+
+        Specification<Subject> combinedSpec = spec == null ? sellerSpec.and(notDeletedSpec)
+                : spec.and(sellerSpec).and(notDeletedSpec);
 
         Page<Subject> subjectPage = this.subjectRepository.findAll(combinedSpec, page);
         List<ResSubjectDTO> subjectList = subjectPage.stream()

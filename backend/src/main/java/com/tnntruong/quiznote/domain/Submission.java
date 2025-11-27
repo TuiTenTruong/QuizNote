@@ -37,7 +37,7 @@ public class Submission {
     // @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "exam_id")
     // private Exam exam;
-
+    private Boolean isPractice = false;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id")
     private Subject subject;

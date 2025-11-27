@@ -66,9 +66,8 @@ const SellerQuizzes = () => {
         if (seller?.id) {
             fetchQuizzes();
         }
-    }, [seller?.id]); // Removed filter from here
+    }, [seller?.id]);
 
-    // Client-side filtering
     useEffect(() => {
         let filtered = [...quizList];
 
@@ -289,7 +288,7 @@ const SellerQuizzes = () => {
 
             {/* PAGINATION */}
             {totalPages > 1 && (
-                <div className="d-flex justify-content-center mt-4">
+                <div className="d-flex justify-content-end mt-4 ">
                     <Pagination>
                         <Pagination.Prev
                             onClick={() => handlePageChange(currentPage - 1)}

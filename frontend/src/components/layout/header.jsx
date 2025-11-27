@@ -30,6 +30,12 @@ const Header = () => {
                         <NavLink className='nav-link mx-2 text-white' to="/student/weekly-quiz">Môn học tuần</NavLink>
                         <NavLink className='nav-link mx-2 text-white' to="/rewards">Phần thưởng</NavLink>
                         <NavLink className='nav-link mx-2 text-white' to="/about">Giới thiệu</NavLink>
+                        {account.role && account.role.name === 'SELLER' && (
+                            <NavLink className='nav-link mx-2 text-white' to="/seller">Người bán</NavLink>
+                        )}
+                        {account.role && account.role.name === 'SUPER_ADMIN' && (
+                            <NavLink className='nav-link mx-2 text-white' to="/admin">Quản trị viên</NavLink>
+                        )}
                     </Nav>
                     {!isAuthenticated ? (
                         <><Button as={Link} to="/login" variant="light" className="me-2">Đăng nhập</Button>

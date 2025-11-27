@@ -33,18 +33,7 @@ function CreateQuiz() {
         description: "",
         price: 0,
         questions: [
-            {
-                text: "",
-                type: "ONE_CHOICE",
-                points: 10,
-                imageFile: null,
-                answers: [
-                    { text: "", isCorrect: false },
-                    { text: "", isCorrect: false },
-                    { text: "", isCorrect: false },
-                    { text: "", isCorrect: false },
-                ],
-            },
+
         ],
     });
 
@@ -142,13 +131,10 @@ function CreateQuiz() {
             return false;
         }
         if (quiz.price < 0) {
-            setMessage({ type: 'danger', text: 'Giá phải lớn hơn 0' });
+            setMessage({ type: 'danger', text: 'Giá phải lớn hơn hoặc bằng 0' });
             return false;
         }
-        if (quiz.questions.length === 0) {
-            setMessage({ type: 'danger', text: 'Ít nhất một câu hỏi là bắt buộc' });
-            return false;
-        }
+
 
 
 

@@ -2,6 +2,7 @@ package com.tnntruong.quiznote.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.RewardService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
+import com.tnntruong.quiznote.util.error.StorageException;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
@@ -80,9 +82,16 @@ public class RewardController {
     @ApiMessage("Tạo quà mới thành công")
     public ResponseEntity<ResRewardDTO> createReward(@Valid @RequestPart(name = "reward") ReqCreateRewardDTO dto,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "rewards");
             stored = this.fileService.store(image, "rewards");
         }
@@ -96,9 +105,16 @@ public class RewardController {
     public ResponseEntity<ResRewardDTO> updateReward(@PathVariable long id,
             @Valid @RequestPart("reward") ReqUpdateRewardDTO dto,
             @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException {
+            throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
         if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
             this.fileService.createDirectory(baseURI + "rewards");
             stored = this.fileService.store(image, "rewards");
         }
