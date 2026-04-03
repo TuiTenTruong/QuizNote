@@ -30,8 +30,10 @@ import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class VNPayService {
     private VNPayConfig vnPayConfig;
     private PaymentTransactionRepository paymentRepo;
@@ -164,13 +166,13 @@ public class VNPayService {
     public void handleSuccessfulPayment(String orderInfo, String transactionNo,
             String paymentTime, long totalPrice) throws InvalidException {
 
-        System.out.println("Processing payment - TransactionNo: " + transactionNo);
-        System.out.println("OrderInfo: " + orderInfo);
-        System.out.println("Amount: " + totalPrice);
-        System.out.println("PaymentTime: " + paymentTime);
+        log.info("Processing payment - TransactionNo: " + transactionNo);
+        log.info("OrderInfo: " + orderInfo);
+        log.info("Amount: " + totalPrice);
+        log.info("PaymentTime: " + paymentTime);
 
         if (paymentRepo.existsByTransactionNo(transactionNo)) {
-            System.out.println("Transaction already exists, skip saving...");
+            log.info("Transaction already exists, skip saving...");
             return;
         }
 
@@ -179,23 +181,23 @@ public class VNPayService {
         String subjectIdStr = infoMap.get("subject");
 
         if (buyerIdStr == null || subjectIdStr == null) {
-            System.err.println("Invalid orderInfo format: " + orderInfo);
+            log.error("Invalid orderInfo format: " + orderInfo);
             throw new InvalidException("Invalid order information");
         }
 
         Long buyerId = Long.parseLong(buyerIdStr);
         Long subjectId = Long.parseLong(subjectIdStr);
 
-        System.out.println("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
+        log.info("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
 
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> {
-                    System.err.println("Buyer not found with id: " + buyerId);
+                    log.error("Buyer not found with id: " + buyerId);
                     return new RuntimeException("Buyer not found");
                 });
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> {
-                    System.err.println("Subject not found with id: " + subjectId);
+                    log.error("Subject not found with id: " + subjectId);
                     return new RuntimeException("Subject not found");
                 });
         User seller = subject.getSeller();
@@ -226,20 +228,20 @@ public class VNPayService {
 
         this.purchaseService.handleCreatePurchase(new ReqCreatePurchaseDTO(buyerId, subjectId, seller.getId()));
 
-        System.out.println("Payment saved successfully for order " + orderInfo);
+        log.info("Payment saved successfully for order " + orderInfo);
     }
 
     public void handleFailedPayment(String orderInfo, String transactionNo,
             String paymentTime, long totalPrice, String reason) throws InvalidException {
 
-        System.out.println("Processing failed payment - TransactionNo: " + transactionNo);
-        System.out.println("OrderInfo: " + orderInfo);
-        System.out.println("Amount: " + totalPrice);
-        System.out.println("PaymentTime: " + paymentTime);
-        System.out.println("Reason: " + reason);
+        log.info("Processing failed payment - TransactionNo: " + transactionNo);
+        log.info("OrderInfo: " + orderInfo);
+        log.info("Amount: " + totalPrice);
+        log.info("PaymentTime: " + paymentTime);
+        log.info("Reason: " + reason);
 
         if (paymentRepo.existsByTransactionNo(transactionNo)) {
-            System.out.println("Transaction already exists, skip saving...");
+            log.info("Transaction already exists, skip saving...");
             return;
         }
 
@@ -248,23 +250,23 @@ public class VNPayService {
         String subjectIdStr = infoMap.get("subject");
 
         if (buyerIdStr == null || subjectIdStr == null) {
-            System.err.println("Invalid orderInfo format: " + orderInfo);
+            log.error("Invalid orderInfo format: " + orderInfo);
             throw new InvalidException("Invalid order information");
         }
 
         Long buyerId = Long.parseLong(buyerIdStr);
         Long subjectId = Long.parseLong(subjectIdStr);
 
-        System.out.println("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
+        log.info("   BuyerId: " + buyerId + ", SubjectId: " + subjectId);
 
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> {
-                    System.err.println("Buyer not found with id: " + buyerId);
+                    log.error("Buyer not found with id: " + buyerId);
                     return new RuntimeException("Buyer not found");
                 });
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> {
-                    System.err.println("Subject not found with id: " + subjectId);
+                    log.error("Subject not found with id: " + subjectId);
                     return new RuntimeException("Subject not found");
                 });
         User seller = subject.getSeller();
@@ -282,7 +284,7 @@ public class VNPayService {
         tx.setCreatedAt(Instant.now());
         paymentRepo.save(tx);
 
-        System.out.println("Failed payment saved for order " + orderInfo + " with reason: " + reason);
+        log.info("Failed payment saved for order " + orderInfo + " with reason: " + reason);
     }
 
     private Map<String, String> parseOrderInfo(String orderInfo) {

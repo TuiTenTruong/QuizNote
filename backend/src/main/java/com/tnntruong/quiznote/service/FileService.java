@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class FileService {
     @Value("${quiznote.upload-file.base-uri}")
@@ -26,12 +29,12 @@ public class FileService {
         if (!tmpDir.isDirectory()) {
             try {
                 Files.createDirectory(tmpDir.toPath());
-                System.out.println(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + folder);
+                log.info(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + folder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println(">>> SKIP MAKING DIRECTORY, ALREADY EXISTS");
+            log.info(">>> SKIP MAKING DIRECTORY, ALREADY EXISTS");
         }
     }
 

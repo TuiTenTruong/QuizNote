@@ -17,7 +17,10 @@ import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.util.constant.SubjectStatus;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class PurchaseService {
 
     private PurchaseRepository purchaseRepository;
@@ -32,34 +35,34 @@ public class PurchaseService {
     }
 
     public ResPurchaseDTO handleCreatePurchase(ReqCreatePurchaseDTO dto) throws InvalidException {
-        System.out.println(
-                "📦 Creating purchase - StudentId: " + dto.getStudentId() + ", SubjectId: " + dto.getSubjectId());
+        log.info(
+                "Creating purchase - StudentId: " + dto.getStudentId() + ", SubjectId: " + dto.getSubjectId());
 
         User student = userRepository.findById(dto.getStudentId())
                 .orElseThrow(() -> {
-                    System.err.println("❌ User not found with id: " + dto.getStudentId());
+                    log.error("User not found with id: " + dto.getStudentId());
                     return new InvalidException("User not found");
                 });
 
         Subject subject = subjectRepository.findById(dto.getSubjectId())
                 .orElseThrow(() -> {
-                    System.err.println("❌ Subject not found with id: " + dto.getSubjectId());
+                    log.error("Subject not found with id: " + dto.getSubjectId());
                     return new InvalidException("Subject not found");
                 });
 
         // Kiểm tra nếu subject ở trạng thái DELETED - không cho phép mua
         if (subject.getStatus() == SubjectStatus.DELETED) {
-            System.err.println("Subject is deleted with id: " + dto.getSubjectId());
+            log.error("Subject is deleted with id: " + dto.getSubjectId());
             throw new InvalidException("Subject not found");
         }
 
         User seller = userRepository.findById(dto.getSellerId())
                 .orElseThrow(() -> {
-                    System.err.println("❌ Seller not found with id: " + dto.getSellerId());
+                    log.error("Seller not found with id: " + dto.getSellerId());
                     return new InvalidException("Seller not found");
                 });
         if (purchaseRepository.findByStudentIdAndSubjectId(student.getId(), subject.getId()).isPresent()) {
-            System.out.println("⚠️ User already purchased this subject");
+            log.warn("User already purchased this subject");
             throw new InvalidException("User already purchased this subject");
         }
 
@@ -74,7 +77,7 @@ public class PurchaseService {
         subjectRepository.save(subject);
 
         ResPurchaseDTO result = convertResPurchaseDTO(purchaseRepository.save(purchase));
-        System.out.println("✅ Purchase created successfully");
+        log.info("Purchase created successfully");
         return result;
     }
 

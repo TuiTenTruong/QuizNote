@@ -16,7 +16,6 @@ import com.tnntruong.quiznote.dto.response.Seller.ResOrderDTO;
 import com.tnntruong.quiznote.dto.response.admin.ResAdminAnalyticsDTO;
 import com.tnntruong.quiznote.dto.response.admin.ResAdminOrderDTO;
 import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
-import com.tnntruong.quiznote.repository.PurchaseRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
 

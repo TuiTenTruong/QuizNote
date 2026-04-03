@@ -15,9 +15,11 @@ import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/payments/vnpay")
+@Slf4j
 public class VNPayController {
     private final VNPayService vnPayService;
 
@@ -36,7 +38,7 @@ public class VNPayController {
             HttpServletRequest request) {
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":"
                 + request.getServerPort();
-        System.out.println(baseUrl);
+        log.info(baseUrl);
         String vnpayUrl = vnPayService.createOrder(orderTotal, orderInfo, baseUrl);
         return ResponseEntity.ok(vnpayUrl);
     }
@@ -45,8 +47,7 @@ public class VNPayController {
     public void GetMapping(HttpServletRequest request, HttpServletResponse response, Model model)
             throws IOException {
         try {
-            System.out.println("VNPay callback received");
-
+            log.info("VNPay callback received");
             int paymentStatus = vnPayService.orderReturn(request);
 
             String orderInfo = request.getParameter("vnp_OrderInfo");
@@ -54,10 +55,10 @@ public class VNPayController {
             String transactionId = request.getParameter("vnp_TransactionNo");
             String totalPrice = request.getParameter("vnp_Amount");
 
-            System.out.println("   Payment Status: " + paymentStatus);
-            System.out.println("   Order Info: " + orderInfo);
-            System.out.println("   Transaction ID: " + transactionId);
-            System.out.println("   Amount: " + totalPrice);
+            log.info("   Payment Status: " + paymentStatus);
+            log.info("   Order Info: " + orderInfo);
+            log.info("   Transaction ID: " + transactionId);
+            log.info("   Amount: " + totalPrice);
 
             model.addAttribute("orderId", orderInfo);
             model.addAttribute("totalPrice", totalPrice);
@@ -78,7 +79,7 @@ public class VNPayController {
                         "%s?status=success&orderInfo=%s&transactionNo=%s&amount=%d&paymentTime=%s",
                         frontendUrl, orderInfo, transactionId, amount, paymentTime);
 
-                System.out.println("Payment successful, redirecting to: " + redirectUrl);
+                log.info("Payment successful, redirecting to: " + redirectUrl);
                 response.sendRedirect(redirectUrl);
             } else {
                 // Xử lý payment thất bại - lưu transaction với status FAILED
@@ -91,16 +92,16 @@ public class VNPayController {
                         "%s?status=failed&orderInfo=%s&transactionNo=%s&amount=%d&paymentTime=%s&responseCode=%s",
                         frontendUrl, orderInfo, transactionId, amount, paymentTime, responseCode);
 
-                System.out.println("Payment failed (Code: " + responseCode + "), redirecting to: " + redirectUrl);
+                log.info("Payment failed (Code: " + responseCode + "), redirecting to: " + redirectUrl);
                 response.sendRedirect(redirectUrl);
             }
         } catch (InvalidException e) {
-            System.err.println("InvalidException in payment callback: " + e.getMessage());
+            log.error("InvalidException in payment callback: " + e.getMessage());
             e.printStackTrace();
             String frontendUrl = "http://localhost:5173/student/payment-result";
             response.sendRedirect(frontendUrl + "?status=error&message=" + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Unexpected error in payment callback: " + e.getMessage());
+            log.error("Unexpected error in payment callback: " + e.getMessage());
             e.printStackTrace();
             String frontendUrl = "http://localhost:5173/student/payment-result";
             response.sendRedirect(frontendUrl + "?status=error&message=Unexpected+error");

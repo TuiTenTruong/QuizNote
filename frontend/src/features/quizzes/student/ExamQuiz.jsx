@@ -90,6 +90,7 @@ function ExamQuiz() {
                             setSubmitted(true);
                             sessionStorage.removeItem(STORAGE_KEY);
                             toast.error("Thời gian làm bài đã hết. Bài thi được tính 0 điểm.");
+                            navigate(-1);
                         });
 
                     return;

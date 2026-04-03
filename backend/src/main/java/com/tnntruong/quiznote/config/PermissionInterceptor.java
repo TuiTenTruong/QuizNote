@@ -16,7 +16,9 @@ import com.tnntruong.quiznote.util.error.PermissionException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PermissionInterceptor implements HandlerInterceptor {
     @Autowired
     private UserService userService;
@@ -30,10 +32,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String path = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
-        System.out.println(">>> RUN preHandle");
-        System.out.println(">>> path= " + path);
-        System.out.println(">>> httpMethod= " + httpMethod);
-        System.out.println(">>> requestURI= " + requestURI);
+        log.info(">>> RUN preHandle");
+        log.info(">>> path= " + path);
+        log.info(">>> httpMethod= " + httpMethod);
+        log.info(">>> requestURI= " + requestURI);
 
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true ? SecurityUtil.getCurrentUserLogin().get()
                 : "";

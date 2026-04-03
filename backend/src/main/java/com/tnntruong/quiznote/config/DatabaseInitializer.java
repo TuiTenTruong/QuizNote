@@ -17,6 +17,9 @@ import com.tnntruong.quiznote.repository.RoleRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.util.constant.GenderEnum;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class DatabaseInitializer implements CommandLineRunner {
 
@@ -35,7 +38,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         @Override
         public void run(String... args) throws Exception {
-                System.out.println(">>> START INIT DATABASE");
+                log.info(">>> START INIT DATABASE");
                 long countPermission = this.permissionRepository.count();
                 long countRole = this.roleRepository.count();
                 long countUser = this.userRepository.count();
@@ -314,9 +317,9 @@ public class DatabaseInitializer implements CommandLineRunner {
                 }
 
                 if (countPermission > 0 && countRole > 0 && countUser > 0) {
-                        System.out.println(">>> SKIP INIT DATABASE ~ ALREADY HAS DATA");
+                        log.info(">>> SKIP INIT DATABASE ~ ALREADY HAS DATA");
                 } else {
-                        System.out.println(">>> END INIT DATABASE");
+                        log.info(">>> END INIT DATABASE");
                 }
         }
 }

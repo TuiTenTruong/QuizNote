@@ -26,7 +26,10 @@ import org.springframework.stereotype.Service;
 import com.nimbusds.jose.util.Base64;
 import com.tnntruong.quiznote.dto.response.ResLoginDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class SecurityUtil {
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
     @Value("${quiznote.jwt.base64-secret}")
@@ -99,7 +102,7 @@ public class SecurityUtil {
         try {
             return jwtDecoder.decode(token);
         } catch (Exception e) {
-            System.out.println(">>> Refresh token error: " + e.getMessage());
+            log.error(">>> Refresh token error: " + e.getMessage());
             throw e;
         }
     }

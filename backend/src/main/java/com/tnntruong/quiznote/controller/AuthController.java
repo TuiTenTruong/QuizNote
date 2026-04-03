@@ -28,7 +28,9 @@ import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 public class AuthController {
@@ -77,7 +79,7 @@ public class AuthController {
         // create refesh token
         String refeshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(), res, sessionId);
         res.setRefreshToken(refeshToken);
-        System.out.println("refeshToken: " + refeshToken);
+        log.info("refeshToken: " + refeshToken);
         // update user (bao gồm cả sessionId)
         this.userService.updateUserTokenAndSession(refeshToken, sessionId, loginDto.getUsername());
         // set cookies

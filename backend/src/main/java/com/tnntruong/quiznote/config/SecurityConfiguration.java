@@ -21,6 +21,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -30,9 +32,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
+@Slf4j
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
-public class SecurityConfigaration {
+public class SecurityConfiguration {
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -130,7 +133,7 @@ public class SecurityConfigaration {
             try {
                 return jwtDecoder.decode(token);
             } catch (Exception e) {
-                System.out.println(">>> JWT error: " + e.getMessage());
+                log.error(">>> JWT error: " + e.getMessage());
                 throw e;
             }
         };

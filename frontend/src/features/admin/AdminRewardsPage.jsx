@@ -565,7 +565,6 @@ const AdminRewardsPage = () => {
             >
                 <Modal.Header closeButton className="bg-dark text-light border-0">
                     <Modal.Title>
-                        <FaTimes className="me-2 text-danger" />
                         Xác nhận xóa
                     </Modal.Title>
                 </Modal.Header>
