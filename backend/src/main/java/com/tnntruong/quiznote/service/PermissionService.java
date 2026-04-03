@@ -8,7 +8,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Permission;
+import com.tnntruong.quiznote.dto.request.permission.ReqCreatePermissionDTO;
+import com.tnntruong.quiznote.dto.request.permission.ReqUpdatePermissionDTO;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
+import com.tnntruong.quiznote.dto.response.permission.ResPermissionDTO;
 import com.tnntruong.quiznote.repository.PermissionRepository;
 
 @Service
@@ -19,26 +22,53 @@ public class PermissionService {
         this.permissionRepository = permissionRepository;
     }
 
-    public boolean isPermissionExist(Permission permission) {
-        return this.permissionRepository.existsByApiPathAndMethodAndModule(permission.getApiPath(),
-                permission.getMethod(), permission.getModule());
+    public boolean isPermissionExist(String apiPath, String method, String module) {
+        return this.permissionRepository.existsByApiPathAndMethodAndModule(apiPath, method, module);
     }
 
-    public Permission createPermission(Permission newPermission) {
-        return this.permissionRepository.save(newPermission);
+    public ResPermissionDTO createPermission(ReqCreatePermissionDTO req) {
+        Permission newPermission = new Permission();
+        newPermission.setName(req.getName());
+        newPermission.setApiPath(req.getApiPath());
+        newPermission.setMethod(req.getMethod());
+        newPermission.setModule(req.getModule());
+
+        Permission savedPermission = this.permissionRepository.save(newPermission);
+        return convertPermissionToDTO(savedPermission);
     }
 
-    public Permission updatePermission(Permission permission) {
-        Optional<Permission> curPermission = this.findById(permission.getId());
+    public ResPermissionDTO updatePermission(ReqUpdatePermissionDTO req) {
+        Optional<Permission> curPermission = this.findById(req.getId());
         if (curPermission.isPresent()) {
-            curPermission.get().setName(permission.getName());
-            curPermission.get().setApiPath(permission.getApiPath());
-            curPermission.get().setMethod(permission.getMethod());
-            curPermission.get().setModule(permission.getModule());
+            if (req.getName() != null) {
+                curPermission.get().setName(req.getName());
+            }
+            if (req.getApiPath() != null) {
+                curPermission.get().setApiPath(req.getApiPath());
+            }
+            if (req.getMethod() != null) {
+                curPermission.get().setMethod(req.getMethod());
+            }
+            if (req.getModule() != null) {
+                curPermission.get().setModule(req.getModule());
+            }
 
-            return this.permissionRepository.save(curPermission.get());
+            Permission updatedPermission = this.permissionRepository.save(curPermission.get());
+            return convertPermissionToDTO(updatedPermission);
         }
         return null;
+    }
+
+    private ResPermissionDTO convertPermissionToDTO(Permission permission) {
+        ResPermissionDTO dto = new ResPermissionDTO();
+        dto.setId(permission.getId());
+        dto.setName(permission.getName());
+        dto.setApiPath(permission.getApiPath());
+        dto.setMethod(permission.getMethod());
+        dto.setModule(permission.getModule());
+        dto.setCreatedAt(permission.getCreatedAt());
+        dto.setUpdatedAt(permission.getUpdatedAt());
+        return dto;
     }
 
     public Optional<Permission> findById(long id) {
@@ -56,7 +86,7 @@ public class PermissionService {
         meta.setTotal(permissionPage.getTotalElements());
 
         res.setMeta(meta);
-        res.setResult(permissionPage.getContent());
+        res.setResult(permissionPage.getContent().stream().map(this::convertPermissionToDTO).toList());
 
         return res;
     }

@@ -22,7 +22,7 @@ import com.tnntruong.quiznote.domain.PaymentTransaction;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
-import com.tnntruong.quiznote.dto.request.ReqCreatePurchaseDTO;
+import com.tnntruong.quiznote.dto.request.purchase.ReqCreatePurchaseDTO;
 import com.tnntruong.quiznote.repository.PaymentTransactionRepository;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.SubjectRepository;

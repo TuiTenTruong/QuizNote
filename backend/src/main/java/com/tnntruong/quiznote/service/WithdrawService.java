@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.User;
 import com.tnntruong.quiznote.domain.Withdraw;
-import com.tnntruong.quiznote.dto.request.ReqCreateWithdrawDTO;
+import com.tnntruong.quiznote.dto.request.withdraw.ReqCreateWithdrawDTO;
 import com.tnntruong.quiznote.repository.SellerProfileRepository;
 import com.tnntruong.quiznote.repository.UserRepository;
 import com.tnntruong.quiznote.repository.WithdrawRepository;

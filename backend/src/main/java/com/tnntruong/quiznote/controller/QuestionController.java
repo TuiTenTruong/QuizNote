@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.Question;
-import com.tnntruong.quiznote.dto.request.ReqCreateQuestionDTO;
-import com.tnntruong.quiznote.dto.request.ReqUpdateQuestionDTO;
+import com.tnntruong.quiznote.dto.request.question.ReqCreateQuestionDTO;
+import com.tnntruong.quiznote.dto.request.question.ReqUpdateQuestionDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.QuestionService;
 import com.tnntruong.quiznote.util.error.InvalidException;

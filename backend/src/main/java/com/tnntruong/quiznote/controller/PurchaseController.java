@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tnntruong.quiznote.dto.request.ReqCreatePurchaseDTO;
+import com.tnntruong.quiznote.dto.request.purchase.ReqCreatePurchaseDTO;
 import com.tnntruong.quiznote.service.PurchaseService;
 import com.tnntruong.quiznote.util.error.InvalidException;
 

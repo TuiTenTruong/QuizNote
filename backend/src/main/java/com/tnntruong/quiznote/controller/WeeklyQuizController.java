@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.WeeklyQuiz;
-import com.tnntruong.quiznote.dto.request.ReqWeeklyQuizDTO;
-import com.tnntruong.quiznote.dto.request.ReqWeeklyQuizSubmitDTO;
+import com.tnntruong.quiznote.dto.request.weeklyQuiz.ReqWeeklyQuizDTO;
+import com.tnntruong.quiznote.dto.request.weeklyQuiz.ReqWeeklyQuizSubmitDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.WeeklyQuizService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;

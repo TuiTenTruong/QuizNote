@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.Subject;
+import com.tnntruong.quiznote.dto.request.subject.ReqCreateSubjectDTO;
+import com.tnntruong.quiznote.dto.request.subject.ReqUpdateSubjectDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.SubjectService;
 import com.tnntruong.quiznote.util.error.InvalidException;
@@ -46,7 +48,7 @@ public class SubjectController {
 
     @PostMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     // create subject with image
-    public ResponseEntity<?> createSubject(@Valid @RequestPart("subject") Subject subject,
+    public ResponseEntity<?> createSubject(@Valid @RequestPart("subject") ReqCreateSubjectDTO req,
             @RequestPart(name = "image", required = false) MultipartFile image)
             throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
@@ -62,31 +64,13 @@ public class SubjectController {
             this.fileService.createDirectory(baseURI + "subjects");
             stored = this.fileService.store(image, "subjects");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateSubject(subject, stored));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateSubject(req, stored));
     }
 
     @PostMapping(value = "/subjects/draft", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     // create subject with image
-    public ResponseEntity<?> saveDraftSubject(@Valid @RequestPart("subject") Subject subject,
-            @RequestPart(name = "image", required = false) MultipartFile image)
-            throws InvalidException, URISyntaxException, IOException, StorageException {
-        if (image != null) {
-            String fileName = image.getOriginalFilename();
-            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
-            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
-
-            if (!isValid) {
-                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
-            }
-            this.fileService.createDirectory(baseURI + "subjects");
-            String stored = this.fileService.store(image, "subjects");
-            subject.setImageUrl(stored);
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateDraftSubject(subject));
-    }
-
-    @PutMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> updateSubject(@Valid @RequestPart("subject") Subject subject,
+    public ResponseEntity<?> saveDraftSubject(@Valid @RequestPart("subject") ReqCreateSubjectDTO req,
             @RequestPart(name = "image", required = false) MultipartFile image)
             throws InvalidException, URISyntaxException, IOException, StorageException {
         String stored = null;
@@ -101,7 +85,28 @@ public class SubjectController {
             this.fileService.createDirectory(baseURI + "subjects");
             stored = this.fileService.store(image, "subjects");
         }
-        return ResponseEntity.ok(this.subjectService.handleUpdateSubject(subject, stored));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.subjectService.handleCreateDraftSubject(req));
+    }
+
+    @PutMapping(value = "/subjects", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> updateSubject(@Valid @RequestPart("subject") ReqUpdateSubjectDTO req,
+            @RequestPart(name = "image", required = false) MultipartFile image)
+            throws InvalidException, URISyntaxException, IOException, StorageException {
+        String stored = null;
+        if (image != null) {
+            String fileName = image.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png");
+            boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item));
+
+            if (!isValid) {
+                throw new StorageException("File không hợp lệ. Chỉ cho phép  " + allowedExtensions.toString());
+            }
+            this.fileService.createDirectory(baseURI + "subjects");
+            stored = this.fileService.store(image, "subjects");
+        }
+
+        return ResponseEntity.ok(this.subjectService.handleUpdateSubject(req, stored));
     }
 
     @DeleteMapping("/subjects/{id}")

@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import com.tnntruong.quiznote.domain.Role;
 import com.tnntruong.quiznote.domain.SellerProfile;
 import com.tnntruong.quiznote.domain.User;
-import com.tnntruong.quiznote.dto.request.ReqChangeStatusUserDTO;
+import com.tnntruong.quiznote.dto.request.admin.ReqChangeStatusUserDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqCreateUserDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqUpdateUserDTO;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.user.ResCreateUserDTO;
 import com.tnntruong.quiznote.dto.response.user.ResGetUserDTO;
@@ -68,13 +70,22 @@ public class UserService {
         return this.userRepository.existsByEmail(email);
     }
 
-    public ResCreateUserDTO handleCreateUser(User user, String fileUrl) {
-        return handleCreateUser(user, fileUrl, null, null);
+    public ResCreateUserDTO handleCreateUser(ReqCreateUserDTO req, String fileUrl) {
+        return handleCreateUser(req, fileUrl, req.getBankName(), req.getBankAccount());
     }
 
-    public ResCreateUserDTO handleCreateUser(User user, String fileUrl, String bankName, String bankAccount) {
-        if (user.getRole() != null) {
-            Optional<Role> role = this.roleService.findById(user.getRole().getId());
+    public ResCreateUserDTO handleCreateUser(ReqCreateUserDTO req, String fileUrl, String bankName,
+            String bankAccount) {
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setPassword(req.getPassword());
+        user.setGender(req.getGender());
+        user.setAge(req.getAge());
+        user.setAddress(req.getAddress());
+
+        if (req.getRoleId() != null) {
+            Optional<Role> role = this.roleService.findById(req.getRoleId());
             user.setRole(role.isPresent() ? role.get() : null);
         }
         if (fileUrl != null) {
@@ -106,20 +117,30 @@ public class UserService {
         return res;
     }
 
-    public ResUpdateUserDTO handleUpdateUser(User user) throws InvalidException {
-        Optional<User> userOptional = this.userRepository.findById(user.getId());
+    public ResUpdateUserDTO handleUpdateUser(ReqUpdateUserDTO req) throws InvalidException {
+        Optional<User> userOptional = this.userRepository.findById(req.getId());
         if (userOptional.isEmpty()) {
-            throw new InvalidException("User with id = " + user.getId() + " not found");
+            throw new InvalidException("User with id = " + req.getId() + " not found");
         }
         User currentUser = userOptional.get();
         if (currentUser != null) {
-            currentUser.setName(user.getName());
-            currentUser.setAge(user.getAge());
-            currentUser.setAddress(user.getAddress());
-            currentUser.setGender(user.getGender());
-            currentUser.setAvatarUrl(user.getAvatarUrl());
-            if (user.getRole() != null) {
-                Optional<Role> role = this.roleService.findById(user.getRole().getId());
+            if (req.getName() != null) {
+                currentUser.setName(req.getName());
+            }
+            if (req.getAge() > 0) {
+                currentUser.setAge(req.getAge());
+            }
+            if (req.getAddress() != null) {
+                currentUser.setAddress(req.getAddress());
+            }
+            if (req.getGender() != null) {
+                currentUser.setGender(req.getGender());
+            }
+            if (req.getAvatarUrl() != null) {
+                currentUser.setAvatarUrl(req.getAvatarUrl());
+            }
+            if (req.getRoleId() != null) {
+                Optional<Role> role = this.roleService.findById(req.getRoleId());
                 currentUser.setRole(role.isPresent() ? role.get() : null);
             }
             User savedUser = this.userRepository.save(currentUser);
@@ -232,7 +253,8 @@ public class UserService {
     }
 
     public User handleGetUserByUsername(String email) {
-        return this.userRepository.findByEmail(email);
+        return this.userRepository.findByEmailWithRolePermissions(email)
+                .orElse(this.userRepository.findByEmail(email));
     }
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
@@ -246,7 +268,7 @@ public class UserService {
             this.userRepository.save(currentUser);
         }
     }
-    
+
     public void updateUserTokenAndSession(String token, String sessionId, String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if (currentUser != null) {
@@ -255,7 +277,7 @@ public class UserService {
             this.userRepository.save(currentUser);
         }
     }
-    
+
     public Optional<User> handleGetUserByEmail(String email) {
         User user = this.userRepository.findByEmail(email);
         return Optional.ofNullable(user);

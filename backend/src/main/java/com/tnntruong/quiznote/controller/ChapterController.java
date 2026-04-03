@@ -2,8 +2,8 @@ package com.tnntruong.quiznote.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tnntruong.quiznote.dto.request.ReqCreateChapterDTO;
-import com.tnntruong.quiznote.dto.request.ReqUpdateChapterDTO;
+import com.tnntruong.quiznote.dto.request.chapter.ReqCreateChapterDTO;
+import com.tnntruong.quiznote.dto.request.chapter.ReqUpdateChapterDTO;
 import com.tnntruong.quiznote.service.ChapterService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;

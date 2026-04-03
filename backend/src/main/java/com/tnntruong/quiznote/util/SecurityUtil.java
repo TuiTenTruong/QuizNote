@@ -24,7 +24,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 
 import com.nimbusds.jose.util.Base64;
-import com.tnntruong.quiznote.dto.response.ResLoginDTO;
+import com.tnntruong.quiznote.dto.response.auth.ResLoginDTO;
 
 import lombok.extern.slf4j.Slf4j;
 

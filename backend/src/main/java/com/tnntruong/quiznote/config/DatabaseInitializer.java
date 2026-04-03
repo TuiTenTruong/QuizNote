@@ -3,6 +3,7 @@ package com.tnntruong.quiznote.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.CommandLineRunner;
@@ -166,9 +167,9 @@ public class DatabaseInitializer implements CommandLineRunner {
                         // ADMINS module
                         arr.add(new Permission("get admin analysis", "/api/v1/admin/analysis", "GET", "ADMINS"));
                         arr.add(new Permission("change status user", "/api/v1/users/changeStatus", "POST", "ADMINS"));
-                        arr.add(new Permission("approve subject", "api/v1/subjects/{subjectId}/approve", "PUT",
+                        arr.add(new Permission("approve subject", "/api/v1/subjects/{subjectId}/approve", "PUT",
                                         "SUBJECTS"));
-                        arr.add(new Permission("reject subject", "api/v1/subjects/{subjectId}/reject", "PUT",
+                        arr.add(new Permission("reject subject", "/api/v1/subjects/{subjectId}/reject", "PUT",
                                         "SUBJECTS"));
                         arr.add(new Permission("Get demo subjects", "/api/v1/subjects/demo", "GET", "SUBJECTS"));
                         arr.add(new Permission("create draft subject", "/api/v1/subjects/draft", "POST", "SUBJECTS"));
@@ -316,10 +317,96 @@ public class DatabaseInitializer implements CommandLineRunner {
                         this.userRepository.save(sellerUser);
                 }
 
+                ensureWeeklyQuizPermissionsAndRoleMappings();
+
                 if (countPermission > 0 && countRole > 0 && countUser > 0) {
                         log.info(">>> SKIP INIT DATABASE ~ ALREADY HAS DATA");
                 } else {
                         log.info(">>> END INIT DATABASE");
+                }
+        }
+
+        private void ensureWeeklyQuizPermissionsAndRoleMappings() {
+                List<Permission> weeklyPermissions = new ArrayList<>();
+                weeklyPermissions.add(
+                                getOrCreatePermission("create weekly quizzes", "/api/v1/admin/weekly-quizzes", "POST",
+                                                "WEEKLY_QUIZZES"));
+                weeklyPermissions.add(getOrCreatePermission("update weekly quizzes by quizId",
+                                "/api/v1/admin/weekly-quizzes/{id}",
+                                "PUT", "WEEKLY_QUIZZES"));
+                weeklyPermissions.add(getOrCreatePermission("Delete weekly quiz by quizId",
+                                "/api/v1/admin/weekly-quizzes/{id}",
+                                "DELETE", "WEEKLY_QUIZZES"));
+                weeklyPermissions
+                                .add(getOrCreatePermission("get all weekly quiz", "/api/v1/admin/weekly-quizzes", "GET",
+                                                "WEEKLY_QUIZZES"));
+                weeklyPermissions.add(
+                                getOrCreatePermission("get weekly quiz detail", "/api/v1/admin/weekly-quizzes/{id}",
+                                                "GET", "WEEKLY_QUIZZES"));
+                Permission currentWeeklyQuiz = getOrCreatePermission("get current weekly quiz",
+                                "/api/v1/weekly-quiz/current",
+                                "GET", "WEEKLY_QUIZZES");
+                Permission weeklyQuizStatus = getOrCreatePermission("get weekly quiz status",
+                                "/api/v1/weekly-quiz/{id}/status",
+                                "GET", "WEEKLY_QUIZZES");
+                Permission submitWeeklyQuiz = getOrCreatePermission("submit weekly quiz ", "/api/v1/weekly-quiz/submit",
+                                "POST",
+                                "WEEKLY_QUIZZES");
+
+                weeklyPermissions.add(currentWeeklyQuiz);
+                weeklyPermissions.add(weeklyQuizStatus);
+                weeklyPermissions.add(submitWeeklyQuiz);
+
+                Optional<Role> adminRoleOptional = this.roleRepository.findByNameWithPermissions("SUPER_ADMIN");
+                if (adminRoleOptional.isPresent()) {
+                        attachPermissionsIfMissing(adminRoleOptional.get(), weeklyPermissions);
+                }
+
+                Optional<Role> studentRoleOptional = this.roleRepository.findByNameWithPermissions("STUDENT");
+                if (studentRoleOptional.isPresent()) {
+                        attachPermissionsIfMissing(studentRoleOptional.get(),
+                                        Arrays.asList(currentWeeklyQuiz, weeklyQuizStatus, submitWeeklyQuiz));
+                }
+        }
+
+        private Permission getOrCreatePermission(String name, String apiPath, String method, String module) {
+                Optional<Permission> existing = this.permissionRepository.findByApiPathAndMethod(apiPath, method);
+                if (existing.isPresent()) {
+                        Permission p = existing.get();
+                        boolean changed = false;
+                        if (!name.equals(p.getName())) {
+                                p.setName(name);
+                                changed = true;
+                        }
+                        if (!module.equals(p.getModule())) {
+                                p.setModule(module);
+                                changed = true;
+                        }
+                        return changed ? this.permissionRepository.save(p) : p;
+                }
+
+                Permission permission = new Permission(name, apiPath, method, module);
+                return this.permissionRepository.save(permission);
+        }
+
+        private void attachPermissionsIfMissing(Role role, List<Permission> permissionsToAttach) {
+                List<Permission> rolePermissions = role.getPermissions() != null
+                                ? new ArrayList<>(role.getPermissions())
+                                : new ArrayList<>();
+
+                boolean changed = false;
+                for (Permission permission : permissionsToAttach) {
+                        boolean exists = rolePermissions.stream().anyMatch(p -> p.getId() == permission.getId());
+                        if (!exists) {
+                                rolePermissions.add(permission);
+                                changed = true;
+                        }
+                }
+
+                if (changed) {
+                        role.setPermissions(rolePermissions);
+                        this.roleRepository.save(role);
+                        log.info(">>> UPDATED WEEKLY_QUIZZES permissions for role {}", role.getName());
                 }
         }
 }

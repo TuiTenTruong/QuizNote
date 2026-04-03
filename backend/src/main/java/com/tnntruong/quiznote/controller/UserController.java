@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tnntruong.quiznote.domain.User;
-import com.tnntruong.quiznote.dto.request.ReqChangePasswordDTO;
-import com.tnntruong.quiznote.dto.request.ReqChangeStatusUserDTO;
-import com.tnntruong.quiznote.dto.request.ReqUpdateProfileDTO;
+import com.tnntruong.quiznote.dto.request.admin.ReqChangeStatusUserDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqChangePasswordDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqCreateUserDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqUpdateProfileDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqUpdateUserDTO;
 import com.tnntruong.quiznote.service.FileService;
 import com.tnntruong.quiznote.service.UserService;
 import com.tnntruong.quiznote.util.SecurityUtil;
@@ -55,15 +57,15 @@ public class UserController {
 
     @PostMapping("/users")
     @ApiMessage("User created successfully")
-    public ResponseEntity<?> postCreateUser(@RequestBody @Valid User newUser)
+    public ResponseEntity<?> postCreateUser(@RequestBody @Valid ReqCreateUserDTO req)
             throws InvalidException, URISyntaxException {
-        boolean isEmailExist = this.userService.isEmailExist(newUser.getEmail());
+        boolean isEmailExist = this.userService.isEmailExist(req.getEmail());
         if (isEmailExist) {
             throw new InvalidException("email has exist");
         }
-        String hashPassword = passwordEncoder.encode(newUser.getPassword());
-        newUser.setPassword(hashPassword);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(newUser, null));
+
+        req.setPassword(passwordEncoder.encode(req.getPassword()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(req, null));
     }
 
     @PostMapping(value = "/users/{email}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -85,15 +87,22 @@ public class UserController {
         }
         this.fileService.createDirectory(baseURI + "/users");
         String stored = this.fileService.store(file, "/users"); // có thể là relative path hoặc filename
-        updateUser.setAvatarUrl(stored);
+        ReqUpdateUserDTO req = new ReqUpdateUserDTO();
+        req.setId(updateUser.getId());
+        req.setName(updateUser.getName());
+        req.setAge(updateUser.getAge());
+        req.setAddress(updateUser.getAddress());
+        req.setGender(updateUser.getGender());
+        req.setAvatarUrl(stored);
+        req.setRoleId(updateUser.getRole() != null ? updateUser.getRole().getId() : null);
 
-        return ResponseEntity.ok().body(this.userService.handleUpdateUser(updateUser));
+        return ResponseEntity.ok().body(this.userService.handleUpdateUser(req));
     }
 
     @PutMapping("/users")
     @ApiMessage("User updated successfully")
-    public ResponseEntity<?> putUpdateUser(@RequestBody User updateUser) throws InvalidException {
-        return ResponseEntity.ok().body(this.userService.handleUpdateUser(updateUser));
+    public ResponseEntity<?> putUpdateUser(@RequestBody @Valid ReqUpdateUserDTO req) throws InvalidException {
+        return ResponseEntity.ok().body(this.userService.handleUpdateUser(req));
     }
 
     @DeleteMapping("/users/{id}")

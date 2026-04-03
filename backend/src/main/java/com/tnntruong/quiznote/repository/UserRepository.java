@@ -15,6 +15,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     User findByEmail(String email);
 
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.email = :email")
+    java.util.Optional<User> findByEmailWithRolePermissions(@Param("email") String email);
+
     User findByRefreshTokenAndEmail(String token, String email);
 
     @Query("SELECT count(u) FROM User u WHERE u.createdAt >= :startDate")

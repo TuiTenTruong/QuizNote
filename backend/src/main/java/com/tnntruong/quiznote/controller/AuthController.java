@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.User;
-import com.tnntruong.quiznote.dto.request.ReqLoginDTO;
-import com.tnntruong.quiznote.dto.request.ReqRegisterDTO;
-import com.tnntruong.quiznote.dto.response.ResLoginDTO;
+import com.tnntruong.quiznote.domain.Role;
+import com.tnntruong.quiznote.dto.request.auth.ReqLoginDTO;
+import com.tnntruong.quiznote.dto.request.auth.ReqRegisterDTO;
+import com.tnntruong.quiznote.dto.request.user.ReqCreateUserDTO;
+import com.tnntruong.quiznote.dto.response.auth.ResLoginDTO;
 import com.tnntruong.quiznote.service.UserService;
 import com.tnntruong.quiznote.util.SecurityUtil;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
@@ -185,26 +187,23 @@ public class AuthController {
             throw new InvalidException("Email đã tồn tại");
         }
 
-        // Convert DTO to User entity
-        User newUser = new User();
-        newUser.setName(registerDTO.getName());
-        newUser.setEmail(registerDTO.getEmail());
-        newUser.setGender(registerDTO.getGender());
+        ReqCreateUserDTO req = new ReqCreateUserDTO();
+        req.setName(registerDTO.getName());
+        req.setEmail(registerDTO.getEmail());
+        req.setGender(registerDTO.getGender());
+        req.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+        req.setBankName(registerDTO.getBankName());
+        req.setBankAccount(registerDTO.getBankAccount());
 
-        // ma hoa password
-        String encodedPassword = passwordEncoder.encode(registerDTO.getPassword());
-        newUser.setPassword(encodedPassword);
-
-        // Set role based on registration type
         if ("SELLER".equalsIgnoreCase(registerDTO.getRole())) {
-            newUser.setRole(this.userService.getRoleByName("SELLER"));
+            Role sellerRole = this.userService.getRoleByName("SELLER");
+            req.setRoleId(sellerRole != null ? sellerRole.getId() : null);
         } else {
-            newUser.setRole(this.userService.getDefaultRole());
+            Role defaultRole = this.userService.getDefaultRole();
+            req.setRoleId(defaultRole != null ? defaultRole.getId() : null);
         }
 
-        // Create user with seller profile if needed
-        this.userService.handleCreateUser(newUser, null, registerDTO.getBankName(), registerDTO.getBankAccount());
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(req, null));
     }
 
 }

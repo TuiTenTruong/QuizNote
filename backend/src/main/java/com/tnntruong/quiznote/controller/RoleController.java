@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.Role;
+import com.tnntruong.quiznote.dto.request.role.ReqCreateRoleDTO;
+import com.tnntruong.quiznote.dto.request.role.ReqUpdateRoleDTO;
 import com.tnntruong.quiznote.service.RoleService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;
@@ -34,22 +36,24 @@ public class RoleController {
 
     @PostMapping("/roles")
     @ApiMessage("create a role")
-    public ResponseEntity<?> createRole(@Valid @RequestBody Role newRole) throws InvalidException {
-        boolean isExist = this.roleService.isExistByName(newRole.getName());
+    public ResponseEntity<?> createRole(@Valid @RequestBody ReqCreateRoleDTO req) throws InvalidException {
+        boolean isExist = this.roleService.isExistByName(req.getName());
         if (isExist) {
-            throw new InvalidException("role with name = " + newRole.getName() + " exist");
+            throw new InvalidException("role with name = " + req.getName() + " exist");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.createRole(newRole));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.createRole(req));
     }
 
     @PutMapping("/roles")
     @ApiMessage("update a role")
-    public ResponseEntity<?> updateRole(@Valid @RequestBody Role newRole) throws InvalidException {
-        Optional<Role> roleOptional = this.roleService.findById(newRole.getId());
+    public ResponseEntity<?> updateRole(@Valid @RequestBody ReqUpdateRoleDTO req) throws InvalidException {
+        Optional<Role> roleOptional = this.roleService.findById(req.getId());
         if (roleOptional.isEmpty()) {
-            throw new InvalidException("role with id = " + newRole.getId() + "does not exist");
+            throw new InvalidException("role with id = " + req.getId() + "does not exist");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.updateRole(newRole));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.updateRole(req));
     }
 
     @GetMapping("/roles")

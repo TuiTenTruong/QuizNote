@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tnntruong.quiznote.domain.Comment;
-import com.tnntruong.quiznote.dto.request.ReqCreateCommentDTO;
-import com.tnntruong.quiznote.dto.response.ResCommentDTO;
+import com.tnntruong.quiznote.dto.request.comment.ReqCreateCommentDTO;
+import com.tnntruong.quiznote.dto.response.comment.ResCommentDTO;
 import com.tnntruong.quiznote.service.CommentService;
 import com.tnntruong.quiznote.util.error.InvalidException;
 import com.turkraft.springfilter.boot.Filter;

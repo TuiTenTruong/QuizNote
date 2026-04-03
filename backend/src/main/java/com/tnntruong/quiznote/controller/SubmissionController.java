@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tnntruong.quiznote.dto.request.ReqStartSubmissionDTO;
-import com.tnntruong.quiznote.dto.request.ReqSubmitAnswerDTO;
+import com.tnntruong.quiznote.dto.request.submission.ReqStartSubmissionDTO;
+import com.tnntruong.quiznote.dto.request.submission.ReqSubmitAnswerDTO;
 import com.tnntruong.quiznote.service.SubmissionService;
 import com.tnntruong.quiznote.util.annotation.ApiMessage;
 import com.tnntruong.quiznote.util.error.InvalidException;

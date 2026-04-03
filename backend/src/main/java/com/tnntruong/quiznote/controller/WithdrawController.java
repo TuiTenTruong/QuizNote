@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tnntruong.quiznote.dto.request.ReqCreateWithdrawDTO;
+import com.tnntruong.quiznote.dto.request.withdraw.ReqCreateWithdrawDTO;
 import com.tnntruong.quiznote.service.WithdrawService;
 import com.tnntruong.quiznote.util.error.InvalidException;
 

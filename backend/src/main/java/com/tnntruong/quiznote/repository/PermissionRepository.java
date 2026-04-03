@@ -1,6 +1,7 @@
 package com.tnntruong.quiznote.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,4 +14,6 @@ public interface PermissionRepository extends JpaRepository<Permission, Long>, J
     boolean existsByApiPathAndMethodAndModule(String apiPath, String method, String module);
 
     List<Permission> findByIdIn(List<Long> id);
+
+    Optional<Permission> findByApiPathAndMethod(String apiPath, String method);
 }

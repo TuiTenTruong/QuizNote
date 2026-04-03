@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.tnntruong.quiznote.domain.Subject;
 import com.tnntruong.quiznote.domain.User;
+import com.tnntruong.quiznote.dto.request.subject.ReqCreateSubjectDTO;
+import com.tnntruong.quiznote.dto.request.subject.ReqUpdateSubjectDTO;
 import com.tnntruong.quiznote.dto.response.ResResultPagination;
 import com.tnntruong.quiznote.dto.response.subject.ResSubjectDTO;
 import com.tnntruong.quiznote.repository.SubjectRepository;
@@ -33,11 +35,15 @@ public class SubjectService {
         this.purchaseRepository = purchaseRepository;
     }
 
-    public ResSubjectDTO handleCreateSubject(Subject subject, String fileUrl) throws InvalidException {
+    public ResSubjectDTO handleCreateSubject(ReqCreateSubjectDTO req, String fileUrl) throws InvalidException {
         User currentUser = this.userService.handleGetCurrentUser();
         if (currentUser == null) {
             throw new InvalidException("user create subject invalid");
         }
+        Subject subject = new Subject();
+        subject.setName(req.getName());
+        subject.setDescription(req.getDescription());
+        subject.setPrice(req.getPrice());
         subject.setSeller(currentUser);
         Subject savedSubject = this.subjectRepository.save(subject);
         if (fileUrl != null) {
@@ -48,32 +54,41 @@ public class SubjectService {
         return this.convertSubjectToDTO(savedSubject);
     }
 
-    public ResSubjectDTO handleCreateDraftSubject(Subject subject) throws InvalidException {
+    public ResSubjectDTO handleCreateDraftSubject(ReqCreateSubjectDTO req) throws InvalidException {
         User currentUser = this.userService.handleGetCurrentUser();
         if (currentUser == null) {
             throw new InvalidException("user create subject invalid");
         }
+        Subject subject = new Subject();
+        subject.setName(req.getName());
+        subject.setDescription(req.getDescription());
+        subject.setPrice(req.getPrice());
         subject.setSeller(currentUser);
         subject.setStatus(SubjectStatus.DRAFT);
         Subject savedSubject = this.subjectRepository.save(subject);
         return this.convertSubjectToDTO(savedSubject);
     }
 
-    public ResSubjectDTO handleUpdateSubject(Subject subject, String fileUrl) throws InvalidException {
-        if (subject.getId() == null) {
+    public ResSubjectDTO handleUpdateSubject(ReqUpdateSubjectDTO req, String fileUrl) throws InvalidException {
+        if (req.getId() == null) {
             throw new InvalidException("must have subject id");
         }
-        Optional<Subject> subjectOptional = this.subjectRepository.findById(subject.getId());
+        Optional<Subject> subjectOptional = this.subjectRepository.findById(req.getId());
         if (subjectOptional.isEmpty()) {
-            throw new InvalidException("subject with id = " + subject.getId() + " not found");
+            throw new InvalidException("subject with id = " + req.getId() + " not found");
         }
+        Subject subject = new Subject();
+        subject.setId(req.getId());
+        subject.setName(req.getName());
+        subject.setDescription(req.getDescription());
+        subject.setPrice(req.getPrice() != null ? req.getPrice() : -1);
         if (fileUrl != null) {
             subject.setImageUrl(fileUrl);
         }
         Subject currentSubject = subjectOptional.get();
         currentSubject.setName(subject.getName() != null ? subject.getName() : currentSubject.getName());
         currentSubject.setPrice(subject.getPrice() >= 0 ? subject.getPrice() : currentSubject.getPrice());
-        currentSubject.setStatus(subject.getStatus() != null ? subject.getStatus() : currentSubject.getStatus());
+        currentSubject.setStatus(currentSubject.getStatus());
         currentSubject.setDescription(
                 subject.getDescription() != null ? subject.getDescription() : currentSubject.getDescription());
         currentSubject.setImageUrl(
