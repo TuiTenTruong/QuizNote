@@ -309,6 +309,7 @@ const AdminRolesPermissionsPage = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {console.log(roles)}
                                         {roles && roles.length > 0 ? (
                                             roles.map((role) => (
                                                 <tr key={role.id}>
