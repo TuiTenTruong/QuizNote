@@ -3,6 +3,7 @@ import { FaStar } from "react-icons/fa6";
 import axiosInstance from '../../utils/axiosCustomize';
 import { Link } from "react-router-dom";
 import { ISubject } from "../../types";
+import styles from "./ExploreQuizCategories.module.scss";
 
 interface IProps {
     subjects: ISubject[];
@@ -16,7 +17,7 @@ const ExploreQuizCategories: React.FC<IProps> = ({ subjects, isLoading }) => {
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
     if (isLoading) return <div>Đang tải môn học...</div>;
     return <>
-        <section className="quiz-categories text-light py-5">
+        <section className={`${styles.quizCategories} text-light py-5`}>
             <Container>
                 <h2 className="fw-bold mb-3 text-start text-sm-center">
                     Khám phá <span className="text-gradient">môn học</span>
@@ -30,7 +31,7 @@ const ExploreQuizCategories: React.FC<IProps> = ({ subjects, isLoading }) => {
                     {subjects && subjects.length > 0 && subjects.map((category) => (
 
                         <div key={category.id} className="col-12 col-md-6 col-lg-4">
-                            <div className="category-card p-4 rounded-4 h-100 position-relative">
+                            <div className={`${styles.categoryCard} p-4 rounded-4 h-100 position-relative`}>
                                 {category.imageUrl && (
                                     <div
                                         className="icon-box d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"

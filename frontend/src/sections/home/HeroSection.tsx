@@ -1,11 +1,13 @@
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import styles from "./HeroSection.module.scss";
+
 const HeroSection = () => {
     const navigate = useNavigate();
     return (
         <>
-            <div className="hero-section text-center text-light py-5" >
-                <Container className="hero-section-container align-content-center">
+            <div className={`${styles.heroSection} text-center text-light py-5`}>
+                <Container className={`${styles.heroSectionContainer} align-content-center`}>
 
                     <h1 className="display-4 fw-bold mb-4 text-start text-sm-center w-xs-50 w-sm-100">
                         Study, Quiz, <span className="text-gradient">Succeed</span>
@@ -17,7 +19,7 @@ const HeroSection = () => {
                     </p>
 
                     <div className="d-sm-flex justify-content-center gap-3 mb-5 mt-5">
-                        <div className="w-sm-100 mb-3"><Button onClick={() => navigate('/student')} variant="primary" className="px-4 py-2 w-100 btn-gradient">Bắt đầu</Button></div>
+                        <div className="w-sm-100 mb-3"><Button onClick={() => navigate('/student')} variant="primary" className={`px-4 py-2 w-100 ${styles.btnGradient}`}>Bắt đầu</Button></div>
                         <div className="w-sm-100 mb-3"><Button onClick={() => navigate('/student')} variant="outline-light" className="px-4 py-2 w-100">Khám phá</Button></div>
                     </div>
                 </Container>

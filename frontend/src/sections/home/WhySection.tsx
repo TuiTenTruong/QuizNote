@@ -2,6 +2,8 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 import { FaBrain, FaGift, FaChalkboardTeacher, FaChartLine, FaTrophy, FaMobileAlt } from "react-icons/fa";
 import ColorImage from '../../assets/images/undraw_questions_g2px.svg'
 import { Link } from "react-router-dom";
+import styles from "./WhySection.module.scss";
+
 const features = [
     {
         icon: <FaBrain />,
@@ -43,7 +45,7 @@ const features = [
 
 const WhySection = () => {
     return (
-        <section className="why-section text-light py-5">
+        <section className={`${styles.whySection} text-light py-5`}>
             <Container>
                 <div className="text-center mb-4">
                     <h2 className="fw-bold mb-2">
@@ -57,9 +59,9 @@ const WhySection = () => {
                 <Row className="g-3">
                     {features.map((item, index) => (
                         <Col key={index} xs={6} lg={4}>
-                            <div className="feature-card p-4 rounded-4 h-100">
+                            <div className={`${styles.featureCard} p-4 rounded-4 h-100`}>
                                 <div
-                                    className="icon-box d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                                    className={`${styles.iconBox} d-inline-flex align-items-center justify-content-center mb-3 rounded-circle`}
                                     style={{ backgroundColor: item.color + "20", color: item.color }}
                                 >
                                     {item.icon}
@@ -70,8 +72,8 @@ const WhySection = () => {
                         </Col>
                     ))}
                 </Row>
-                <div className="box-container mt-5 mx-auto w-100 d-block d-sm-flex">
-                    <div className="left-box w-100">
+                <div className={`${styles.boxContainer} mt-5 mx-auto w-100 d-block d-sm-flex`}>
+                    <div className={`${styles.leftBox} w-100`}>
                         <h2 className="text-white">
                             Sẵn sàng bắt đầu hành trình Quiz của bạn?
                         </h2>
@@ -79,11 +81,11 @@ const WhySection = () => {
                             Tham gia cùng hàng ngàn học sinh và giáo viên. Đăng ký ngay hôm nay để truy cập tất cả các tính năng
                         </p>
                         <div className="d-sm-flex">
-                            <Button as={Link as any} to="/register" className="create-button btn btn-light w-100 m-1">Tạo tài khoản</Button>
-                            <Button as={Link as any} to="/student" className="create-button btn w-100 btn-outline-gradient m-1">Khám phá</Button>
+                            <Button as={Link as any} to="/register" className={`${styles.createButton} btn btn-light w-100 m-1`}>Tạo tài khoản</Button>
+                            <Button as={Link as any} to="/student" className={`${styles.createButton} ${styles.btnOutlineGradient} btn w-100 m-1`}>Khám phá</Button>
                         </div>
                     </div>
-                    <div className="demo_image w-100">
+                    <div className={`${styles.demoImage} w-100`}>
                         <img src={ColorImage} alt="" />
                     </div>
                 </div>

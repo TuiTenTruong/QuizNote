@@ -1,0 +1,11 @@
+// QuizNote Styles Index
+// Import this file in your main application file to use all styles
+
+// 1. Variables - Always import first
+@use './variables';
+
+// 2. Mixins - Import after variables
+@use './mixins';
+
+// 3. Utilities - Import last
+@use './utilities';
