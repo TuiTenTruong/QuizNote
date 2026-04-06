@@ -56,8 +56,8 @@ instance.interceptors.request.use(
 );
 
 instance.interceptors.response.use(
-    (response: AxiosResponse<IApiResponse<unknown>>): AxiosResponse<IApiResponse<unknown>> => {
-        return response;
+    (response: AxiosResponse): AxiosResponse['data'] => {
+        return response.data;
     },
     async (error: AxiosError<IApiResponse<unknown>>): Promise<unknown> => {
         const errorData = error?.response?.data;

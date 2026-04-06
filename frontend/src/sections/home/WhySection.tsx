@@ -1,6 +1,5 @@
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { FaBrain, FaGift, FaChalkboardTeacher, FaChartLine, FaTrophy, FaMobileAlt } from "react-icons/fa";
-import "./HomePage.scss";
 import ColorImage from '../../assets/images/undraw_questions_g2px.svg'
 import { Link } from "react-router-dom";
 const features = [
@@ -80,8 +79,8 @@ const WhySection = () => {
                             Tham gia cùng hàng ngàn học sinh và giáo viên. Đăng ký ngay hôm nay để truy cập tất cả các tính năng
                         </p>
                         <div className="d-sm-flex">
-                            <Button as={Link} to="/register" className="create-button btn btn-light w-100 m-1">Tạo tài khoản</Button>
-                            <Button as={Link} to="/student" className="create-button btn w-100 btn-outline-gradient m-1">Khám phá</Button>
+                            <Button as={Link as any} to="/register" className="create-button btn btn-light w-100 m-1">Tạo tài khoản</Button>
+                            <Button as={Link as any} to="/student" className="create-button btn w-100 btn-outline-gradient m-1">Khám phá</Button>
                         </div>
                     </div>
                     <div className="demo_image w-100">

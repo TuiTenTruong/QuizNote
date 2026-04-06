@@ -1,5 +1,6 @@
+import { IResBase } from './api';
 import { IPaginationMeta } from './pagination';
-import { IResBase, IUser } from './user';
+import { IUser } from './user';
 
 export type SubjectStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'REJECTED';
 
@@ -9,6 +10,7 @@ export interface ISubject {
     description: string;
     price: number;
     status: SubjectStatus;
+    color: string;
     averageRating: number | null;
     ratingCount: number;
     purchaseCount: number;

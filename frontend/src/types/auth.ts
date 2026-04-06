@@ -39,7 +39,7 @@ export interface IResLogin extends IAuthBaseResponse<IAuthPayload> { }
 export interface IReqRegister {
     email: string;
     password: string;
-    name: string;
+    username: string;
     gender: UserGender;
     role?: UserRole;
     bankName?: string | null;

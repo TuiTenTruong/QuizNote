@@ -1,5 +1,4 @@
 import { Container, Button } from "react-bootstrap";
-import './HomePage.scss'
 import { useNavigate } from "react-router-dom";
 const HeroSection = () => {
     const navigate = useNavigate();

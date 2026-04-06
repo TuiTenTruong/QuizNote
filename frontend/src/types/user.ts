@@ -5,7 +5,7 @@ export type UserGender = 'MALE' | 'FEMALE' | 'OTHER';
 
 export interface IUser {
     id: number;
-    name: string;
+    username: string;
     email: string;
     gender: UserGender;
     address: string;
@@ -26,7 +26,7 @@ export interface IUserBankInfo {
     bankAccount?: string | null;
 }
 
-type IUserCreateRequired = Pick<IUser, 'name' | 'email' | 'gender'>;
+type IUserCreateRequired = Pick<IUser, 'username' | 'email' | 'gender'>;
 type IUserCreateOptional = Partial<Pick<IUser, 'address' | 'age' | 'avatarUrl'>>;
 
 export interface IReqCreateUser extends IUserCreateRequired, IUserCreateOptional, IUserBankInfo {

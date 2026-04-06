@@ -1,28 +1,20 @@
 import { Container, Button } from "react-bootstrap";
-import './HomePage.scss'
-import { useEffect, useState } from "react";
-import { getExploreData } from "../../services/apiService";
 import { FaStar } from "react-icons/fa6";
 import axiosInstance from '../../utils/axiosCustomize';
 import { Link } from "react-router-dom";
-const ExploreQuizCategories = () => {
-    const [quizCategories, setQuizCategories] = useState([]);
-    useEffect(() => {
-        const fetchQuizCategories = async () => {
-            const response = await getExploreData();
-            console.log(response);
-            if (response && response.statusCode === 200) {
-                setQuizCategories(response.data.result);
-            } else {
-                console.error('Failed to fetch quiz categories', response);
-            }
-        };
-        fetchQuizCategories();
-    }, []);
-    console.log(quizCategories);
+import { ISubject } from "../../types";
+
+interface IProps {
+    subjects: ISubject[];
+    isLoading: boolean;
+}
+const ExploreQuizCategories: React.FC<IProps> = ({ subjects, isLoading }) => {
+
+    console.log(subjects);
     const colors = ['#f87171', '#34d399', '#60a5fa', '#fbbf24', '#a78bfa', '#f472b6'];
     const random = colors[Math.floor(Math.random() * colors.length)];
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    if (isLoading) return <div>Đang tải môn học...</div>;
     return <>
         <section className="quiz-categories text-light py-5">
             <Container>
@@ -35,7 +27,7 @@ const ExploreQuizCategories = () => {
                 </p>
 
                 <div className="row g-3">
-                    {quizCategories && quizCategories.length > 0 && quizCategories.map((category) => (
+                    {subjects && subjects.length > 0 && subjects.map((category) => (
 
                         <div key={category.id} className="col-12 col-md-6 col-lg-4">
                             <div className="category-card p-4 rounded-4 h-100 position-relative">
@@ -58,7 +50,7 @@ const ExploreQuizCategories = () => {
                                 <p className="text-white small mb-3">
                                     {category.description}
                                 </p>
-                                <Button as={Link} to={`/student/quizzes/${category.id}`} variant="link" className="text-primary p-0">Khám phá →</Button>
+                                <Button as={Link as any} to={`/student/quizzes/${category.id}`} variant="link" className="text-primary p-0">Khám phá →</Button>
                             </div>
                         </div>
                     ))}
