@@ -1,0 +1,37 @@
+@use '../../assets/styles/variables';
+@use '../../assets/styles/mixins';
+
+.statsSection {
+    background: #0b0b0f;
+    color: #fff;
+}
+
+.textMuted {
+    color: #9ca3af !important;
+}
+
+.statCard {
+    background: #111827;
+    border-radius: 14px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    padding: 1.5rem;
+}
+
+.statIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fbbf24;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .statCard {
+        text-align: left;
+    }
+}

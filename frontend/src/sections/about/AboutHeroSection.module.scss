@@ -1,0 +1,29 @@
+@use '../../assets/styles/variables';
+@use '../../assets/styles/mixins';
+
+.heroSection {
+    background: #0b0b0f;
+    color: #fff;
+}
+
+.textMuted {
+    color: #9ca3af !important;
+}
+
+.highlightPill {
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.1);
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.summaryCard {
+    background: #111827;
+    border-radius: 14px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    padding: 1.5rem;
+}
