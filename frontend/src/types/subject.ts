@@ -22,6 +22,19 @@ export interface ISubject {
     updatedAt: string;
 }
 
+export interface QuizItem {
+    id: number;
+    name: string;
+    description?: string;
+    imageUrl?: string;
+    purchasedAt?: string;
+    createUser?: {
+        username?: string;
+    };
+    averageRating?: number;
+    questionCount?: number;
+}
+
 export interface ISubjectPagination {
     meta: IPaginationMeta;
     result: ISubject[];
@@ -36,6 +49,8 @@ export interface IReqUpdateSubject extends Partial<IReqCreateSubject> {
 export interface IResCreateSubject extends IResBase<ISubject> { }
 
 export interface IResUpdateSubject extends IResBase<ISubject> { }
+
+export interface IResGetMyQuizzes extends IResBase<QuizItem[], string> { }
 
 export interface IResGetSubjects extends IResBase<ISubjectPagination, string> { }
 

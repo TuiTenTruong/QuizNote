@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import type { ChangeEvent, ReactElement } from "react";
 import {
     Container,
     Row,
@@ -7,91 +8,72 @@ import {
     Button,
     Form,
 } from "react-bootstrap";
-import { FaSearch, FaBook } from "react-icons/fa";
-import "./StudentMyQuizzes.scss";
-import { fetchMyQuizzes } from "../../services/apiService";
-import { useSelector } from "react-redux";
+import { FaBook } from "react-icons/fa";
+import styles from "./StudentMyQuizzes.module.scss";
 import axiosInstance from "../../utils/axiosCustomize";
 import { useNavigate } from "react-router-dom";
-import { navigateToSelectMode } from "../../utils/quizNavigation.jsx";
-import { toast } from "react-toastify";
-const StudentMyQuizzes = () => {
-    const account = useSelector(state => state.user.account);
+import { navigateToSelectMode } from "../../utils/quizNavigation";
+import { QuizItem } from "../../types";
+
+interface IProps {
+    myQuizzes: QuizItem[];
+    isLoading: boolean;
+    isAuthenticated: boolean;
+}
+
+const StudentMyQuizzesSection = ({ myQuizzes, isLoading, isAuthenticated }: IProps): ReactElement => {
     const navigate = useNavigate();
 
-    const [search, setSearch] = useState("");
-    const [myQuizzes, setMyQuizzes] = useState([]);
+    const [search, setSearch] = useState<string>("");
 
-    // Check if user is logged in
-    useEffect(() => {
-        if (!account || !account.id) {
-            toast.error("Vui lòng đăng nhập để xem quiz của bạn.");
-            navigate('/login', { state: { from: '/student/my-quizzes' } });
-        }
-    }, [account, navigate]);
-
-    const filteredQuizzes = myQuizzes?.filter((q) =>
+    const filteredQuizzes = myQuizzes.filter((q) =>
         q.name.toLowerCase().includes(search.toLowerCase())
     );
-    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    const backendBaseURL = `${axiosInstance.defaults.baseURL ?? ""}storage/subjects/`;
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            if (!account || !account.id) return;
+    const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setSearch(e.target.value);
+    };
 
-            try {
-                const userId = account.id;
-                const response = await fetchMyQuizzes(userId);
-                if (response && response.statusCode === 200) {
-                    setMyQuizzes(response.data);
-                }
-                else {
-                    toast.error(response.message || "Đã xảy ra lỗi khi lấy quiz của bạn.");
-                }
-            } catch (error) {
-                toast.error("Đã xảy ra lỗi khi lấy quiz của bạn.");
-                console.error("Lỗi khi lấy quiz của tôi:", error);
-            }
-        };
-
-        if (account && account.id) {
-            fetchQuizzes();
-        }
-    }, [account]);
-
-    if (!account || !account.id) {
+    if (!isAuthenticated) {
         return (
             <Container className="text-center py-5">
                 <p className="text-light">Đang kiểm tra đăng nhập...</p>
             </Container>
         );
     }
-
+    if (isLoading) {
+        return (
+            <Container className="text-center py-5">
+                <p className="text-light">Đang tải danh sách quiz...</p>
+            </Container>
+        );
+    }
     return (
-        <Container fluid className="student-myquizzes py-4">
+        <Container fluid className={`${styles.studentMyQuizzes} py-4`}>
             {/* Header */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <h4 className="fw-bold text-light m-0 text-gradient">Quiz của tôi</h4>
+                <h4 className={`fw-bold text-light m-0 ${styles.textGradient}`}>Quiz của tôi</h4>
 
                 <Form.Control
                     type="text"
                     placeholder="Tìm kiếm quiz..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="bg-dark text-light border-secondary"
+                    onChange={handleSearchChange}
+                    className={styles.searchInput}
                     style={{ maxWidth: "250px" }}
                 />
             </div>
 
             {/* Quiz List */}
             <Row className="g-4">
-                {filteredQuizzes?.map((quiz) => (
+                {filteredQuizzes.map((quiz) => (
                     <Col xs={12} md={6} lg={4} key={quiz.id}>
-                        <Card className="quiz-card h-100 bg-dark border-secondary text-light overflow-hidden">
+                        <Card className={`${styles.quizCard} h-100 bg-dark border-secondary text-light overflow-hidden`}>
                             <div
-                                className="quiz-image"
+                                className={styles.quizImage}
                                 style={{
-                                    backgroundImage: `url(${backendBaseURL + quiz.imageUrl})`,
+                                    backgroundImage: `url(${backendBaseURL + (quiz.imageUrl ?? "")})`,
                                 }}
                             ></div>
 
@@ -101,11 +83,11 @@ const StudentMyQuizzes = () => {
                                     {quiz.name}
                                 </Card.Title>
 
-                                <Card.Text className="small text-white-50 mb-3 text-ellipsis">
-                                    {quiz.description}
+                                <Card.Text className={`small text-white-50 mb-3 ${styles.textEllipsis}`}>
+                                    {quiz.description ?? "Chua co mo ta"}
                                 </Card.Text>
                                 <Card.Subtitle className="mb-3">
-                                    <span className="text-secondary small ">Mua vào: {quiz.purchasedAt} </span>
+                                    <span className="text-secondary small ">Mua vào: {quiz.purchasedAt ?? "N/A"} </span>
 
                                 </Card.Subtitle>
                                 <div className="d-flex gap-2">
@@ -120,7 +102,7 @@ const StudentMyQuizzes = () => {
                                     <Button
                                         variant="gradient"
                                         size="sm"
-                                        className="flex-fill"
+                                        className={`${styles.btnGradient} flex-fill`}
                                         onClick={() => navigateToSelectMode(navigate, quiz)}
                                     >
                                         Vào học
@@ -132,7 +114,7 @@ const StudentMyQuizzes = () => {
                 ))}
             </Row>
 
-            {filteredQuizzes?.length === 0 && (
+            {filteredQuizzes.length === 0 && (
                 <p className="text-center text-secondary mt-4">
                     Bạn chưa có quiz nào được mua.
                 </p>
@@ -141,4 +123,4 @@ const StudentMyQuizzes = () => {
     );
 };
 
-export default StudentMyQuizzes;
+export default StudentMyQuizzesSection;

@@ -1,38 +1,34 @@
-import Sidebar from "../../pages/student/components/Sidebar";
-import { useState } from "react";
-import Topbar from "../../pages/student/components/Topbar";
+import Sidebar from "./components/Sidebar";
+import type { ReactElement } from "react";
 import { Outlet } from "react-router-dom";
 import { FaBars } from "react-icons/fa";
+import "./components/StudentAppbar.scss";
+import { useDashboard } from "../../hooks/useDashboard";
 
-
-const Dashboard = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-    const toggleSidebar = () => {
-        setSidebarOpen(!isSidebarOpen);
-    };
+const StudentDashboardPage = (): ReactElement => {
+    const { isSidebarOpen, toggleSidebar } = useDashboard();
 
     return (
-        <div className="container-fluid p-0 student_layout">
+        <section className="container-fluid p-0 student_layout">
             <div className="row g-0">
                 <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-                <div className="main-content text-light min-vh-100">
-                    {/* Mobile hamburger menu */}
+                <main className="main-content text-light min-vh-100">
                     <div className="d-md-none p-3 bg-dark">
                         <button
                             className="btn btn-link text-light"
                             onClick={toggleSidebar}
+                            aria-label="Mo menu sidebar"
                             style={{ fontSize: '1.5rem' }}
                         >
                             <FaBars />
                         </button>
                     </div>
                     <Outlet />
-                </div>
+                </main>
             </div>
-        </div>
+        </section>
     );
-}
+};
 
-export default Dashboard;
+export default StudentDashboardPage;

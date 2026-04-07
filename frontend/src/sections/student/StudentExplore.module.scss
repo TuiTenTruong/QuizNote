@@ -1,0 +1,119 @@
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+
+.studentExplore {
+    background-color: #0b0b0f;
+    color: $white;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.textGradient {
+    @include gradient-text;
+}
+
+.btnGradient {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    border: none;
+    color: $white;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+.gradientActive {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    color: $white !important;
+    border: none;
+}
+
+.heroCarousel {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.heroSlide {
+    background-size: cover;
+    background-position: center;
+    height: 300px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.heroContent {
+    padding: 2rem;
+    color: $white;
+}
+
+.quizCard {
+    border-radius: 12px;
+    transition: 0.25s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 16px rgba(147, 51, 234, 0.3);
+    }
+}
+
+.quizThumbnail {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    margin: 8px;
+}
+
+.categoryScroll {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+
+    &::-webkit-scrollbar {
+        height: 4px;
+    }
+}
+
+.quizTabs {
+    :global(.nav-link) {
+        color: #aaa;
+    }
+
+    :global(.nav-link.active) {
+        color: $white;
+        border-bottom: 2px solid #9333ea;
+        background-color: transparent;
+    }
+}
+
+.quizCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.rating {
+    color: #fbbf24;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.noRatings {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.noStudents {
+    color: #9ca3af;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.noStudentsText {
+    color: #9ca3af;
+}

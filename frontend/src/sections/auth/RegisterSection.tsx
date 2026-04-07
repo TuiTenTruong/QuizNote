@@ -8,7 +8,6 @@ import { useState } from "react";
 import { USER_ROLES } from "./constants";
 import { useRegister, handleToggle } from "../../hooks/useRegister";
 import styles from "./RegisterSection.module.scss";
-
 const RegisterSection = () => {
     const [name, setName] = useState<string>("");
     const [gender, setGender] = useState<string>("");

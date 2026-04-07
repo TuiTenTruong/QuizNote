@@ -14,14 +14,12 @@ import SellerWallet from "./features/seller/SellerWallet";
 import SettingsPage from "./features/settings/SettingsPage";
 import CreateQuiz from "./features/quizzes/CreateQuiz";
 import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
-import StudentDashboard from "./features/quizzes/student/StudentQuizDashboard";
 import StudentQuizDetail from "./features/quizzes/student/StudentQuizDetail";
 import QuizPayment from "./features/payment/QuizPayment";
 import PaymentResult from "./features/payment/PaymentResult";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
-import StudentMyQuizzes from "./features/student/StudentMyQuizzes";
 import StudentHistory from "./features/student/StudentHistory";
 import StudentQuizHistoryDetail from "./features/student/StudentQuizHistoryDetail";
 import StudentAnalytics from "./features/student/StudentAnalytics";
@@ -39,6 +37,9 @@ import AdminRewardsPage from "./features/admin/AdminRewardsPage";
 import AdminRewardTransactionsPage from "./features/admin/AdminRewardTransactionsPage";
 import MyRewardTransactions from "./features/reward/MyRewardTransactions";
 import AboutPage from "./pages/about/AboutPage";
+import StudentDashboardPage from "./pages/student/StudentDashboardPage";
+import StudentMyQuizzesPage from "./pages/student/StudentMyQuizzesPage";
+import StudentExplorePage from "./pages/student/StudentExplorePage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -70,9 +71,9 @@ const router = createBrowserRouter([
 
     {
         path: "/student",
-        element: <DashboardStudent />,
+        element: <StudentDashboardPage />,
         children: [
-            { index: true, element: <StudentDashboard /> },
+            { index: true, element: <StudentExplorePage /> },
             { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
 
             { path: "weekly-quiz", element: <ProtectedRoute allowedRoles={['STUDENT']}><WeeklyQuizPage /></ProtectedRoute> },
@@ -81,7 +82,7 @@ const router = createBrowserRouter([
             { path: "quizzes/:quizId/mode-select", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizModeSelect /></ProtectedRoute> },
             { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><ExamQuiz /></ProtectedRoute> },
             { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPracticePage /></ProtectedRoute> },
-            { path: "quizzes/my", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentMyQuizzes /></ProtectedRoute> },
+            { path: "quizzes/my", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentMyQuizzesPage /></ProtectedRoute> },
             { path: "history", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistory /></ProtectedRoute> },
             { path: "history/quiz/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizHistoryDetail /></ProtectedRoute> },
             { path: "analytics", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentAnalytics /></ProtectedRoute> },

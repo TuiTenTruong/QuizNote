@@ -1,5 +1,5 @@
 import { IPaginationMeta } from "./pagination";
-import { IResBase } from "./user";
+import { IResBase } from "./api";
 
 export interface IQuestion {
     id: number;

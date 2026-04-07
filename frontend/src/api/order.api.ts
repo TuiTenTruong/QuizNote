@@ -8,10 +8,11 @@ import type {
     IResGetPurchases,
     IResGetAdminOrders,
 } from "../types/order";
+import { IResGetMyQuizzes } from "../types";
 
 // Get user's purchases (my quizzes)
-export const getUserPurchases = (userId: number): Promise<IResGetPurchases> => {
-    return instance.get<never, IResGetPurchases>(`/api/v1/purchases/user/${userId}`);
+export const getUserPurchases = (userId: number): Promise<IResGetMyQuizzes> => {
+    return instance.get<never, IResGetMyQuizzes>(`/api/v1/purchases/user/${userId}`);
 };
 
 // Get seller's orders

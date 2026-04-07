@@ -1,4 +1,4 @@
-import { IResBase } from "./user";
+import { IResBase } from "./api";
 
 export interface IChapter {
     id: number;

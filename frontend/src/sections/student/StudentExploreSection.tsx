@@ -1,87 +1,59 @@
 import { useState } from "react";
-import {
-    Container,
-    Row,
-    Col,
-    Form,
-    InputGroup,
-    Button,
-    Dropdown,
-    Card,
-    Badge,
-    Carousel,
-    Nav,
-} from "react-bootstrap";
-import {
-    FaSearch,
-    FaStar,
-    FaUser,
-    FaPlay,
-    FaUsers
-} from "react-icons/fa";
-import "./StudentQuizDashboard.scss";
-import { useEffect } from "react";
-import { getAllActiveSubjects, fetchMyQuizzes } from "../../../services/apiService";
-import axiosInstance from "../../../utils/axiosCustomize";
-import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import type { ChangeEvent, ReactElement } from "react";
+import { Carousel, Button, Nav, InputGroup, Form, Dropdown, Row, Col, Card, Container } from "react-bootstrap";
+import { FaPlay, FaSearch, FaStar, FaUser, FaUsers } from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom";
+import axiosInstance from "../../utils/axiosCustomize";
+import type { ISubject, QuizItem } from "../../types";
+import styles from "./StudentExplore.module.scss";
+interface IProps {
+    subjectsData: ISubject[];
+    myQuizzes: QuizItem[];
+    isLoading: boolean;
+}
 
-const StudentQuizDashboard = () => {
-    const [activeTab, setActiveTab] = useState("All Quizzes");
+type ExploreTab = "All Quizzes" | "Free" | "Purchased" | "Popular";
+type SortBy = "Popular" | "Rating" | "Newest" | "Price: Low to High" | "Price: High to Low";
+
+const exploreTabs: Array<{ key: ExploreTab; label: string }> = [
+    { key: "All Quizzes", label: "Tất cả" },
+    { key: "Free", label: "Miễn phí" },
+    { key: "Purchased", label: "Đã mua" },
+    { key: "Popular", label: "Phổ biến" }
+];
+
+const sortOptions: Array<{ key: SortBy; label: string }> = [
+    { key: "Popular", label: "Phổ biến" },
+    { key: "Rating", label: "Đánh giá cao" },
+    { key: "Newest", label: "Mới nhất" },
+    { key: "Price: Low to High", label: "Giá: Thấp → Cao" },
+    { key: "Price: High to Low", label: "Giá: Cao → Thấp" }
+];
+
+const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): ReactElement => {
+    const [activeTab, setActiveTab] = useState<ExploreTab>("All Quizzes");
     const navigate = useNavigate();
-    const [search, setSearch] = useState("");
-    const [sortBy, setSortBy] = useState("Popular");
-    const [subjectsData, setSubjectsData] = useState([]);
-    const [myQuizzes, setMyQuizzes] = useState([]);
+    const [search, setSearch] = useState<string>("");
+    const [sortBy, setSortBy] = useState<SortBy>("Popular");
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
 
-    const user = useSelector((state) => state.user.account);
-    console.log("User in Dashboard:", user);
-    useEffect(() => {
-        const fetchSubjectsData = async () => {
-            const response = await getAllActiveSubjects();
-            if (response && response.statusCode === 200) {
-                setSubjectsData(response.data.result);
-            } else {
-                console.error('Failed to fetch quiz data', response);
-            }
-        };
-        fetchSubjectsData();
-    }, []);
-
-    if (user !== null) {
-        useEffect(() => {
-            const getMyQuizzes = async () => {
-                try {
-                    const response = await fetchMyQuizzes(user.id);
-                    setMyQuizzes(response.data);
-                } catch (err) {
-                    console.error("Error fetching my quizzes:", err);
-                }
-            };
-            getMyQuizzes();
-        }, [user]);
-    }
-
-    // Helper function to check if user has purchased a quiz
-    const hasPurchased = (subjectId) => {
-        if (!myQuizzes || !Array.isArray(myQuizzes)) return false;
+    const hasPurchased = (subjectId: number): boolean => {
         return myQuizzes.some(quiz => quiz.id === subjectId);
     };
 
-    console.log("My Quizzes in Dashboard:", myQuizzes);
-    console.log("Subjects Data in Dashboard:", subjectsData);
+    const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setSearch(e.target.value);
+    };
 
-    // Filter by search term and active tab
     const filtered = subjectsData
-        .filter((subject) => {
-            // Search filter
+        .filter((subject: ISubject) => {
+
             const matchesSearch =
                 subject.name.toLowerCase().includes(search.toLowerCase()) ||
                 subject.description?.toLowerCase().includes(search.toLowerCase()) ||
                 subject.createUser?.username?.toLowerCase().includes(search.toLowerCase());
 
-            // Tab filter
+
             let matchesTab = true;
             if (activeTab === "Free") {
                 matchesTab = subject.price === 0;
@@ -94,7 +66,7 @@ const StudentQuizDashboard = () => {
 
             return matchesSearch && matchesTab;
         })
-        .sort((a, b) => {
+        .sort((a: ISubject, b: ISubject) => {
             if (sortBy === "Popular") {
                 // Sort by purchase count first, then rating count
                 const popularityA = (a.purchaseCount || 0) * 2 + (a.ratingCount || 0);
@@ -110,7 +82,7 @@ const StudentQuizDashboard = () => {
             }
             if (sortBy === "Newest") {
                 // Sort by creation date (newest first)
-                return new Date(b.createdAt) - new Date(a.createdAt);
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             }
             if (sortBy === "Price: Low to High") {
                 return (a.price || 0) - (b.price || 0);
@@ -120,24 +92,30 @@ const StudentQuizDashboard = () => {
             }
             return 0;
         });
-
+    if (isLoading) {
+        return (
+            <Container className="text-center py-5">
+                <p className="text-light">Đang tải môn học...</p>
+            </Container>
+        );
+    }
     return (
-        <div className="student-dashboard p-4">
+        <div className={`${styles.studentExplore} p-4`}>
             <div>
                 {/* HERO CAROUSEL */}
-                <Carousel fade interval={5000} indicators={false} className="hero-carousel mb-5">
+                <Carousel fade interval={5000} indicators={false} className={`${styles.heroCarousel} mb-5`}>
                     {subjectsData.slice(0, 3).map((subject, i) => (
                         <Carousel.Item key={i} onClick={(e) => e.stopPropagation()}>
                             <div
-                                className="hero-slide"
+                                className={styles.heroSlide}
                                 style={{
                                     backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backendBaseURL + subject.imageUrl})`,
                                 }}
                             >
-                                <div className="hero-content">
+                                <div className={styles.heroContent}>
                                     <h2 className="fw-bold mb-2">{subject.name}</h2>
                                     <p className="mb-3">{subject.createUser?.username}</p>
-                                    <Button className="btn-gradient z-5" onClick={(e) => {
+                                    <Button className={`${styles.btnGradient} z-5`} onClick={() => {
                                         navigate(`/student/quizzes/${subject.id}`);
                                     }}>
                                         <FaPlay className="me-2" /> Start Now
@@ -149,13 +127,8 @@ const StudentQuizDashboard = () => {
                 </Carousel>
 
                 {/* NAV TABS */}
-                <Nav variant="tabs" className="quiz-tabs mb-4">
-                    {[
-                        { key: "All Quizzes", label: "Tất cả" },
-                        { key: "Free", label: "Miễn phí" },
-                        { key: "Purchased", label: "Đã mua" },
-                        { key: "Popular", label: "Phổ biến" }
-                    ].map((tab) => (
+                <Nav variant="tabs" className={`${styles.quizTabs} mb-4`}>
+                    {exploreTabs.map((tab) => (
                         <Nav.Item key={tab.key}>
                             <Nav.Link
                                 active={activeTab === tab.key}
@@ -168,8 +141,8 @@ const StudentQuizDashboard = () => {
                 </Nav>
 
                 {/* SEARCH + SORT BAR */}
-                <div className="filter-bar d-flex flex-wrap gap-3 mb-4 align-items-center">
-                    <InputGroup className="search-box flex-grow-1 flex-sm-grow-0">
+                <div className={`${styles.filterBar} d-flex flex-wrap gap-3 mb-4 align-items-center`}>
+                    <InputGroup className={`${styles.searchBox} flex-grow-1 flex-sm-grow-0`}>
                         <InputGroup.Text className="bg-dark text-light border-secondary">
                             <FaSearch />
                         </InputGroup.Text>
@@ -177,7 +150,7 @@ const StudentQuizDashboard = () => {
                             type="text"
                             placeholder="Tìm kiếm môn học theo tên, mô tả hoặc tác giả..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={handleSearchChange}
                             className="bg-dark text-light border-secondary"
                         />
                     </InputGroup>
@@ -194,13 +167,7 @@ const StudentQuizDashboard = () => {
                             }
                         </Dropdown.Toggle>
                         <Dropdown.Menu variant="dark">
-                            {[
-                                { key: "Popular", label: "Phổ biến" },
-                                { key: "Rating", label: "Đánh giá cao" },
-                                { key: "Newest", label: "Mới nhất" },
-                                { key: "Price: Low to High", label: "Giá: Thấp → Cao" },
-                                { key: "Price: High to Low", label: "Giá: Cao → Thấp" }
-                            ].map((s) => (
+                            {sortOptions.map((s) => (
                                 <Dropdown.Item key={s.key} onClick={() => setSortBy(s.key)}>
                                     {s.label}
                                 </Dropdown.Item>
@@ -213,20 +180,19 @@ const StudentQuizDashboard = () => {
                 <Row className="g-4">
                     {filtered.map((subject) => (
                         <Col xs={12} sm={6} lg={4} xl={3} key={subject.id}>
-                            <Card className="quiz-card bg-dark border-0 shadow-sm h-100 overflow-hidden" as={Link}
+                            <Card className={`${styles.quizCard} bg-dark border-0 shadow-sm h-100 overflow-hidden`} as={Link}
                                 to={`/student/quizzes/${subject.id}`} state={{ hasPurchased: hasPurchased(subject.id) || subject.price === 0 }}>
                                 <div
-                                    className="quiz-thumbnail"
+                                    className={styles.quizThumbnail}
                                     style={{ backgroundImage: `url(${backendBaseURL + subject.imageUrl})` }}
                                 ></div>
                                 <Card.Body className="p-3">
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <div className={styles.quizCardHeader}>
                                         {subject.averageRating ?
-                                            <span className="text-warning small d-flex align-items-center gap-1">
+                                            <span className={styles.rating}>
                                                 <FaStar />
                                                 {subject.averageRating.toFixed(1)}
-
-                                            </span> : <div className="muted">Chưa có đánh giá nào.</div>}
+                                            </span> : <div className={styles.noRatings}>Chưa có đánh giá nào.</div>}
 
 
 
@@ -246,22 +212,22 @@ const StudentQuizDashboard = () => {
                                                 {subject.purchaseCount} students enrolled
                                             </span>
                                         ) :
-                                            <span className="muted align-items-center gap-1">
-                                                <span className="muted">Chưa có học viên nào.</span>
+                                            <span className={styles.noStudents}>
+                                                <span className={styles.noStudentsText}>Chưa có học viên nào.</span>
                                             </span>}
                                     </div>
 
 
 
                                     {subject.price > 0 ? (
-                                        <h6 className="text-gradient fw-bold mb-2">
+                                        <h6 className={`${styles.textGradient} fw-bold mb-2`}>
                                             {subject.price.toLocaleString("vi-VN")} ₫
                                         </h6>
                                     ) : (
                                         <h6 className="text-success fw-bold mb-2">Free</h6>
                                     )}
 
-                                    <Button className="btn-gradient w-100">
+                                    <Button className={`${styles.btnGradient} w-100`}>
                                         {hasPurchased(subject.id) || subject.price === 0 ? "Bắt đầu" : "Mua Ngay"}
                                     </Button>
                                 </Card.Body>
@@ -280,4 +246,4 @@ const StudentQuizDashboard = () => {
     );
 }
 
-export default StudentQuizDashboard;
+export default StudentExploreSection;
