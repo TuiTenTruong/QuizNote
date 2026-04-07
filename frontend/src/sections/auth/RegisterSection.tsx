@@ -1,90 +1,52 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
-import { FaChalkboardTeacher, FaGraduationCap } from "react-icons/fa";
+import { FaGraduationCap, FaChalkboardTeacher, FaFacebookF } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF } from "react-icons/fa";
-import { useState } from "react";
-import "./RegisterLoginPage.scss";
-import { IoEye } from "react-icons/io5";
 import { IoMdEyeOff } from "react-icons/io";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { postCreateNewUser } from "../../services/apiService";
-import NavigateHomeButton from "./components/NavigateHomeButton";
-const RegisterPage = () => {
-    const [name, setName] = useState("");
-    const [gender, setGender] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [type, setType] = useState('password');
-    const [role, setRole] = useState('STUDENT'); // STUDENT or SELLER
-    const [bankName, setBankName] = useState("");
-    const [bankAccount, setBankAccount] = useState("");
-    const navigate = useNavigate()
-    const handleToggle = () => {
-        if (type === 'password') {
-            setType('text')
-        } else {
-            setType('password')
-        }
-    }
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        // validate
-        if (!name || !gender || !email || !password || !confirmPassword) {
-            toast.error("Hãy điền đầy đủ thông tin.");
-            return;
-        }
-        if (password !== confirmPassword) {
-            toast.error("Mật khẩu không khớp.");
-            return;
-        }
+import { IoEye } from "react-icons/io5";
+import NavigateHomeButton from "../../components/common/NavigateHomeButton";
+import { useState } from "react";
+import { USER_ROLES } from "./constants";
+import { useRegister, handleToggle } from "../../hooks/useRegister";
+import styles from "./RegisterSection.module.scss";
 
-        // Validate seller fields
-        if (role === 'SELLER') {
-            if (!bankName || !bankAccount) {
-                toast.error("Hãy điền đầy đủ thông tin ngân hàng cho tài khoản người bán.");
-                return;
-            }
-        }
+const RegisterSection = () => {
+    const [name, setName] = useState<string>("");
+    const [gender, setGender] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const [type, setType] = useState<'password' | 'text'>('password');
+    const [role, setRole] = useState<(typeof USER_ROLES)[keyof typeof USER_ROLES]>(USER_ROLES.STUDENT);
+    const [bankName, setBankName] = useState<string>("");
+    const [bankAccount, setBankAccount] = useState<string>("");
 
-        let res = await postCreateNewUser(email, password, name, gender, role, bankName, bankAccount);
-        console.log(res);
-        if (res.data && (res.statusCode === 200 || res.statusCode === 201)) {
-
-            toast.success(res.data.message);
-            navigate("/login");
-        } else {
-            toast.error(res.message);
-        }
-    }
-
+    const { handleSubmit } = useRegister();
     return (
-        <section className="register-page position-relative">
+        <section className={styles.registerPage}>
             <div className="position-absolute top-1 start-1 m-3" ><NavigateHomeButton /></div>
             <Container fluid className="g-0">
                 <Row className="min-vh-100 g-0">
                     {/* LEFT SIDE */}
                     <Col
                         md={6}
-                        className="register-left d-none d-md-flex align-items-center justify-content-center"
+                        className={`${styles.registerLeft} d-none d-md-flex align-items-center justify-content-center`}
                     >
                         <h1 className="display-4 fw-bold text-gradient">QuizNote</h1>
                     </Col>
 
                     {/* RIGHT SIDE */}
-                    <Col xs={12} md={6} className="register-right d-flex align-items-center justify-content-center">
-                        <div className="form-box p-4 p-sm-5 rounded-4 shadow">
+                    <Col xs={12} md={6} className={`${styles.registerRight} d-flex align-items-center justify-content-center`}>
+                        <div className={`${styles.formBox} p-4 p-sm-5 rounded-4 shadow`}>
                             <h3 className="fw-bold mb-2">Đăng kí tài khoản</h3>
                             <p className="text-muted mb-4">
                                 Chọn loại tài khoản của bạn và bắt đầu hành trình với chúng tôi
                             </p>
 
                             {/* ROLE SELECTION */}
-                            <div className="d-flex gap-3 mb-4 flex-column flex-sm-row">
+                            <div className={`d-flex gap-3 mb-4 ${styles.roleSelection}`}>
                                 <div
-                                    className={`role-card ${role === 'STUDENT' ? 'active' : ''} flex-fill text-center p-3 rounded-3 w-50`}
-                                    onClick={() => setRole('STUDENT')}
+                                    className={`${styles.roleCard} ${role === USER_ROLES.STUDENT ? styles.active : ''} flex-fill text-center p-3 rounded-3 w-50`}
+                                    onClick={() => setRole(USER_ROLES.STUDENT)}
                                     style={{ cursor: 'pointer' }}
 
                                 >
@@ -93,8 +55,8 @@ const RegisterPage = () => {
                                     <small className="text-muted">Tham gia các bài kiểm tra và theo dõi tiến trình</small>
                                 </div>
                                 <div
-                                    className={`role-card ${role === 'SELLER' ? 'active' : ''} flex-fill text-center p-3 rounded-3 w-50`}
-                                    onClick={() => setRole('SELLER')}
+                                    className={`${styles.roleCard} ${role === USER_ROLES.SELLER ? styles.active : ''} flex-fill text-center p-3 rounded-3 w-50`}
+                                    onClick={() => setRole(USER_ROLES.SELLER)}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <FaChalkboardTeacher className="fs-4 mb-2" />
@@ -116,7 +78,7 @@ const RegisterPage = () => {
                             <div className="text-center text-muted mb-3">OR</div>
 
                             {/* FORM */}
-                            <Form onSubmit={handleSubmit}>
+                            <Form onSubmit={(e) => handleSubmit(e, name, gender, email, password, confirmPassword, role, bankName, bankAccount)}>
                                 <Row className="g-3">
 
                                     <Col xs={12} sm={6}>
@@ -142,7 +104,17 @@ const RegisterPage = () => {
                                     <Col xs={12}>
                                         <Form.Group controlId="password" className="position-relative">
                                             <Form.Control type={type} placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} />
-                                            <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
+                                            <span
+                                                className={`${styles.showHideBtn} position-absolute end-0 top-50 translate-middle-y pe-2`}
+                                                onClick={() => handleToggle(type, setType)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        handleToggle(type, setType);
+                                                    }
+                                                }}
+                                            >
                                                 {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
                                             </span>
                                         </Form.Group>
@@ -150,14 +122,24 @@ const RegisterPage = () => {
                                     <Col xs={12}>
                                         <Form.Group controlId="confirmPassword" className="position-relative">
                                             <Form.Control type={type} placeholder="Xác nhận lại mật khẩu" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                                            <span className="show-hide-btn position-absolute end-0 top-50 translate-middle-y pe-2" onClick={handleToggle}>
+                                            <span
+                                                className={`${styles.showHideBtn} position-absolute end-0 top-50 translate-middle-y pe-2`}
+                                                onClick={() => handleToggle(type, setType)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        handleToggle(type, setType);
+                                                    }
+                                                }}
+                                            >
                                                 {type === 'password' ? <IoMdEyeOff className="fs-4" /> : <IoEye className="fs-4" />}
                                             </span>
                                         </Form.Group>
                                     </Col>
 
                                     {/* SELLER BANK INFO */}
-                                    {role === 'SELLER' && (
+                                    {role === USER_ROLES.SELLER && (
                                         <>
                                             <Col xs={12}>
                                                 <Form.Group controlId="bankName">
@@ -185,7 +167,7 @@ const RegisterPage = () => {
 
                                 <Button
                                     variant="primary"
-                                    className="w-100 mt-4 btn-gradient fw-semibold py-2"
+                                    className={`${styles.btnGradient} w-100 mt-4 fw-semibold py-2`}
                                     type="submit"
                                 >
                                     Đăng ký
@@ -204,6 +186,6 @@ const RegisterPage = () => {
             </Container>
         </section>
     );
-}
+};
 
-export default RegisterPage;
+export default RegisterSection;
