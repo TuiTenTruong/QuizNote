@@ -1,18 +1,17 @@
-.student-quiz-detail {
+.studentQuizDetail {
     background-color: #0b0b0f;
     color: #fff;
     min-height: 100vh;
 
-    .quiz-banner {
+    .quizBanner {
         background-size: cover;
         background-position: center;
         min-height: 320px;
         display: flex;
         align-items: end;
 
-        .text-ellipsis {
+        .textEllipsis {
             display: -webkit-box;
-            line-clamp: 2;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
@@ -21,7 +20,7 @@
         }
     }
 
-    .btn-gradient {
+    .btnGradient {
         background: linear-gradient(90deg, #9333ea, #f97316);
         border: none;
         color: #fff;
@@ -31,20 +30,20 @@
         }
     }
 
-    .text-gradient {
+    .textGradient {
         background: linear-gradient(90deg, #9333ea, #f97316);
         background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    .sample-question {
+    .sampleQuestion {
         background: rgba(255, 255, 255, 0.05);
         padding: 12px;
         border-radius: 8px;
     }
 
-    .progress-bar.bg-purple {
+    :global(.progress-bar.bg-purple) {
         background: linear-gradient(90deg, #9333ea, #f97316);
     }
 }

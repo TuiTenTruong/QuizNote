@@ -1,10 +1,10 @@
-.student-history {
+.studentHistory {
     background-color: #0b0b0f;
     color: #fff;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 2rem 0;
 
-    .quiz-history-card {
+    .quizHistoryCard {
         border-radius: 12px;
         transition: all 0.3s ease;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
@@ -20,7 +20,7 @@
         }
     }
 
-    .dropdown-menu {
+    :global(.dropdown-menu) {
         min-width: 160px;
     }
 }

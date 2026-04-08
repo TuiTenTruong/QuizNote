@@ -9,6 +9,7 @@ export type SubmissionMode = 'PRACTICE' | 'EXAM';
 export interface ISubmissionAnswer {
     questionId: number;
     selectedOptionId: number;
+    selectedOptionIds?: number[];
     isCorrect?: boolean;
 }
 

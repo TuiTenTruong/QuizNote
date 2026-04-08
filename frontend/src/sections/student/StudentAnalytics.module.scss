@@ -1,4 +1,4 @@
-.student-analytics {
+.studentAnalytics {
     .card {
         border-radius: 10px;
         transition: all 0.3s ease;
@@ -25,5 +25,9 @@
 
     .badge {
         font-size: 0.75rem;
+    }
+
+    .activityItem:last-child {
+        border-bottom: none !important;
     }
 }

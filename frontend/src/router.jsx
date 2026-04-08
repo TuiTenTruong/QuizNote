@@ -3,7 +3,6 @@ import App from "./App";
 import HomePage from "./pages/home/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
-import DashboardStudent from "./features/student/Dashboard";
 import DashboardSeller from "./features/seller/Dashboard";
 import DashboardAdmin from "./features/admin/Dashboard";
 import SellerDashboard from "./features/seller/SellerDashboardPage";
@@ -14,15 +13,12 @@ import SellerWallet from "./features/seller/SellerWallet";
 import SettingsPage from "./features/settings/SettingsPage";
 import CreateQuiz from "./features/quizzes/CreateQuiz";
 import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
-import StudentQuizDetail from "./features/quizzes/student/StudentQuizDetail";
+import StudentQuizDetailPage from "./pages/student/StudentQuizDetailPage";
 import QuizPayment from "./features/payment/QuizPayment";
 import PaymentResult from "./features/payment/PaymentResult";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
-import StudentHistory from "./features/student/StudentHistory";
-import StudentQuizHistoryDetail from "./features/student/StudentQuizHistoryDetail";
-import StudentAnalytics from "./features/student/StudentAnalytics";
 import AdminDashboard from "./features/admin/AdminDashboard";
 import AdminUsersPage from "./features/admin/AdminUsersPage";
 import AdminSubjectsPage from "./features/admin/AdminSubjectsPage";
@@ -40,6 +36,9 @@ import AboutPage from "./pages/about/AboutPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
 import StudentMyQuizzesPage from "./pages/student/StudentMyQuizzesPage";
 import StudentExplorePage from "./pages/student/StudentExplorePage";
+import { StudentAnalyticPage } from "./pages/student/StudentAnalyticPage";
+import { StudentHistoryPage } from "./pages/student/StudentHistoryPage";
+import StudentHistoryDetailPage from "./pages/student/StudentHistoryDetailPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -74,7 +73,7 @@ const router = createBrowserRouter([
         element: <StudentDashboardPage />,
         children: [
             { index: true, element: <StudentExplorePage /> },
-            { path: "quizzes/:quizId", element: <StudentQuizDetail /> },
+            { path: "quizzes/:quizId", element: <StudentQuizDetailPage /> },
 
             { path: "weekly-quiz", element: <ProtectedRoute allowedRoles={['STUDENT']}><WeeklyQuizPage /></ProtectedRoute> },
             { path: "quiz-payment/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPayment /></ProtectedRoute> },
@@ -83,9 +82,9 @@ const router = createBrowserRouter([
             { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><ExamQuiz /></ProtectedRoute> },
             { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPracticePage /></ProtectedRoute> },
             { path: "quizzes/my", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentMyQuizzesPage /></ProtectedRoute> },
-            { path: "history", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistory /></ProtectedRoute> },
-            { path: "history/quiz/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizHistoryDetail /></ProtectedRoute> },
-            { path: "analytics", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentAnalytics /></ProtectedRoute> },
+            { path: "history", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistoryPage /></ProtectedRoute> },
+            { path: "history/quiz/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistoryDetailPage /></ProtectedRoute> },
+            { path: "analytics", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentAnalyticPage /></ProtectedRoute> },
             { path: "settings", element: <ProtectedRoute allowedRoles={['STUDENT']}><SettingsPage /></ProtectedRoute> }
         ]
     },

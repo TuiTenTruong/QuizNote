@@ -4,6 +4,7 @@ import type {
     IComment,
     IReqCreateComment,
     IResCreateComment,
+    IResGetComment,
     IResGetComments,
 } from "../types/comment";
 
@@ -17,8 +18,8 @@ export const getCommentsBySubject = (
 };
 
 // Get user's rating for a subject
-export const getUserRating = (userId: number, subjectId: number): Promise<IApiResponse<IComment | null>> => {
-    return instance.get<never, IApiResponse<IComment | null>>(`/api/v1/comments/user/${userId}/${subjectId}`);
+export const getUserRating = (userId: number, subjectId: number): Promise<IResGetComment> => {
+    return instance.get<never, IResGetComment>(`/api/v1/comments/user/${userId}/${subjectId}`);
 };
 
 // Create comment

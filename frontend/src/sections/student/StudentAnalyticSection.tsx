@@ -1,77 +1,27 @@
-import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import {
-    Container,
-    Row,
-    Col,
-    Card,
-    Badge,
-    Dropdown,
-    Spinner,
-    Alert,
-} from "react-bootstrap";
-import {
-    FaBook,
-    FaChartPie,
-    FaCalendarCheck,
-    FaClock,
-} from "react-icons/fa";
-import {
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-    Tooltip,
-    Legend,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-} from "recharts";
-import { getStudentAnalytics } from "../../services/apiService";
-import "./StudentAnalytics.scss";
+import { Container, Spinner, Alert, Dropdown, Row, Col, Card, Badge } from "react-bootstrap";
+import { FaBook, FaChartPie, FaCalendarCheck, FaClock } from "react-icons/fa";
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip as RechartsTooltip } from "recharts";
+import { IStudentAnalytics } from "../../types";
+import { AnalyticsTimeRange } from "../../hooks/useAnalytic";
+import styles from "./StudentAnalytics.module.scss";
 
-const StudentAnalytics = () => {
-    const user = useSelector((state) => state.user.account);
-    const [timeRange, setTimeRange] = useState("7");
-    const [timeRangeLabel, setTimeRangeLabel] = useState("7 ngày qua");
-    const [analytics, setAnalytics] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#87ceeb", "#da70d6"];
 
-    const COLORS = ["#9333ea", "#ec4899", "#f97316", "#22c55e", "#3b82f6", "#eab308"];
-
-    useEffect(() => {
-        fetchAnalytics();
-    }, [timeRange, user.id]);
-
-    const fetchAnalytics = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const days = timeRange === "all" ? null : parseInt(timeRange);
-            const response = await getStudentAnalytics(user.id, days);
-            if (response && response.statusCode === 200) {
-                setAnalytics(response.data);
-            } else {
-                setError(response.message || "Không thể tải dữ liệu phân tích. Vui lòng thử lại sau.");
-            }
-
-        } catch (err) {
-            console.error("Error fetching analytics:", err);
-            setError("Không thể tải dữ liệu phân tích. Vui lòng thử lại sau.");
-        } finally {
-            setLoading(false);
-        }
+interface IProps {
+    analytics: IStudentAnalytics | null;
+    loading: boolean;
+    error: string | null;
+    timeRange: AnalyticsTimeRange;
+    onTimeRangeChange: (value: AnalyticsTimeRange) => void;
+}
+export const StudentAnalyticSection: React.FC<IProps> = ({ analytics, loading, error, timeRange, onTimeRangeChange }) => {
+    const timeRangeLabelMap: Record<AnalyticsTimeRange, string> = {
+        "7": "7 ngày qua",
+        "30": "30 ngày qua",
+        all: "Tất cả thời gian"
     };
 
-    const handleTimeRangeChange = (value, label) => {
-        setTimeRange(value);
-        setTimeRangeLabel(label);
-    };
-
-    const formatTime = (seconds) => {
+    const formatTime = (seconds: number | null) => {
         if (!seconds) return "0 phút";
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
@@ -83,7 +33,7 @@ const StudentAnalytics = () => {
 
     if (loading) {
         return (
-            <div className="student-analytics bg-black text-light min-vh-100 py-4">
+            <div className={`${styles.studentAnalytics} bg-black text-light min-vh-100 py-4`}>
                 <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: "400px" }}>
                     <Spinner animation="border" variant="primary" />
                 </Container>
@@ -93,7 +43,7 @@ const StudentAnalytics = () => {
 
     if (error) {
         return (
-            <div className="student-analytics bg-black text-light min-vh-100 py-4">
+            <div className={`${styles.studentAnalytics} bg-black text-light min-vh-100 py-4`}>
                 <Container fluid>
                     <Alert variant="danger">{error}</Alert>
                 </Container>
@@ -102,22 +52,22 @@ const StudentAnalytics = () => {
     }
 
     return (
-        <div className="student-analytics bg-black text-light min-vh-100 py-4">
+        <div className={`${styles.studentAnalytics} bg-black text-light min-vh-100 py-4`}>
             <Container fluid>
                 <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 className="fw-bold m-0">Phân tích kết quả học tập</h4>
                     <Dropdown>
                         <Dropdown.Toggle variant="outline-light">
-                            {timeRangeLabel}
+                            {timeRangeLabelMap[timeRange]}
                         </Dropdown.Toggle>
                         <Dropdown.Menu variant="dark">
-                            <Dropdown.Item onClick={() => handleTimeRangeChange("7", "7 ngày qua")}>
+                            <Dropdown.Item onClick={() => onTimeRangeChange("7")}>
                                 7 ngày qua
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleTimeRangeChange("30", "30 ngày qua")}>
+                            <Dropdown.Item onClick={() => onTimeRangeChange("30")}>
                                 30 ngày qua
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleTimeRangeChange("all", "Tất cả thời gian")}>
+                            <Dropdown.Item onClick={() => onTimeRangeChange("all")}>
                                 Tất cả thời gian
                             </Dropdown.Item>
                         </Dropdown.Menu>
@@ -152,7 +102,7 @@ const StudentAnalytics = () => {
                     <Col md={3}>
                         <Card className="bg-dark border-secondary p-3 text-center">
                             <FaClock size={28} className="text-warning mb-2" />
-                            <h5 className="fw-semibold text-white">{formatTime(analytics?.totalTimeSpent)}</h5>
+                            <h5 className="fw-semibold text-white">{formatTime(analytics?.totalTimeSpent || 0)}</h5>
                             <p className="text-secondary small mb-0">Thời gian học</p>
                         </Card>
                     </Col>
@@ -163,7 +113,7 @@ const StudentAnalytics = () => {
                     <Col md={6}>
                         <Card className="bg-dark border-secondary p-3 h-100">
                             <h6 className="fw-bold mb-3 text-light">Phân bố quiz theo môn học</h6>
-                            {analytics?.subjectStats?.length > 0 ? (
+                            {analytics?.subjectStats && analytics.subjectStats.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
                                     <PieChart>
                                         <Pie
@@ -171,8 +121,8 @@ const StudentAnalytics = () => {
                                             cx="50%"
                                             cy="50%"
                                             labelLine={false}
-                                            label={({ name, percent }) =>
-                                                `${name}: ${(percent * 100).toFixed(0)}%`
+                                            label={({ name, percent }: { name?: string; percent?: number }) =>
+                                                `${name || ""}: ${((percent || 0) * 100).toFixed(0)}%`
                                             }
                                             outerRadius={90}
                                             fill="#8884d8"
@@ -185,7 +135,7 @@ const StudentAnalytics = () => {
                                                 />
                                             ))}
                                         </Pie>
-                                        <Tooltip
+                                        <RechartsTooltip
                                             contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
                                             labelStyle={{ color: '#fff' }}
                                             itemStyle={{
@@ -206,7 +156,7 @@ const StudentAnalytics = () => {
                     <Col md={6}>
                         <Card className="bg-dark border-secondary p-3 h-100">
                             <h6 className="fw-bold mb-3 text-light">Tỉ lệ đúng theo môn học</h6>
-                            {analytics?.accuracyBySubject?.length > 0 ? (
+                            {analytics?.accuracyBySubject && analytics?.accuracyBySubject?.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
                                     <BarChart
                                         data={analytics.accuracyBySubject.map(s => ({
@@ -218,7 +168,7 @@ const StudentAnalytics = () => {
                                         <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                                         <XAxis dataKey="subject" stroke="#aaa" />
                                         <YAxis stroke="#aaa" domain={[0, 10]} />
-                                        <Tooltip
+                                        <RechartsTooltip
                                             contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
                                             labelStyle={{ color: '#fff' }}
                                             itemStyle={{
@@ -246,11 +196,11 @@ const StudentAnalytics = () => {
                 {/* Hoạt động gần đây */}
                 <Card className="bg-dark border-secondary p-3 mt-4">
                     <h6 className="fw-bold mb-3">Hoạt động gần đây</h6>
-                    {analytics?.recentActivity?.length > 0 ? (
+                    {analytics?.recentActivity && analytics?.recentActivity?.length > 0 ? (
                         analytics.recentActivity.slice(0, 10).map((activity, idx) => (
                             <div
                                 key={idx}
-                                className="d-flex justify-content-between align-items-center border-bottom border-secondary py-2"
+                                className={`d-flex justify-content-between align-items-center border-bottom border-secondary py-2 ${styles.activityItem}`}
                             >
                                 <div>
                                     <h6 className="mb-0 fw-semibold">
@@ -274,6 +224,6 @@ const StudentAnalytics = () => {
             </Container>
         </div>
     );
-};
 
-export default StudentAnalytics;
+
+}

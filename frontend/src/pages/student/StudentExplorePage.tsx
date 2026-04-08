@@ -1,11 +1,19 @@
 import type { ReactElement } from "react";
-import { useAllSubjects, useMyQuizzes } from "../../hooks/useQuiz";
+import { useSelector } from "react-redux";
+import { useAllActiveSubjects, useMyQuizzes } from "../../hooks/useQuiz";
 import StudentExploreSection from "../../sections/student/StudentExploreSection";
-import useRequireAuth from "../../hooks/useRequireAuth";
+
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
+}
 
 export const StudentExplorePage = (): ReactElement => {
-    const { subjects, isLoading } = useAllSubjects();
-    const { account } = useRequireAuth();
+    const { subjects, isLoading } = useAllActiveSubjects();
+    const account = useSelector((state: RootState) => state.user?.account);
 
     const userId = Number(account?.id);
     const safeUserId = Number.isFinite(userId) && userId > 0 ? userId : undefined;

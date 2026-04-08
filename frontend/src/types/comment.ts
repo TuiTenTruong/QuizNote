@@ -1,4 +1,5 @@
 import { IResBase } from "./api";
+import { IPaginationMeta } from "./pagination";
 
 export interface IComment {
     id: number;
@@ -31,10 +32,15 @@ export interface IReqUpdateComment {
 export interface IReqDeleteComment {
     id: number;
 }
-
+export interface ICommentPagination {
+    data: IComment[];
+    meta: IPaginationMeta
+}
 export interface IResCreateComment extends IResBase<IComment> { }
 
-export interface IResGetComments extends IResBase<IComment[]> { }
+export interface IResGetComment extends IResBase<IComment> { }
+
+export interface IResGetComments extends IResBase<ICommentPagination> { }
 
 export interface IResDeleteComment extends IResBase<null, string> { }
 

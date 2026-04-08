@@ -27,11 +27,6 @@ export interface IQuestionChapter {
     name: string;
 }
 
-export interface IQuestionPagination {
-    meta: IPaginationMeta;
-    result: IQuestion[];
-}
-
 export interface IReqCreateQuestion extends Omit<IQuestion, 'id' | 'correctnessPercentage' | 'chapter' | 'options'> {
 }
 
@@ -44,6 +39,6 @@ export interface IResCreateQuestion extends IResBase<IQuestion> { }
 
 export interface IResUpdateQuestion extends IResBase<IQuestion> { }
 
-export interface IResGetQuestions extends IResBase<IQuestionPagination, string> { }
+export interface IResGetQuestions extends IResBase<IQuestion[]> { }
 
 export interface IResDeleteQuestion extends IResBase<null, string> { }
