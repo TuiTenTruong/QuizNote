@@ -3,7 +3,7 @@ import { FaBook, FaChartPie, FaCalendarCheck, FaClock } from "react-icons/fa";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip as RechartsTooltip } from "recharts";
 import { IStudentAnalytics } from "../../types";
 import { AnalyticsTimeRange } from "../../hooks/useAnalytic";
-import styles from "./StudentAnalytics.module.scss";
+import styles from "./scss/StudentAnalytics.module.scss";
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#87ceeb", "#da70d6"];
 

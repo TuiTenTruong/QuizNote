@@ -9,7 +9,7 @@ import {
     Form,
 } from "react-bootstrap";
 import { FaBook } from "react-icons/fa";
-import styles from "./StudentMyQuizzes.module.scss";
+import styles from "./scss/StudentMyQuizzes.module.scss";
 import axiosInstance from "../../utils/axiosCustomize";
 import { useNavigate } from "react-router-dom";
 import { navigateToSelectMode } from "../../utils/quizNavigation";

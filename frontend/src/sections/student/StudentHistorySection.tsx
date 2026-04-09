@@ -4,7 +4,7 @@ import { FaBook, FaClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ISubmission, SubmissionStatus } from "../../types";
-import styles from "./StudentHistorySection.module.scss";
+import styles from "./scss/StudentHistorySection.module.scss";
 
 const statusMap: Record<SubmissionStatus, string> = {
     SUBMITTED: "Hoàn thành",

@@ -6,7 +6,7 @@ import ReviewItem from "../../features/quizzes/student/ReviewItem";
 import { navigateToSelectMode } from "../../utils/quizNavigation";
 import type { IComment, IQuestion, ISubject } from "../../types";
 import axiosInstance from "../../utils/axiosCustomize";
-import styles from "./StudentQuizDetail.module.scss";
+import styles from "./scss/StudentQuizDetail.module.scss";
 
 interface SubmitMessage {
     type: "success" | "danger";

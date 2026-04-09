@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Container, Row } from "react-bootstrap";
 import { FaArrowLeft, FaCheckCircle, FaRedoAlt, FaTimesCircle } from "react-icons/fa";
 import { useHistoryDetail } from "../../hooks/useHistoryDetail";
-import styles from "./StudentQuizHistoryDetail.module.scss";
+import styles from "./scss/StudentQuizHistoryDetail.module.scss";
 
 interface IProps {
     isLoading: boolean;

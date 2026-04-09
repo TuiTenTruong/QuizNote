@@ -5,7 +5,7 @@ import { FaPlay, FaSearch, FaStar, FaUser, FaUsers } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosCustomize";
 import type { ISubject, QuizItem } from "../../types";
-import styles from "./StudentExplore.module.scss";
+import styles from "./scss/StudentExplore.module.scss";
 interface IProps {
     subjectsData: ISubject[];
     myQuizzes: QuizItem[];

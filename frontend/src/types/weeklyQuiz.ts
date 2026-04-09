@@ -38,9 +38,10 @@ export interface IWeeklyQuizSubmitAnswer {
 }
 
 export interface IWeeklyQuizSubmitData {
-    quizId: number;
-    answers: IWeeklyQuizSubmitAnswer[];
-    timeSpent: number;
+    weeklyQuizId: number;
+    answers: Record<any, number>;
+    timeTaken: number;
+
 }
 
 export interface IWeeklyQuizResult {
@@ -49,6 +50,8 @@ export interface IWeeklyQuizResult {
     coins: number;
     correctCount?: number;
     totalQuestions?: number;
+    bonusSteak: number;
+    currentStreak?: number;
 }
 
 export interface IReqCreateWeeklyQuiz {
