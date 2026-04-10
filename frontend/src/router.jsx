@@ -13,8 +13,8 @@ import SettingsPage from "./features/settings/SettingsPage";
 import CreateQuiz from "./features/quizzes/CreateQuiz";
 import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
 import StudentQuizDetailPage from "./pages/student/StudentQuizDetailPage";
-import QuizPayment from "./features/payment/QuizPayment";
-import PaymentResult from "./features/payment/PaymentResult";
+import StudentQuizPaymentPage from "./pages/student/StudentQuizPaymentPage";
+import StudentPaymentResultPage from "./pages/student/StudentPaymentResultPage";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
@@ -22,8 +22,6 @@ import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminWeeklyQuizPage from "./features/weeklyquiz/AdminWeeklyQuizPage";
 import RewardShopPage from "./features/reward/RewardShopPage";
-import AdminRewardsPage from "./features/admin/AdminRewardsPage";
-import AdminRewardTransactionsPage from "./features/admin/AdminRewardTransactionsPage";
 import MyRewardTransactions from "./features/reward/MyRewardTransactions";
 import AboutPage from "./pages/about/AboutPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
@@ -39,6 +37,8 @@ import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
 import AdminSubjectsPage from "./pages/admin/AdminSubjectsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminRolesPermissionsPage from "./pages/admin/AdminRolesPermissionsPage";
+import AdminRewardsPage from "./pages/admin/AdminRewardsPage";
+import AdminRewardTransactionsPage from "./pages/admin/AdminRewardTransactionsPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -76,8 +76,8 @@ const router = createBrowserRouter([
             { path: "quizzes/:quizId", element: <StudentQuizDetailPage /> },
 
             { path: "weekly-quiz", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentWeeklyQuizPage /></ProtectedRoute> },
-            { path: "quiz-payment/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPayment /></ProtectedRoute> },
-            { path: "payment-result", element: <ProtectedRoute allowedRoles={['STUDENT']}><PaymentResult /></ProtectedRoute> },
+            { path: "quiz-payment/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizPaymentPage /></ProtectedRoute> },
+            { path: "payment-result", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentPaymentResultPage /></ProtectedRoute> },
             { path: "quizzes/:quizId/mode-select", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizModeSelect /></ProtectedRoute> },
             { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><ExamQuiz /></ProtectedRoute> },
             { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPracticePage /></ProtectedRoute> },

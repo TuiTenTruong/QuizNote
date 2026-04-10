@@ -18,10 +18,7 @@ export interface IPayment {
 }
 
 export interface IVNPayOrder {
-    orderId: string;
-    paymentUrl: string;
-    amount: number;
-    orderInfo: string;
+    data: string;
 }
 
 export interface IVNPayResult {
@@ -41,6 +38,15 @@ export interface IReqVNPayCreateOrder {
     orderInfo: string;
 }
 
-export interface IResVNPayCreateOrder extends IResBase<IVNPayOrder, string> { }
+export interface IResVNPayCreateOrder extends IResBase<string, string> { }
 
 export interface IResPaymentResult extends IResBase<IVNPayResult, string> { }
+
+export interface IPaymentResultViewData {
+    status: boolean;
+    orderInfo: string;
+    transactionNo: string;
+    amount: number;
+    paymentTime: string;
+    responseCode: string;
+}
