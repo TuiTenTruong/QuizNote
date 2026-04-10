@@ -4,6 +4,8 @@ import { FaBook, FaClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ISubmission, SubmissionStatus } from "../../types";
+import useRequireAuth from "../../hooks/useRequireAuth";
+import { useHistory } from "../../hooks/useHistory";
 import styles from "./scss/StudentHistorySection.module.scss";
 
 const statusMap: Record<SubmissionStatus, string> = {
@@ -20,16 +22,19 @@ const statusVariantMap: Record<SubmissionStatus, "success" | "warning" | "danger
 
 const filterOptions = ["Tất cả", "Hoàn thành", "Đang làm"];
 
-interface IProps {
-    historyData: ISubmission[] | null;
-    loading: boolean;
-}
-
-export const StudentHistorySection: React.FC<IProps> = ({ historyData, loading }: IProps) => {
+export const StudentHistorySection: React.FC = () => {
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("Tất cả");
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    const { account } = useRequireAuth({
+        fromPath: "/student/my-quizzes",
+        message: "Vui lòng đăng nhập để xem quiz của bạn.",
+    });
+    const userId = Number(account?.id);
+    const safeUserId = Number.isFinite(userId) && userId > 0 ? userId : 0;
+    const { historyData, isLoading } = useHistory(safeUserId);
 
     const getStatusText = (status: SubmissionStatus): string => statusMap[status] ?? "Không xác định";
 
@@ -51,7 +56,7 @@ export const StudentHistorySection: React.FC<IProps> = ({ historyData, loading }
         return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div>
                 <div className="bg-black text-light min-vh-100 py-4">
@@ -154,7 +159,7 @@ export const StudentHistorySection: React.FC<IProps> = ({ historyData, loading }
                         </Col>
                     ))}
 
-                    {filtered?.length === 0 && !loading && (
+                    {filtered?.length === 0 && !isLoading && (
                         <Col xs={12}>
                             <p className="text-center text-secondary mt-4">
                                 {search || filter !== "Tất cả"

@@ -40,6 +40,34 @@ const handleLoginError = (response: IResLogin): void => {
     toast.error(errorMessage);
 };
 
+const validateLoginInput = (email: string, password: string): string | null => {
+    if (!email || !password) {
+        return "Hãy điền đầy đủ thông tin!";
+    }
+    return null;
+};
+
+const isLoginSuccess = (response: IResLogin): boolean => {
+    return Boolean(response && (response.statusCode === 200 || response.statusCode === 201));
+};
+
+const submitLogin = async (email: string, password: string): Promise<IResLogin> => {
+    return login({
+        username: email,
+        password: password,
+    });
+};
+
+const applyLoginSuccess = (
+    response: IResLogin,
+    dispatch: ReturnType<typeof useDispatch>,
+    navigate: ReturnType<typeof useNavigate>
+): void => {
+    dispatch(doLogin(response.data));
+    toast.success("Đăng nhập thành công!");
+    navigateByRole(response.data.user.role.name, navigate);
+};
+
 export const useLogin = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -51,24 +79,21 @@ export const useLogin = () => {
     ): Promise<void> => {
         e.preventDefault();
 
-        if (!email || !password) {
-            toast.error("Hãy điền đầy đủ thông tin!");
+        const validationError = validateLoginInput(email, password);
+        if (validationError) {
+            toast.error(validationError);
             return;
         }
 
         try {
-            const response: IResLogin = await login({
-                username: email,
-                password: password,
-            });
+            const response = await submitLogin(email, password);
 
-            if (response && (response.statusCode === 200 || response.statusCode === 201)) {
-                dispatch(doLogin(response.data));
-                toast.success("Đăng nhập thành công!");
-                navigateByRole(response.data.user.role.name, navigate);
-            } else {
+            if (!isLoginSuccess(response)) {
                 handleLoginError(response);
+                return;
             }
+
+            applyLoginSuccess(response, dispatch, navigate);
         } catch (error) {
             console.error('Login error:', error);
             toast.error("Đã xảy ra lỗi. Vui lòng thử lại sau.");

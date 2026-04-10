@@ -13,16 +13,19 @@ import styles from "./scss/StudentMyQuizzes.module.scss";
 import axiosInstance from "../../utils/axiosCustomize";
 import { useNavigate } from "react-router-dom";
 import { navigateToSelectMode } from "../../utils/quizNavigation";
-import { QuizItem } from "../../types";
+import { useMyQuizzes } from "../../hooks/useQuiz";
+import useRequireAuth from "../../hooks/useRequireAuth";
 
-interface IProps {
-    myQuizzes: QuizItem[];
-    isLoading: boolean;
-    isAuthenticated: boolean;
-}
-
-const StudentMyQuizzesSection = ({ myQuizzes, isLoading, isAuthenticated }: IProps): ReactElement => {
+const StudentMyQuizzesSection = (): ReactElement => {
     const navigate = useNavigate();
+    const { account, isAuthenticated } = useRequireAuth({
+        fromPath: "/student/my-quizzes",
+        message: "Vui lòng đăng nhập để xem quiz của bạn.",
+    });
+
+    const userId = Number(account?.id);
+    const safeUserId = Number.isFinite(userId) && userId > 0 ? userId : undefined;
+    const { myQuizzes, isLoading } = useMyQuizzes(safeUserId);
 
     const [search, setSearch] = useState<string>("");
 

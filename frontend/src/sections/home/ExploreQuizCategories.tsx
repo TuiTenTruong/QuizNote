@@ -2,16 +2,13 @@ import { Container, Button } from "react-bootstrap";
 import { FaStar } from "react-icons/fa6";
 import axiosInstance from '../../utils/axiosCustomize';
 import { Link } from "react-router-dom";
-import { ISubject } from "../../types";
+import { useHomeData } from "../../hooks/useHomeData";
 import styles from "./ExploreQuizCategories.module.scss";
 
-interface IProps {
-    subjects: ISubject[];
-    isLoading: boolean;
-}
-const ExploreQuizCategories: React.FC<IProps> = ({ subjects, isLoading }) => {
+const ExploreQuizCategories: React.FC = () => {
 
-    console.log(subjects);
+    const { quizCategories, isLoading } = useHomeData();
+
     const colors = ['#f87171', '#34d399', '#60a5fa', '#fbbf24', '#a78bfa', '#f472b6'];
     const random = colors[Math.floor(Math.random() * colors.length)];
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
@@ -28,7 +25,7 @@ const ExploreQuizCategories: React.FC<IProps> = ({ subjects, isLoading }) => {
                 </p>
 
                 <div className="row g-3">
-                    {subjects && subjects.length > 0 && subjects.map((category) => (
+                    {quizCategories && quizCategories.length > 0 && quizCategories.map((category) => (
 
                         <div key={category.id} className="col-12 col-md-6 col-lg-4">
                             <div className={`${styles.categoryCard} p-4 rounded-4 h-100 position-relative`}>

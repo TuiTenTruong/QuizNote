@@ -54,6 +54,38 @@ export interface ISellerAnalytics {
     monthlyStats: ISellerMonthlyStat[];
 }
 
+export interface IAdminStatusCard {
+    title: string;
+    value: number;
+    change?: number;
+}
+
+export interface IAdminMonthlyRevenue {
+    month: string;
+    revenue: number;
+}
+
+export interface IAdminUserRoleCount {
+    role: string;
+    count: number;
+}
+
+export interface IAdminCurrentUser {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+    joinDate: string;
+}
+
+export interface IAdminAnalytics {
+    statusCards: IAdminStatusCard[];
+    monthlyRevenues: IAdminMonthlyRevenue[];
+    currentUsers: IAdminCurrentUser[];
+    userRoleCounts: IAdminUserRoleCount[];
+}
+
 export interface IAdminDashboardStats {
     totalUsers: number;
     totalSubjects: number;
@@ -78,4 +110,4 @@ export interface IResGetStudentAnalytics extends IResBase<IStudentAnalytics, str
 
 export interface IResGetSellerAnalytics extends IResBase<ISellerAnalytics, string> { }
 
-export interface IResGetAdminAnalytics extends IResBase<IAdminDashboardStats, string> { }
+export interface IResGetAdminAnalytics extends IResBase<IAdminAnalytics, string> { }

@@ -4,7 +4,6 @@ import HomePage from "./pages/home/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import DashboardSeller from "./features/seller/Dashboard";
-import DashboardAdmin from "./features/admin/Dashboard";
 import SellerDashboard from "./features/seller/SellerDashboardPage";
 import SellerQuizzes from "./features/seller/SellerQuizzes";
 import SellerOrders from "./features/seller/SellerOrders";
@@ -19,13 +18,8 @@ import PaymentResult from "./features/payment/PaymentResult";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
-import AdminDashboard from "./features/admin/AdminDashboard";
-import AdminUsersPage from "./features/admin/AdminUsersPage";
-import AdminSubjectsPage from "./features/admin/AdminSubjectsPage";
-import AdminRolesPermissionsPage from "./features/admin/AdminRolesPermissionsPage";
 import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminOrdersPage from "./features/admin/AdminOrdersPage";
 import AdminWeeklyQuizPage from "./features/weeklyquiz/AdminWeeklyQuizPage";
 import RewardShopPage from "./features/reward/RewardShopPage";
 import AdminRewardsPage from "./features/admin/AdminRewardsPage";
@@ -39,6 +33,12 @@ import { StudentAnalyticPage } from "./pages/student/StudentAnalyticPage";
 import { StudentHistoryPage } from "./pages/student/StudentHistoryPage";
 import StudentHistoryDetailPage from "./pages/student/StudentHistoryDetailPage";
 import StudentWeeklyQuizPage from "./pages/student/StudentWeeklyQuizPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminExplorePage from "./pages/admin/AdminExplorePage";
+import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
+import AdminSubjectsPage from "./pages/admin/AdminSubjectsPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminRolesPermissionsPage from "./pages/admin/AdminRolesPermissionsPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -105,9 +105,9 @@ const router = createBrowserRouter([
     },
     {
         path: "/admin",
-        element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']}><DashboardAdmin /></ProtectedRoute>,
+        element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminDashboardPage /></ProtectedRoute>,
         children: [
-            { index: true, element: <AdminDashboard /> },
+            { index: true, element: <AdminExplorePage /> },
             { path: "users", element: <AdminUsersPage /> },
             { path: "permissions", element: <AdminRolesPermissionsPage /> },
             { path: "subjects", element: <AdminSubjectsPage /> },

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Table, Badge, Spinner } from 'react-bootstrap';
+import React, { useMemo } from 'react';
+import { Container, Row, Col, Card, Table, Badge, Spinner, Alert } from 'react-bootstrap';
 import {
     FaUsers,
     FaBookOpen,
@@ -11,8 +11,6 @@ import {
 import {
     LineChart,
     Line,
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -22,10 +20,17 @@ import {
     Pie,
     Cell
 } from 'recharts';
-import './AdminDashboard.scss';
-import { AdminAnalytics } from '../../services/apiService';
+import { useAdminAnalytic } from '../../hooks/useAnalytic';
+import type { IAdminStatusCard } from '../../types';
+import styles from './scss/AdminExploreSection.module.scss';
 
-const statsData = [
+interface IStatItem {
+    icon: React.ComponentType;
+    color: string;
+    key: string;
+}
+
+const statsData: IStatItem[] = [
     {
         icon: FaUsers,
         color: '#9333ea',
@@ -48,95 +53,81 @@ const statsData = [
     }
 ];
 
-const AdminDashboard = () => {
-    const [analyticsData, setAnalyticsData] = useState(null);
-    const [loading, setLoading] = useState(true);
+const AdminExploreSection = () => {
+    const { analytics, loading, error } = useAdminAnalytic();
+    const statusCards = analytics?.statusCards ?? [];
+    const monthlyRevenues = analytics?.monthlyRevenues ?? [];
+    const currentUsers = analytics?.currentUsers ?? [];
+    const userRoleCounts = analytics?.userRoleCounts ?? [];
 
-    useEffect(() => {
-        // Fetch analytics data from API
-        const fetchAnalytics = async () => {
-            try {
-                setLoading(true);
-                const response = await AdminAnalytics();
-                setAnalyticsData(response.data);
-            } catch (error) {
-                console.error('Error fetching analytics data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAnalytics();
-    }, []);
-
-    const { statusCards, monthlyRevenues, currentUsers, userRoleCounts } = analyticsData || {};
-
-    // Prepare user role distribution data from statusCards
-    const getUserRoleData = () => {
-        if (userRoleCounts != null) {
-            // Estimate: Assume orders come from students, remaining are other users
-            var students = 0;
-            var sellers = 0;
-            var admins = 0;
-            userRoleCounts.forEach(roleCount => {
-                if (roleCount.role === 'STUDENT') {
-                    students = roleCount.count;
-                } else if (roleCount.role === 'SELLER') {
-                    sellers = roleCount.count;
-                } else if (roleCount.role === 'SUPER_ADMIN') {
-                    admins = roleCount.count;
-                }
-            });
-            return [
-                { name: 'Học sinh', value: students, color: '#9333ea' },
-                { name: 'Người bán', value: sellers, color: '#f97316' },
-                { name: 'Quản trị viên', value: admins > 0 ? admins : 0, color: '#10b981' }
-            ].filter(item => item.value > 0);
+    const userRoleData = useMemo(() => {
+        if (userRoleCounts.length === 0) {
+            return [];
         }
+
+        const roleMap = userRoleCounts.reduce<Record<string, number>>((acc, item) => {
+            acc[item.role] = item.count;
+            return acc;
+        }, {});
+
+        return [
+            { name: 'Hoc sinh', value: roleMap.STUDENT ?? 0, color: '#9333ea' },
+            { name: 'Nguoi ban', value: roleMap.SELLER ?? 0, color: '#f97316' },
+            { name: 'Quan tri vien', value: roleMap.SUPER_ADMIN ?? 0, color: '#10b981' }
+        ].filter((item) => item.value > 0);
+    }, [userRoleCounts]);
+
+    const getCardData = (cardKey: string): IAdminStatusCard | null => {
+        if (!Array.isArray(statusCards)) {
+            return null;
+        }
+
+        return statusCards.find((card) => card.title === cardKey) ?? null;
     };
 
     if (loading) {
         return (
-            <div className="admin-dashboard d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+            <div className={`${styles.adminDashboard} d-flex justify-content-center align-items-center`} style={{ minHeight: '80vh' }}>
                 <Spinner animation="border" variant="primary" />
             </div>
         );
     }
 
     return (
-        <div className="admin-dashboard">
+        <div className={styles.adminDashboard}>
             <Container fluid>
-                {/* Header */}
-                <div className="dashboard-header mb-4">
-                    <h2 className="text-gradient fw-bold">Trang chủ quản trị</h2>
-                    <p className="text-muted">Chào mừng trở lại! Đây là những gì đang diễn ra trên nền tảng của bạn.</p>
+                <div className={`${styles.dashboardHeader} mb-4`}>
+                    <h2 className={`${styles.textGradient} fw-bold`}>Trang chu quan tri</h2>
+                    <p className={`${styles.mutedText}`}>Chao mung tro lai! Day la nhung gi dang dien ra tren nen tang cua ban.</p>
                 </div>
 
-                {/* Stats Cards */}
+                {error && (
+                    <Alert variant="danger" className="mb-4">
+                        {error}
+                    </Alert>
+                )}
+
                 <Row className="g-4 mb-4">
-                    {statsData?.map((stat, index) => {
-                        const cardData = Array.isArray(statusCards)
-                            ? statusCards.find(card => card.title === stat.key)
-                            : null;
+                    {statsData.map((stat, index) => {
+                        const cardData = getCardData(stat.key);
 
                         return (
                             <Col key={index} xs={12} sm={6} lg={3}>
-                                <Card className="stat-card">
+                                <Card className={styles.statCard}>
                                     <Card.Body>
                                         <div className="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <p className="stat-title">{cardData?.title || 'N/A'}</p>
-                                                <h3 className="stat-value">
+                                                <p className={styles.statTitle}>{cardData?.title || 'N/A'}</p>
+                                                <h3 className={styles.statValue}>
                                                     {stat.key === 'Total Revenue'
                                                         ? `${(cardData?.value || 0).toLocaleString('vi-VN')} VND`
-                                                        : (cardData?.value || 0)
-                                                    }
+                                                        : (cardData?.value || 0)}
                                                 </h3>
-                                                <span className="stat-change">
+                                                <span className={styles.statChange}>
                                                     {cardData?.change ? `+${cardData.change.toFixed(2)}%` : '0%'}
                                                 </span>
                                             </div>
-                                            <div className="stat-icon" style={{ background: `${stat.color}20`, color: stat.color }}>
+                                            <div className={styles.statIcon} style={{ background: `${stat.color}20`, color: stat.color }}>
                                                 <stat.icon />
                                             </div>
                                         </div>
@@ -147,27 +138,23 @@ const AdminDashboard = () => {
                     })}
                 </Row>
 
-                {/* Charts Row */}
                 <Row className="g-4 mb-4">
-                    {/* Revenue Chart */}
                     <Col lg={8}>
-                        <Card className="chart-card">
+                        <Card className={styles.chartCard}>
                             <Card.Body>
-                                <h5 className="card-title mb-4">
+                                <h5 className={`${styles.cardTitle} mb-4`}>
                                     <FaChartLine className="me-2" />
-                                    Doanh thu hàng tháng (Triệu VND)
+                                    Doanh thu hang thang (Trieu VND)
                                 </h5>
                                 <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={monthlyRevenues || []}>
+                                    <LineChart data={monthlyRevenues}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                                         <XAxis dataKey="month" stroke="#888" />
                                         <YAxis stroke="#888" />
                                         <Tooltip
                                             contentStyle={{ background: '#1a1a1a', border: '1px solid #333' }}
                                             labelStyle={{ color: '#fff' }}
-                                            itemStyle={{
-                                                color: 'var(--bs-secondary)'
-                                            }}
+                                            itemStyle={{ color: 'var(--bs-secondary)' }}
                                         />
                                         <Line
                                             type="monotone"
@@ -188,18 +175,17 @@ const AdminDashboard = () => {
                         </Card>
                     </Col>
 
-                    {/* User Role Distribution */}
                     <Col lg={4}>
-                        <Card className="chart-card">
+                        <Card className={styles.chartCard}>
                             <Card.Body>
-                                <h5 className="card-title mb-4">
+                                <h5 className={`${styles.cardTitle} mb-4`}>
                                     <FaUserGraduate className="me-2" />
-                                    Phân bố người dùng theo vai trò
+                                    Phan bo nguoi dung theo vai tro
                                 </h5>
                                 <ResponsiveContainer width="100%" height={300}>
                                     <PieChart>
                                         <Pie
-                                            data={getUserRoleData()}
+                                            data={userRoleData}
                                             cx="50%"
                                             cy="50%"
                                             outerRadius={100}
@@ -207,7 +193,7 @@ const AdminDashboard = () => {
                                             dataKey="value"
                                             label={(entry) => `${entry.name}: ${entry.value}`}
                                         >
-                                            {getUserRoleData()?.map((entry, index) => (
+                                            {userRoleData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -227,26 +213,25 @@ const AdminDashboard = () => {
                     </Col>
                 </Row>
 
-                {/* Recent Users Table */}
                 <Row>
                     <Col>
-                        <Card className="table-card">
+                        <Card className={styles.tableCard}>
                             <Card.Body>
-                                <h5 className="card-title mb-4">Người dùng gần đây</h5>
+                                <h5 className={`${styles.cardTitle} mb-4`}>Nguoi dung gan day</h5>
                                 <div className="table-responsive">
-                                    <Table hover variant="dark" className="custom-table">
+                                    <Table hover variant="dark" className={styles.customTable}>
                                         <thead>
                                             <tr>
-                                                <th>Tên</th>
+                                                <th>Ten</th>
                                                 <th>Email</th>
-                                                <th>Vai trò</th>
-                                                <th>Trạng thái</th>
-                                                <th>Ngày tham gia</th>
+                                                <th>Vai tro</th>
+                                                <th>Trang thai</th>
+                                                <th>Ngay tham gia</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {currentUsers && currentUsers.length > 0 ? (
-                                                currentUsers?.map((user) => (
+                                            {currentUsers.length > 0 ? (
+                                                currentUsers.map((user) => (
                                                     <tr key={user.id}>
                                                         <td className="fw-semibold">{user.name}</td>
                                                         <td className="text-white">{user.email}</td>
@@ -265,8 +250,8 @@ const AdminDashboard = () => {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="5" className="text-center text-muted">
-                                                        Không có dữ liệu người dùng
+                                                    <td colSpan={5} className="text-center text-muted">
+                                                        Khong co du lieu nguoi dung
                                                     </td>
                                                 </tr>
                                             )}
@@ -282,4 +267,4 @@ const AdminDashboard = () => {
     );
 };
 
-export default AdminDashboard;
+export default AdminExploreSection;

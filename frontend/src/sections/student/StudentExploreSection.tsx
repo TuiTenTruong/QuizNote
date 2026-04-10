@@ -3,13 +3,18 @@ import type { ChangeEvent, ReactElement } from "react";
 import { Carousel, Button, Nav, InputGroup, Form, Dropdown, Row, Col, Card, Container } from "react-bootstrap";
 import { FaPlay, FaSearch, FaStar, FaUser, FaUsers } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useAllActiveSubjects, useMyQuizzes } from "../../hooks/useQuiz";
 import axiosInstance from "../../utils/axiosCustomize";
 import type { ISubject, QuizItem } from "../../types";
 import styles from "./scss/StudentExplore.module.scss";
-interface IProps {
-    subjectsData: ISubject[];
-    myQuizzes: QuizItem[];
-    isLoading: boolean;
+
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
 }
 
 type ExploreTab = "All Quizzes" | "Free" | "Purchased" | "Popular";
@@ -30,12 +35,19 @@ const sortOptions: Array<{ key: SortBy; label: string }> = [
     { key: "Price: High to Low", label: "Giá: Cao → Thấp" }
 ];
 
-const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): ReactElement => {
+const StudentExploreSection = (): ReactElement => {
     const [activeTab, setActiveTab] = useState<ExploreTab>("All Quizzes");
     const navigate = useNavigate();
     const [search, setSearch] = useState<string>("");
     const [sortBy, setSortBy] = useState<SortBy>("Popular");
     const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+
+    const { subjects, isLoading } = useAllActiveSubjects();
+    const account = useSelector((state: RootState) => state.user?.account);
+    const userId = Number(account?.id);
+    const safeUserId = Number.isFinite(userId) && userId > 0 ? userId : undefined;
+    const { myQuizzes, isLoading: isMyQuizzesLoading } = useMyQuizzes(safeUserId);
+    const loading = isLoading || isMyQuizzesLoading;
 
     const hasPurchased = (subjectId: number): boolean => {
         return myQuizzes.some(quiz => quiz.id === subjectId);
@@ -45,13 +57,13 @@ const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): 
         setSearch(e.target.value);
     };
 
-    const filtered = subjectsData
+    const filtered = subjects
         .filter((subject: ISubject) => {
 
             const matchesSearch =
                 subject.name.toLowerCase().includes(search.toLowerCase()) ||
                 subject.description?.toLowerCase().includes(search.toLowerCase()) ||
-                subject.createUser?.username?.toLowerCase().includes(search.toLowerCase());
+                subject.createUser?.name?.toLowerCase().includes(search.toLowerCase());
 
 
             let matchesTab = true;
@@ -92,7 +104,7 @@ const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): 
             }
             return 0;
         });
-    if (isLoading) {
+    if (loading) {
         return (
             <Container className="text-center py-5">
                 <p className="text-light">Đang tải môn học...</p>
@@ -104,7 +116,7 @@ const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): 
             <div>
                 {/* HERO CAROUSEL */}
                 <Carousel fade interval={5000} indicators={false} className={`${styles.heroCarousel} mb-5`}>
-                    {subjectsData.slice(0, 3).map((subject, i) => (
+                    {subjects.slice(0, 3).map((subject, i) => (
                         <Carousel.Item key={i} onClick={(e) => e.stopPropagation()}>
                             <div
                                 className={styles.heroSlide}
@@ -114,7 +126,7 @@ const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): 
                             >
                                 <div className={styles.heroContent}>
                                     <h2 className="fw-bold mb-2">{subject.name}</h2>
-                                    <p className="mb-3">{subject.createUser?.username}</p>
+                                    <p className="mb-3">{subject.createUser?.name}</p>
                                     <Button className={`${styles.btnGradient} z-5`} onClick={() => {
                                         navigate(`/student/quizzes/${subject.id}`);
                                     }}>
@@ -199,7 +211,7 @@ const StudentExploreSection = ({ subjectsData, myQuizzes, isLoading }: IProps): 
                                     </div>
 
                                     <h6 className="fw-semibold text-white">{subject.name}</h6>
-                                    <p className="small text-secondary mb-3">{subject.createUser?.username}</p>
+                                    <p className="small text-secondary mb-3">{subject.createUser?.name}</p>
 
                                     <div className="small text-white-50 mb-3 gap-2">
                                         <span className="d-flex align-items-center gap-1">

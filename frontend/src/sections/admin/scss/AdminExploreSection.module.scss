@@ -1,0 +1,130 @@
+.adminDashboard {
+    background: #0b0b0f;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #fff;
+
+    .dashboardHeader {
+        margin-bottom: 2rem;
+    }
+
+    .textGradient {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2rem;
+    }
+
+    .mutedText {
+        color: #9ca3af !important;
+    }
+
+    .statCard {
+        background: #1a1a1a;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(147, 51, 234, 0.2);
+        }
+    }
+
+    .statTitle {
+        font-size: 0.875rem;
+        color: #9ca3af;
+        margin-bottom: 0.5rem;
+    }
+
+    .statValue {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.25rem;
+    }
+
+    .statChange {
+        font-size: 0.875rem;
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .statIcon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .chartCard {
+        background: #1a1a1a;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .cardTitle {
+        color: #fff;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+
+        svg {
+            color: #f97316;
+        }
+    }
+
+    .tableCard {
+        background: #1a1a1a;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .customTable {
+        :global(thead th) {
+            border-color: #2a2a2a;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        :global(tbody tr) {
+            border-color: #2a2a2a;
+            transition: background 0.2s ease;
+        }
+
+        :global(tbody tr:hover) {
+            background: #222;
+        }
+
+        :global(tbody td) {
+            border-color: #2a2a2a;
+            padding: 1rem;
+        }
+    }
+
+    :global(.badge) {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+    }
+
+    @media (max-width: 991px) {
+        padding: 1rem 0.5rem;
+
+        .textGradient {
+            font-size: 1.5rem;
+        }
+
+        .statCard {
+            margin-bottom: 1rem;
+        }
+    }
+}

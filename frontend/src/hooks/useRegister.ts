@@ -13,47 +13,109 @@ export const handleToggle = (
     setType(type === 'password' ? 'text' : 'password');
 };
 
+export interface IRegisterInput {
+    name: string;
+    gender: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    role: string;
+    bankName: string;
+    bankAccount: string;
+}
+
+const validateRequiredFields = (input: IRegisterInput): string | null => {
+    if (!input.name || !input.gender || !input.email || !input.password || !input.confirmPassword) {
+        return "Hãy điền đầy đủ thông tin.";
+    }
+    return null;
+};
+
+const validatePasswordMatch = (input: IRegisterInput): string | null => {
+    if (input.password !== input.confirmPassword) {
+        return "Mật khẩu không khớp.";
+    }
+    return null;
+};
+
+const validateSellerBankInfo = (input: IRegisterInput): string | null => {
+    if (input.role === USER_ROLES.SELLER && (!input.bankName || !input.bankAccount)) {
+        return "Hãy điền đầy đủ thông tin ngân hàng cho tài khoản người bán.";
+    }
+    return null;
+};
+
+export const validateRegisterInput = (input: IRegisterInput): string | null => {
+    return (
+        validateRequiredFields(input) ||
+        validatePasswordMatch(input) ||
+        validateSellerBankInfo(input)
+    );
+};
+
+const buildRegisterPayload = (input: IRegisterInput) => ({
+    email: input.email,
+    password: input.password,
+    username: input.name,
+    gender: input.gender as UserGender,
+    role: input.role as UserRole,
+    bankName: input.bankName || null,
+    bankAccount: input.bankAccount || null
+});
+
+export const submitRegister = async (input: IRegisterInput): Promise<IResRegister> => {
+    return register(buildRegisterPayload(input));
+};
+
 export const useRegister = () => {
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, name: string, gender: string, email: string, password: string, confirmPassword: string, role: string, bankName: string, bankAccount: string): Promise<void> => {
+    const handleSubmit = async (
+        e: React.FormEvent<HTMLFormElement>,
+        name: string,
+        gender: string,
+        email: string,
+        password: string,
+        confirmPassword: string,
+        role: string,
+        bankName: string,
+        bankAccount: string
+    ): Promise<void> => {
         e.preventDefault();
 
-        if (!name || !gender || !email || !password || !confirmPassword) {
-            toast.error("Hãy điền đầy đủ thông tin.");
-            return;
-        }
-        if (password !== confirmPassword) {
-            toast.error("Mật khẩu không khớp.");
+        const input: IRegisterInput = {
+            name,
+            gender,
+            email,
+            password,
+            confirmPassword,
+            role,
+            bankName,
+            bankAccount
+        };
+
+        const validationError = validateRegisterInput(input);
+        if (validationError) {
+            toast.error(validationError);
             return;
         }
 
-        if (role === USER_ROLES.SELLER) {
-            if (!bankName || !bankAccount) {
-                toast.error("Hãy điền đầy đủ thông tin ngân hàng cho tài khoản người bán.");
+        try {
+            const response = await submitRegister(input);
+            if (response.data && (response.statusCode === 200 || response.statusCode === 201)) {
+                toast.success(response.data.message);
+                navigate("/login");
                 return;
             }
-        }
 
-        const response: IResRegister = await register({
-            email: email,
-            password: password,
-            username: name,
-            gender: gender as UserGender,
-            role: role as UserRole,
-            bankName: bankName || null,
-            bankAccount: bankAccount || null
-        });
-        console.log(response);
-        if (response.data && (response.statusCode === 200 || response.statusCode === 201)) {
-
-            toast.success(response.data.message);
-            navigate("/login");
-        } else {
-            toast.error(response.message);
+            toast.error(String(response.message || "Đăng ký thất bại"));
+        } catch (error) {
+            console.error("Register error:", error);
+            toast.error("Đã xảy ra lỗi. Vui lòng thử lại sau.");
         }
-    }
+    };
+
     return {
         handleSubmit
     };
-}
+};

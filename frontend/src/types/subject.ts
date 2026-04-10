@@ -3,6 +3,8 @@ import { IPaginationMeta } from './pagination';
 import { IUser } from './user';
 
 export type SubjectStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'REJECTED';
+export type AdminSubjectFilterStatus = 'All' | SubjectStatus;
+export type AdminSubjectModalType = '' | 'view' | 'approve' | 'reject' | 'delete';
 
 export interface ISubject {
     id: number;

@@ -4,6 +4,26 @@ import { IQuestion, IResGetMyQuizzes, IResGetSubjects, ISubject, QuizItem } from
 import { getAllActiveSubjects, getSubjectDetail } from "../api/subject.api";
 import { getQuestionsDemo } from "../api/question.api";
 
+export const fetchMyQuizzesByUser = async (userId: number): Promise<QuizItem[]> => {
+    const response: IResGetMyQuizzes = await getUserPurchases(userId);
+    return response.statusCode === 200 ? response.data || [] : [];
+};
+
+export const fetchActiveSubjects = async (): Promise<ISubject[]> => {
+    const response: IResGetSubjects = await getAllActiveSubjects();
+    return response.statusCode === 200 ? response.data.result || [] : [];
+};
+
+export const fetchQuizDetailById = async (quizId: number): Promise<ISubject | null> => {
+    const response = await getSubjectDetail(quizId);
+    return response.data ?? null;
+};
+
+export const fetchQuizDemoQuestions = async (quizId: number, page: number, size: number): Promise<IQuestion[]> => {
+    const response = await getQuestionsDemo(quizId, page, size);
+    return response.statusCode === 200 ? response.data || [] : [];
+};
+
 export const useMyQuizzes = (userId?: number) => {
     const [myQuizzes, setMyQuizzes] = useState<QuizItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -17,12 +37,8 @@ export const useMyQuizzes = (userId?: number) => {
 
             setIsLoading(true);
             try {
-                const response: IResGetMyQuizzes = await getUserPurchases(userId);
-                if (response.statusCode === 200) {
-                    setMyQuizzes(response.data || []);
-                } else {
-                    setMyQuizzes([]);
-                }
+                const quizzes = await fetchMyQuizzesByUser(userId);
+                setMyQuizzes(quizzes);
             } catch (error) {
                 console.error("Error fetching my quizzes:", error);
                 setMyQuizzes([]);
@@ -48,12 +64,8 @@ export const useAllActiveSubjects = () => {
         const fetchSubjects = async () => {
             setIsLoading(true);
             try {
-                const response: IResGetSubjects = await getAllActiveSubjects();
-                if (response.statusCode === 200) {
-                    setSubjects(response.data.result || []);
-                } else {
-                    setSubjects([]);
-                }
+                const subjectList = await fetchActiveSubjects();
+                setSubjects(subjectList);
             } catch (error) {
                 console.error("Error fetching subjects:", error);
                 setSubjects([]);
@@ -83,8 +95,8 @@ export const useGetQuizDetail = (quizId: number) => {
 
             setIsLoading(true);
             try {
-                const response = await getSubjectDetail(quizId);
-                setQuizDetail(response.data);
+                const detail = await fetchQuizDetailById(quizId);
+                setQuizDetail(detail);
             } catch (error) {
                 console.error("Error fetching quiz detail:", error);
                 setQuizDetail(null);
@@ -113,13 +125,8 @@ export const useQuizDemo = (quizId: number, page: number = 0, size: number = 5) 
 
             setIsLoading(true);
             try {
-                const response = await getQuestionsDemo(quizId, page, size);
-                console.log(response);
-                if (response.statusCode === 200) {
-                    setQuizDemo(response.data || []);
-                } else {
-                    setQuizDemo([]);
-                }
+                const questions = await fetchQuizDemoQuestions(quizId, page, size);
+                setQuizDemo(questions);
             } catch (error) {
                 console.error("Error fetching quiz demo:", error);
                 setQuizDemo([]);

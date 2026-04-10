@@ -13,15 +13,19 @@ interface CommentPagePayload {
     meta?: CommentMeta;
 }
 
-interface UseCommentResult {
+interface UseCommentQueryResult {
     reviews: IComment[];
     reviewsPage: number;
     maxReviews: number;
     countReviews: number;
     hasMoreReviews: boolean;
     reviewsLoading: boolean;
-    submitLoading: boolean;
     fetchReviews: (page: number) => Promise<void>;
+    resetReviews: () => void;
+}
+
+interface UseCreateCommentResult {
+    submitLoading: boolean;
     submitReview: (data: IReqCreateComment) => Promise<boolean>;
 }
 
@@ -37,15 +41,23 @@ const readCommentPayload = (data: unknown): { result: IComment[]; meta: CommentM
     };
 };
 
-export const useComment = (quizId: number, pageSize: number = 5): UseCommentResult => {
+export const useCommentQuery = (quizId: number, pageSize: number = 5): UseCommentQueryResult => {
     const [reviews, setReviews] = useState<IComment[]>([]);
     const [reviewsPage, setReviewsPage] = useState<number>(0);
     const [maxReviews, setMaxReviews] = useState<number>(0);
     const [countReviews, setCountReviews] = useState<number>(0);
     const [hasMoreReviews, setHasMoreReviews] = useState<boolean>(true);
     const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
-    const [submitLoading, setSubmitLoading] = useState<boolean>(false);
     const hasMoreReviewsRef = useRef<boolean>(true);
+
+    const resetReviews = useCallback(() => {
+        setReviews([]);
+        setReviewsPage(0);
+        setMaxReviews(0);
+        setCountReviews(0);
+        setHasMoreReviews(true);
+        hasMoreReviewsRef.current = true;
+    }, []);
 
     useEffect(() => {
         hasMoreReviewsRef.current = hasMoreReviews;
@@ -81,23 +93,28 @@ export const useComment = (quizId: number, pageSize: number = 5): UseCommentResu
 
     useEffect(() => {
         if (!quizId) {
-            setReviews([]);
-            setReviewsPage(0);
-            setMaxReviews(0);
-            setCountReviews(0);
-            setHasMoreReviews(true);
+            resetReviews();
             return;
         }
 
-        setReviews([]);
-        setReviewsPage(0);
-        setMaxReviews(0);
-        setCountReviews(0);
-        setHasMoreReviews(true);
-        hasMoreReviewsRef.current = true;
-
+        resetReviews();
         void fetchReviews(0);
-    }, [quizId, fetchReviews]);
+    }, [quizId, fetchReviews, resetReviews]);
+
+    return {
+        reviews,
+        reviewsPage,
+        maxReviews,
+        countReviews,
+        hasMoreReviews,
+        reviewsLoading,
+        fetchReviews,
+        resetReviews,
+    };
+};
+
+export const useCreateComment = (quizId: number): UseCreateCommentResult => {
+    const [submitLoading, setSubmitLoading] = useState<boolean>(false);
 
     const submitReview = useCallback(
         async (data: IReqCreateComment): Promise<boolean> => {
@@ -110,11 +127,6 @@ export const useComment = (quizId: number, pageSize: number = 5): UseCommentResu
                     return false;
                 }
 
-                setReviews([]);
-                setReviewsPage(0);
-                setHasMoreReviews(true);
-                hasMoreReviewsRef.current = true;
-                await fetchReviews(0);
                 return true;
             } catch (error) {
                 console.error("Error submitting review:", error);
@@ -123,18 +135,11 @@ export const useComment = (quizId: number, pageSize: number = 5): UseCommentResu
                 setSubmitLoading(false);
             }
         },
-        [quizId, fetchReviews]
+        [quizId]
     );
 
     return {
-        reviews,
-        reviewsPage,
-        maxReviews,
-        countReviews,
-        hasMoreReviews,
-        reviewsLoading,
         submitLoading,
-        fetchReviews,
         submitReview,
     };
 };

@@ -4,12 +4,9 @@ import { FaArrowLeft, FaCheckCircle, FaRedoAlt, FaTimesCircle } from "react-icon
 import { useHistoryDetail } from "../../hooks/useHistoryDetail";
 import styles from "./scss/StudentQuizHistoryDetail.module.scss";
 
-interface IProps {
-    isLoading: boolean;
-    questionData: ReturnType<typeof useHistoryDetail>["questionData"];
-}
-export const StudentHistoryDetailSection: React.FC<IProps> = ({ isLoading, questionData }) => {
+export const StudentHistoryDetailSection: React.FC = () => {
     const navigate = useNavigate();
+    const { isLoading, questionData } = useHistoryDetail();
 
     if (isLoading) {
         return (

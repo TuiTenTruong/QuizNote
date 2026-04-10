@@ -1,10 +1,14 @@
+import { useEffect, useState } from "react";
 import type { FormEvent, ReactElement } from "react";
 import { Container, Row, Col, Button, Card, ProgressBar, Form, Alert } from "react-bootstrap";
 import { FaUserGraduate, FaStar, FaShoppingCart } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import ReviewItem from "../../features/quizzes/student/ReviewItem";
 import { navigateToSelectMode } from "../../utils/quizNavigation";
-import type { IComment, IQuestion, ISubject } from "../../types";
+import { useCommentQuery, useCreateComment } from "../../hooks/useComment";
+import { useGetQuizDetail, useQuizDemo } from "../../hooks/useQuiz";
+import { useReting } from "../../hooks/useRating";
 import axiosInstance from "../../utils/axiosCustomize";
 import styles from "./scss/StudentQuizDetail.module.scss";
 
@@ -13,50 +17,96 @@ interface SubmitMessage {
     text: string;
 }
 
-interface IProps {
-    quizData: ISubject | null;
-    quizDemo: IQuestion[];
-    reviews: IComment[];
-    reviewsPage: number;
-    maxReviews: number;
-    countReviews: number;
-    hasMoreReviews: boolean;
-    reviewsLoading: boolean;
-    submitLoading: boolean;
-    hasPurchased: boolean;
-    isAuthenticated: boolean;
-    isRating: boolean;
-    rating: number;
-    reviewContent: string;
-    submitMessage: SubmitMessage | null;
-    onLoadMoreReviews: () => void;
-    onSubmitReview: (e: FormEvent<HTMLFormElement>) => void;
-    onRatingChange: (rating: number) => void;
-    onReviewContentChange: (content: string) => void;
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
 }
 
-const StudentQuizDetailSection = ({
-    quizData,
-    quizDemo,
-    reviews,
-    reviewsPage,
-    maxReviews,
-    countReviews,
-    hasMoreReviews,
-    reviewsLoading,
-    submitLoading,
-    hasPurchased,
-    isAuthenticated,
-    isRating,
-    rating,
-    reviewContent,
-    submitMessage,
-    onLoadMoreReviews,
-    onSubmitReview,
-    onRatingChange,
-    onReviewContentChange,
-}: IProps): ReactElement => {
+interface QuizDetailLocationState {
+    hasPurchased?: boolean;
+}
+
+const REVIEW_PAGE_SIZE = 5;
+
+const StudentQuizDetailSection = (): ReactElement => {
+    const [reviewContent, setReviewContent] = useState<string>("");
+    const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
+
+    const { quizId } = useParams<{ quizId: string }>();
+    const quizIdNumber = Number(quizId);
+    const location = useLocation();
     const navigate = useNavigate();
+
+    const account = useSelector((state: RootState) => state.user?.account);
+    const isAuthenticated = Boolean(account?.id);
+    const hasPurchased = Boolean((location.state as QuizDetailLocationState | undefined)?.hasPurchased);
+
+    const { rating, setRating, isRated: isRating, resetRating } = useReting(account?.id, quizIdNumber, isAuthenticated);
+    const { quizDetail: quizData } = useGetQuizDetail(quizIdNumber);
+    const { quizDemo } = useQuizDemo(quizIdNumber, 0, 5);
+    const {
+        reviews,
+        reviewsPage,
+        maxReviews,
+        countReviews,
+        hasMoreReviews,
+        reviewsLoading,
+        fetchReviews,
+        resetReviews,
+    } = useCommentQuery(quizIdNumber, REVIEW_PAGE_SIZE);
+    const { submitLoading, submitReview } = useCreateComment(quizIdNumber);
+
+    useEffect(() => {
+        if (!quizIdNumber || Number.isNaN(quizIdNumber)) {
+            navigate("/");
+        }
+    }, [navigate, quizIdNumber]);
+
+    const handleLoadMoreReviews = () => {
+        fetchReviews(reviewsPage + 1);
+    };
+
+    const handleSubmitReview = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!quizIdNumber) return;
+
+        if (isRating) {
+            setSubmitMessage({ type: "danger", text: "Bạn đã đánh giá quiz này rồi." });
+            return;
+        }
+
+        if (!reviewContent.trim()) {
+            setSubmitMessage({ type: "danger", text: "Vui lòng nhập nội dung đánh giá!" });
+            return;
+        }
+
+        setSubmitMessage(null);
+
+        try {
+            const isSuccess = await submitReview({
+                content: reviewContent,
+                rating,
+                subjectName: quizData?.name ?? "",
+            });
+
+            if (isSuccess) {
+                resetReviews();
+                await fetchReviews(0);
+                setSubmitMessage({ type: "success", text: "Đánh giá của bạn đã được gửi thành công!" });
+                setReviewContent("");
+                resetRating();
+                return;
+            }
+
+            setSubmitMessage({ type: "danger", text: "Có lỗi xảy ra. Vui lòng thử lại!" });
+        } catch (error) {
+            console.error("Error submitting review:", error);
+            setSubmitMessage({ type: "danger", text: "Có lỗi xảy ra. Vui lòng thử lại!" });
+        }
+    };
 
     const backendBaseSubjectURL = `${axiosInstance.defaults.baseURL ?? ""}storage/subjects/`;
     const backendBaseUserURL = `${axiosInstance.defaults.baseURL ?? ""}storage/users/`;
@@ -154,14 +204,14 @@ const StudentQuizDetailSection = ({
                             {isAuthenticated && !isRating && (quizData.price === 0 || hasPurchased) && (
                                 <Card className="bg-secondary bg-opacity-25 border-0 p-3 mb-4">
                                     <h6 className="fw-semibold mb-3 text-white">Đánh giá của bạn</h6>
-                                    <Form onSubmit={onSubmitReview}>
+                                    <Form onSubmit={handleSubmitReview}>
                                         <Form.Group className="mb-3">
                                             <Form.Label className="text-light">Xếp hạng</Form.Label>
                                             <div className="d-flex gap-2 mb-2 align-items-center">
                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                     <span
                                                         key={star}
-                                                        onClick={() => onRatingChange(star)}
+                                                        onClick={() => setRating(star)}
                                                         style={{ cursor: "pointer", fontSize: "1.6rem" }}
                                                         className={star <= rating ? "text-warning" : "text-secondary"}
                                                     >
@@ -178,7 +228,7 @@ const StudentQuizDetailSection = ({
                                                 as="textarea"
                                                 rows={3}
                                                 value={reviewContent}
-                                                onChange={(e) => onReviewContentChange(e.target.value)}
+                                                onChange={(e) => setReviewContent(e.target.value)}
                                                 placeholder="Chia sẻ trải nghiệm của bạn về quiz này..."
                                                 className="bg-dark text-light border-secondary"
                                             />
@@ -224,7 +274,7 @@ const StudentQuizDetailSection = ({
                             {hasMoreReviews && !reviewsLoading && (
                                 <div className="text-center mt-3">
                                     {reviewsPage < maxReviews - 1 ? (
-                                        <Button variant="outline-secondary" size="sm" onClick={onLoadMoreReviews}>
+                                        <Button variant="outline-secondary" size="sm" onClick={handleLoadMoreReviews}>
                                             Xem thêm đánh giá
                                         </Button>
                                     ) : (
@@ -249,7 +299,7 @@ const StudentQuizDetailSection = ({
                                 )}
 
                                 <div>
-                                    <h6 className="fw-bold mb-0 text-white">{quizData.createUser.username}</h6>
+                                    <h6 className="fw-bold mb-0 text-white">{quizData.createUser.name}</h6>
                                     <small className="text-secondary">Teacher</small>
                                 </div>
                             </div>

@@ -1,5 +1,5 @@
 import Sidebar from "../../../components/layout/Sidebar";
-import { adminNavItems, adminSettingsItems } from "../sidebarConfig";
+import { adminNavItems, adminSettingsItems } from "../components/sidebarConfig";
 
 interface AdminSidebarProps {
     isSidebarOpen: boolean;

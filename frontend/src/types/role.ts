@@ -2,16 +2,25 @@ import { IPaginationMeta } from "./pagination";
 import { IResBase } from "./api";
 
 export type PermissionMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type RolePermissionModalType = 'add' | 'edit' | 'delete' | '';
 
 export type PermissionModule =
     | 'USERS'
     | 'ROLES'
     | 'PERMISSIONS'
     | 'SUBJECTS'
+    | 'ORDERS'
+    | 'PURCHASES'
     | 'QUESTIONS'
+    | 'CHAPTERS'
+    | 'FILES'
     | 'SUBMISSIONS'
     | 'COMMENTS'
     | 'PAYMENTS'
+    | 'WEEKLY_QUIZZES'
+    | 'SELLERS'
+    | 'ADMINS'
+    | 'WITHDRAWS'
     | 'REWARDS'
     | 'WEEKLY_QUIZ'
     | 'ADMIN';
@@ -66,6 +75,19 @@ export interface IReqCreatePermission {
 
 export interface IReqUpdatePermission extends Partial<IReqCreatePermission> {
     id: number;
+}
+
+export interface IRoleFormData {
+    name: string;
+    description: string;
+    active: boolean;
+}
+
+export interface IPermissionFormData {
+    name: string;
+    apiPath: string;
+    method: PermissionMethod;
+    module: PermissionModule;
 }
 
 export interface IResGetRoles extends IResBase<IRole[], string> { }

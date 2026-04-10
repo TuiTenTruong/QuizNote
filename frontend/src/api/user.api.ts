@@ -7,6 +7,7 @@ import type {
     IResCreateUser,
     IResUpdateUser,
     IResGetUser,
+    IResGetAdminUser,
     IResDeleteUser,
 } from "../types/user";
 
@@ -18,6 +19,11 @@ export const getCurrentUser = (): Promise<IApiResponse<IUser>> => {
 // Get all users (paginated)
 export const getAllUsers = (page: number = 0, size: number = 10): Promise<IResGetUser> => {
     return instance.get<never, IResGetUser>(`/api/v1/users?page=${page}&size=${size}`);
+};
+
+// Get all admin users (paginated)
+export const getAllAdminUsers = (page: number = 0, size: number = 10): Promise<IResGetAdminUser> => {
+    return instance.get<never, IResGetAdminUser>(`/api/v1/users?page=${page}&size=${size}`);
 };
 
 // Create user

@@ -1,0 +1,114 @@
+.adminSubjectsPage {
+    background: #0b0b0f;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #fff;
+
+    :global(.input-group-text) {
+        background: #1a1a1a;
+        border-color: #3a3a42;
+        color: #9ca3af;
+    }
+
+    :global(.form-control),
+    :global(.form-select) {
+        background: #1a1a1a;
+        border-color: #3a3a42;
+        color: #fff;
+
+        &:focus {
+            background: #1a1a1a;
+            border-color: #9333ea;
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(147, 51, 234, 0.25);
+        }
+
+        &::placeholder {
+            color: #6b7280;
+        }
+    }
+
+    @media (max-width: 991px) {
+        padding: 1rem 0.5rem;
+    }
+}
+
+.textGradient {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mutedText {
+    color: #9ca3af !important;
+}
+
+.subjectsTableCard {
+    background: #1a1a1a;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.customTable {
+    :global(thead th) {
+        border-color: #2a2a2a;
+        color: #9ca3af;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        padding: 1rem;
+    }
+
+    :global(tbody tr) {
+        border-color: #2a2a2a;
+        transition: background 0.2s ease;
+    }
+
+    :global(tbody tr:hover) {
+        background: #222;
+    }
+
+    :global(tbody td) {
+        border-color: #2a2a2a;
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    :global(.badge) {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+    }
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+
+    :global(.btn) {
+        padding: 0.375rem 0.75rem;
+
+        &:hover {
+            transform: scale(1.05);
+        }
+    }
+
+    @media (max-width: 991px) {
+        flex-wrap: wrap;
+    }
+}
+
+.modalHeaderCustom,
+.modalBodyCustom,
+.modalFooterCustom {
+    background: #1a1a1a;
+    border-color: #2a2a2a;
+    color: #fff;
+}
+
+.modalHeaderCustom {
+    :global(.btn-close) {
+        filter: invert(1);
+    }
+}

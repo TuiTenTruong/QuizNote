@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
     Container,
     Row,
@@ -22,229 +22,54 @@ import {
     FaCheckCircle,
     FaEllipsisV
 } from 'react-icons/fa';
-import './AdminUsersPage.scss';
-import { GetAllUsers, CreateUser, UpdateUser, DeleteUser } from '../../services/apiService';
-import { getAllRoles } from '../../services/apiService';
-import { toast } from "react-toastify";
-import { changeStatusUser } from '../../services/apiService';
-const AdminUsersPage = () => {
-    const [users, setUsers] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterRole, setFilterRole] = useState('All');
-    const [filterStatus, setFilterStatus] = useState('All');
-    const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState('');
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [errorMessages, setErrorMessages] = useState([]);
-    const [formData, setFormData] = useState({
-        id: '',
-        name: '',
-        email: '',
-        password: '',
-        gender: 'MALE',
-        address: '',
-        age: '',
-        role: { id: 3 } // Default to Student (role id 3)
-    });
-    const [roles, setRoles] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [meta, setMeta] = useState({
-        page: 1,
-        pageSize: 10,
-        pages: 1,
-        total: 0
-    });
+import { useUser } from '../../hooks/useUser';
+import styles from './scss/AdminUsersSection.module.scss';
+import type { IAdminUser, IAdminUserFormData } from '../../types/user';
 
-    useEffect(() => {
-        const fetchRoles = async () => {
-            const response = await getAllRoles();
-            setRoles(response.data.result);
-        };
-        fetchRoles();
-    }, []);
+type ModalType = 'add' | 'edit' | 'delete' | '';
+type FilterStatus = 'All' | 'Active' | 'Inactive';
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const response = await GetAllUsers(currentPage - 1);
-            setUsers(response.data.result);
-            setMeta(response.data.meta);
-        }
-        fetchUsers();
-    }, [currentPage]);
-
-    const filteredUsers = users?.filter(user => {
-        const matchSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchRole = filterRole === 'All' || user.role?.name === filterRole;
-        const matchStatus = filterStatus === 'All' || (filterStatus === 'Active' && user.active) || (filterStatus === 'Inactive' && !user.active);
-        return matchSearch && matchRole && matchStatus;
-    });
-
-
-
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
-
-    const handleShowModal = (type, user = null) => {
-        setModalType(type);
-        setSelectedUser(user);
-        setErrorMessages([]); // Clear error messages when opening modal
-        if (type === 'edit' && user) {
-            setFormData({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                password: '', // Don't show password
-                gender: user.gender || 'MALE',
-                address: user.address || '',
-                age: user.age || '',
-                role: { id: user.role?.id || 3 }
-            });
-        } else {
-            setFormData({
-                name: '',
-                email: '',
-                password: '',
-                gender: 'MALE',
-                address: '',
-                age: '',
-                role: { id: 3 }
-            });
-        }
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-        setSelectedUser(null);
-        setErrorMessages([]); // Clear error messages when closing modal
-        setFormData({
-            name: '',
-            email: '',
-            password: '',
-            gender: 'MALE',
-            address: '',
-            age: '',
-            role: { id: 3 }
-        });
-    };
-
-    const handleSave = async () => {
-        try {
-            setErrorMessages([]); // Clear previous errors
-
-            if (modalType === 'add') {
-                const response = await CreateUser(formData);
-
-                if (response.statusCode !== 201 && response.statusCode !== 200) {
-                    // Handle error response
-                    if (Array.isArray(response.message)) {
-                        setErrorMessages(response.message);
-                    } else {
-                        setErrorMessages([response.message || 'Có lỗi xảy ra khi tạo người dùng']);
-                    }
-                    toast.error('Không thể tạo người dùng. Vui lòng kiểm tra lại thông tin.');
-                    return; // Don't close modal on error
-                }
-
-                toast.success('Tạo người dùng thành công');
-                // Refresh the user list
-                const usersResponse = await GetAllUsers(currentPage - 1);
-                setUsers(usersResponse.data.result);
-                setMeta(usersResponse.data.meta);
-                handleCloseModal();
-
-            } else if (modalType === 'edit') {
-                // For update, don't send password if it's empty
-                const updateData = { ...formData };
-
-                const response = await UpdateUser(selectedUser.id, updateData);
-
-                if (response.statusCode !== 200 && response.statusCode !== 201) {
-                    // Handle error response
-                    if (Array.isArray(response.message)) {
-                        setErrorMessages(response.message);
-                    } else {
-                        setErrorMessages([response.message || 'Có lỗi xảy ra khi cập nhật người dùng']);
-                    }
-                    toast.error('Không thể cập nhật người dùng. Vui lòng kiểm tra lại thông tin.');
-                    return;
-                }
-
-                toast.success('Cập nhật người dùng thành công');
-                // Refresh the user list
-                const usersResponse = await GetAllUsers(currentPage - 1);
-                setUsers(usersResponse.data.result);
-                setMeta(usersResponse.data.meta);
-                handleCloseModal();
-            }
-        } catch (error) {
-            console.error('Error saving user:', error);
-            const errorMsg = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi lưu người dùng';
-
-            if (Array.isArray(errorMsg)) {
-                setErrorMessages(errorMsg);
-            } else {
-                setErrorMessages([errorMsg]);
-            }
-
-            toast.error('Có lỗi xảy ra khi lưu người dùng');
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            const response = await DeleteUser(selectedUser.id);
-
-            if (response.statusCode !== 200 && response.statusCode !== 204) {
-                toast.error(response.message || 'Có lỗi xảy ra khi xóa người dùng');
-                return;
-            }
-
-            toast.success('Xóa người dùng thành công');
-            const usersResponse = await GetAllUsers(currentPage - 1);
-            setUsers(usersResponse.data.result);
-            setMeta(usersResponse.data.meta);
-            handleCloseModal();
-        } catch (error) {
-            console.error('Error deleting user:', error);
-            toast.error('Có lỗi xảy ra khi xóa người dùng');
-        }
-    };
-
-    const handleToggleBan = async (user) => {
-        const newStatus = !user.active;
-        const response = await changeStatusUser(user.id, newStatus)
-        console.log(response);
-        if (response.statusCode === 200 || response.statusCode === 201) {
-            setUsers(users.map(u =>
-                u.id === user.id ? { ...u, active: newStatus } : u
-            ));
-            toast.success(`Người dùng đã được ${newStatus ? 'mở khóa' : 'khóa'} thành công`);
-        } else {
-            toast.error('Có lỗi xảy ra khi thay đổi trạng thái người dùng');
-        }
-    };
+const AdminUsersSection = () => {
+    const {
+        filteredUsers,
+        searchTerm,
+        setSearchTerm,
+        filterRole,
+        setFilterRole,
+        filterStatus,
+        setFilterStatus,
+        showModal,
+        modalType,
+        selectedUser,
+        errorMessages,
+        formData,
+        setFormData,
+        roles,
+        meta,
+        handlePageChange,
+        handleShowModal,
+        handleCloseModal,
+        handleSave,
+        handleDelete,
+        handleToggleBan
+    } = useUser();
 
     return (
-        <div className="admin-users-page">
+        <div className={styles.adminUsersPage}>
             <Container fluid>
-                {/* Header */}
                 <Row className="mb-4">
                     <Col>
-                        <h2 className="text-gradient fw-bold">Quản trị người dùng</h2>
-                        <p className="text-muted">Quản lý tất cả người dùng, vai trò và quyền hạn</p>
+                        <h2 className={`${styles.textGradient} fw-bold`}>Quan tri nguoi dung</h2>
+                        <p className={styles.mutedText}>Quan ly tat ca nguoi dung, vai tro va quyen han</p>
                     </Col>
                 </Row>
 
-                {/* Filters & Search */}
                 <Row className="mb-4">
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text><FaSearch /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Tìm kiếm theo tên hoặc email..."
+                                placeholder="Tim kiem theo ten hoac email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -252,15 +77,15 @@ const AdminUsersPage = () => {
                     </Col>
                     <Col md={3}>
                         <Form.Select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-                            <option value="All">Tất cả vai trò</option>
-                            {roles.map(role => (
+                            <option value="All">Tat ca vai tro</option>
+                            {roles.map((role) => (
                                 <option key={role.id} value={role.name}>{role.name}</option>
                             ))}
                         </Form.Select>
                     </Col>
                     <Col md={3}>
-                        <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                            <option value="All">Tất cả trạng thái</option>
+                        <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}>
+                            <option value="All">Tat ca trang thai</option>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                         </Form.Select>
@@ -268,41 +93,40 @@ const AdminUsersPage = () => {
                     <Col md={2} className="text-end">
                         <Button variant="primary" onClick={() => handleShowModal('add')}>
                             <FaUserPlus className="me-2" />
-                            Thêm người dùng
+                            Them nguoi dung
                         </Button>
                     </Col>
                 </Row>
 
-                {/* Users Table */}
                 <Row>
                     <Col>
-                        <Card className="users-table-card">
+                        <Card className={styles.usersTableCard}>
                             <Card.Body>
                                 <div className="table-responsive">
-                                    <Table hover variant="dark" className="custom-table">
+                                    <Table hover variant="dark" className={styles.customTable}>
                                         <thead>
                                             <tr>
-                                                <th>Tên</th>
+                                                <th>Ten</th>
                                                 <th>Email</th>
-                                                <th>Vai trò</th>
-                                                <th>Trạng thái</th>
-                                                <th>Ngày tham gia</th>
-                                                <th>Hành động</th>
+                                                <th>Vai tro</th>
+                                                <th>Trang thai</th>
+                                                <th>Ngay tham gia</th>
+                                                <th>Hanh dong</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredUsers && filteredUsers.length > 0 ? (
+                                            {filteredUsers.length > 0 ? (
                                                 filteredUsers.map((user) => (
                                                     <tr key={user.id}>
                                                         <td className="fw-semibold">{user.name}</td>
-                                                        <td className="text-muted">{user.email}</td>
+                                                        <td className={styles.mutedText}>{user.email}</td>
                                                         <td>
                                                             <Badge bg={
-                                                                user.role.name === 'SUPER_ADMIN' ? 'danger' :
-                                                                    user.role.name === 'SELLER' ? 'warning' :
+                                                                user.role?.name === 'SUPER_ADMIN' ? 'danger' :
+                                                                    user.role?.name === 'SELLER' ? 'warning' :
                                                                         'info'
                                                             }>
-                                                                {user.role.name}
+                                                                {user.role?.name}
                                                             </Badge>
                                                         </td>
                                                         <td>
@@ -340,8 +164,8 @@ const AdminUsersPage = () => {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="6" className="text-center text-muted">
-                                                        Không có dữ liệu người dùng
+                                                    <td colSpan={6} className="text-center text-muted">
+                                                        Khong co du lieu nguoi dung
                                                     </td>
                                                 </tr>
                                             )}
@@ -349,11 +173,10 @@ const AdminUsersPage = () => {
                                     </Table>
                                 </div>
 
-                                {/* Pagination */}
                                 {meta.pages > 1 && (
                                     <div className="d-flex justify-content-between align-items-center mt-4">
-                                        <div className="text-muted">
-                                            Trang {meta.page} / {meta.pages} - Tổng số {meta.total} người dùng
+                                        <div className={styles.mutedText}>
+                                            Trang {meta.page} / {meta.pages} - Tong so {meta.total} nguoi dung
                                         </div>
                                         <Pagination className="mb-0">
                                             <Pagination.First
@@ -367,7 +190,6 @@ const AdminUsersPage = () => {
 
                                             {[...Array(meta.pages)].map((_, index) => {
                                                 const pageNumber = index + 1;
-                                                // Show first page, last page, current page, and pages around current
                                                 if (
                                                     pageNumber === 1 ||
                                                     pageNumber === meta.pages ||
@@ -382,12 +204,12 @@ const AdminUsersPage = () => {
                                                             {pageNumber}
                                                         </Pagination.Item>
                                                     );
-                                                } else if (
-                                                    pageNumber === meta.page - 2 ||
-                                                    pageNumber === meta.page + 2
-                                                ) {
+                                                }
+
+                                                if (pageNumber === meta.page - 2 || pageNumber === meta.page + 2) {
                                                     return <Pagination.Ellipsis key={pageNumber} disabled />;
                                                 }
+
                                                 return null;
                                             })}
 
@@ -407,21 +229,18 @@ const AdminUsersPage = () => {
                     </Col>
                 </Row>
 
-
-                {/* Modal */}
                 <Modal show={showModal} onHide={handleCloseModal} centered>
-                    <Modal.Header closeButton className="modal-header-custom">
+                    <Modal.Header closeButton className={styles.modalHeaderCustom}>
                         <Modal.Title>
-                            {modalType === 'add' && 'Thêm người dùng mới'}
-                            {modalType === 'edit' && 'Chỉnh sửa người dùng'}
-                            {modalType === 'delete' && 'Xóa người dùng'}
+                            {modalType === 'add' && 'Them nguoi dung moi'}
+                            {modalType === 'edit' && 'Chinh sua nguoi dung'}
+                            {modalType === 'delete' && 'Xoa nguoi dung'}
                         </Modal.Title>
                     </Modal.Header>
-                    <Modal.Body className="modal-body-custom">
-                        {/* Display error messages */}
+                    <Modal.Body className={styles.modalBodyCustom}>
                         {errorMessages.length > 0 && (
                             <div className="alert alert-danger" role="alert">
-                                <strong>Lỗi:</strong>
+                                <strong>Loi:</strong>
                                 <ul className="mb-0 mt-2">
                                     {errorMessages.map((msg, index) => (
                                         <li key={index}>{msg}</li>
@@ -432,14 +251,14 @@ const AdminUsersPage = () => {
 
                         {(modalType === 'add' || modalType === 'edit') && (
                             <Form>
-                                {modalType === 'edit' &&
+                                {modalType === 'edit' && (
                                     <Form.Control
                                         type="hidden"
-                                        value={formData.id}
+                                        value={formData.id || ''}
                                     />
-                                }
+                                )}
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Tên</Form.Label>
+                                    <Form.Label>Ten</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.name}
@@ -459,7 +278,7 @@ const AdminUsersPage = () => {
                                 </Form.Group>
                                 {modalType === 'add' && (
                                     <Form.Group className="mb-3">
-                                        <Form.Label>Mật khẩu</Form.Label>
+                                        <Form.Label>Mat khau</Form.Label>
                                         <Form.Control
                                             type="password"
                                             value={formData.password}
@@ -469,18 +288,18 @@ const AdminUsersPage = () => {
                                     </Form.Group>
                                 )}
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Giới tính</Form.Label>
+                                    <Form.Label>Gioi tinh</Form.Label>
                                     <Form.Select
                                         value={formData.gender}
-                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value as IAdminUserFormData['gender'] })}
                                     >
                                         <option value="MALE">Nam</option>
-                                        <option value="FEMALE">Nữ</option>
-                                        <option value="OTHER">Khác</option>
+                                        <option value="FEMALE">Nu</option>
+                                        <option value="OTHER">Khac</option>
                                     </Form.Select>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Địa chỉ</Form.Label>
+                                    <Form.Label>Dia chi</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.address}
@@ -488,22 +307,25 @@ const AdminUsersPage = () => {
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Tuổi</Form.Label>
+                                    <Form.Label>Tuoi</Form.Label>
                                     <Form.Control
                                         type="number"
                                         value={formData.age}
-                                        onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || '' })}
-                                        min="1"
-                                        max="120"
+                                        onChange={(e) => {
+                                            const value = Number.parseInt(e.target.value, 10);
+                                            setFormData({ ...formData, age: Number.isNaN(value) ? '' : value });
+                                        }}
+                                        min={1}
+                                        max={120}
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Vai trò</Form.Label>
+                                    <Form.Label>Vai tro</Form.Label>
                                     <Form.Select
                                         value={formData.role.id}
-                                        onChange={(e) => setFormData({ ...formData, role: { id: parseInt(e.target.value) } })}
+                                        onChange={(e) => setFormData({ ...formData, role: { id: Number.parseInt(e.target.value, 10) } })}
                                     >
-                                        {roles.map(role => (
+                                        {roles.map((role) => (
                                             <option key={role.id} value={role.id}>{role.name}</option>
                                         ))}
                                     </Form.Select>
@@ -511,21 +333,21 @@ const AdminUsersPage = () => {
                             </Form>
                         )}
                         {modalType === 'delete' && (
-                            <p>Bạn có chắc chắn muốn xóa người dùng <strong>{selectedUser?.name}</strong>? Hành động này không thể hoàn tác.</p>
+                            <p>Ban co chac chan muon xoa nguoi dung <strong>{selectedUser?.name}</strong>? Hanh dong nay khong the hoan tac.</p>
                         )}
                     </Modal.Body>
-                    <Modal.Footer className="modal-footer-custom">
+                    <Modal.Footer className={styles.modalFooterCustom}>
                         <Button variant="secondary" onClick={handleCloseModal}>
-                            Hủy
+                            Huy
                         </Button>
                         {(modalType === 'add' || modalType === 'edit') && (
-                            <Button variant="primary" onClick={handleSave}>
-                                Lưu thay đổi
+                            <Button variant="primary" onClick={() => void handleSave()}>
+                                Luu thay doi
                             </Button>
                         )}
                         {modalType === 'delete' && (
-                            <Button variant="danger" onClick={handleDelete}>
-                                Xóa
+                            <Button variant="danger" onClick={() => void handleDelete()}>
+                                Xoa
                             </Button>
                         )}
                     </Modal.Footer>
@@ -535,4 +357,4 @@ const AdminUsersPage = () => {
     );
 };
 
-export default AdminUsersPage;
+export default AdminUsersSection;

@@ -1,20 +1,28 @@
+import { useState } from "react";
+import { useSelector } from "react-redux";
 import { Container, Spinner, Alert, Dropdown, Row, Col, Card, Badge } from "react-bootstrap";
 import { FaBook, FaChartPie, FaCalendarCheck, FaClock } from "react-icons/fa";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip as RechartsTooltip } from "recharts";
-import { IStudentAnalytics } from "../../types";
-import { AnalyticsTimeRange } from "../../hooks/useAnalytic";
+import { AnalyticsTimeRange, useStudentAnalytic } from "../../hooks/useAnalytic";
 import styles from "./scss/StudentAnalytics.module.scss";
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#87ceeb", "#da70d6"];
 
-interface IProps {
-    analytics: IStudentAnalytics | null;
-    loading: boolean;
-    error: string | null;
-    timeRange: AnalyticsTimeRange;
-    onTimeRangeChange: (value: AnalyticsTimeRange) => void;
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
 }
-export const StudentAnalyticSection: React.FC<IProps> = ({ analytics, loading, error, timeRange, onTimeRangeChange }) => {
+export const StudentAnalyticSection: React.FC = () => {
+    const account = useSelector((state: RootState) => state.user?.account);
+    const [timeRange, setTimeRange] = useState<AnalyticsTimeRange>("7");
+
+    const userId = Number(account?.id);
+    const safeUserId = Number.isFinite(userId) && userId > 0 ? userId : 0;
+    const { analytics, loading, error } = useStudentAnalytic(safeUserId, timeRange);
+
     const timeRangeLabelMap: Record<AnalyticsTimeRange, string> = {
         "7": "7 ngày qua",
         "30": "30 ngày qua",
@@ -61,13 +69,13 @@ export const StudentAnalyticSection: React.FC<IProps> = ({ analytics, loading, e
                             {timeRangeLabelMap[timeRange]}
                         </Dropdown.Toggle>
                         <Dropdown.Menu variant="dark">
-                            <Dropdown.Item onClick={() => onTimeRangeChange("7")}>
+                            <Dropdown.Item onClick={() => setTimeRange("7")}>
                                 7 ngày qua
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => onTimeRangeChange("30")}>
+                            <Dropdown.Item onClick={() => setTimeRange("30")}>
                                 30 ngày qua
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => onTimeRangeChange("all")}>
+                            <Dropdown.Item onClick={() => setTimeRange("all")}>
                                 Tất cả thời gian
                             </Dropdown.Item>
                         </Dropdown.Menu>

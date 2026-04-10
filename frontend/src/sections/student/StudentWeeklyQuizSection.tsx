@@ -11,33 +11,95 @@ import {
 } from "react-bootstrap";
 import { FaCheck, FaClock, FaCoins, FaLock, FaMedal } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useStudentWeeklyQuiz } from "../../hooks/useStudentWeeklyQuiz";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    IWeeklyQuizResult,
+    useCurrentWeeklyQuizQuery,
+    useWeeklyQuizSession,
+    useWeeklyQuizStatusQuery,
+    useWeeklyQuizSubmit,
+    useWeeklyQuizTimer
+} from "../../hooks/useWeeklyQuiz";
 import styles from "./scss/StudentWeeklyQuizSection.module.scss";
 
 export const StudentWeeklyQuizSection: React.FC = () => {
     const navigate = useNavigate();
+    const { quiz, loading: quizLoading } = useCurrentWeeklyQuizQuery();
+    const { status, setStatus, loading: statusLoading } = useWeeklyQuizStatusQuery(quiz?.id ?? 0);
+    const [result, setResult] = useState<IWeeklyQuizResult | null>(null);
+
     const {
-        quiz,
-        status,
-        loading,
         inProgress,
         timeLeft,
+        setTimeLeft,
         currentIndex,
         answers,
-        submitting,
-        result,
         message,
-        currentQuestion,
-        answeredCount,
-        progressPercent,
-        startQuiz,
+        setMessage,
+        startQuiz: rawStartQuiz,
         handleSelectOption,
-        handleSubmit,
         goToPreviousQuestion,
         goToNextQuestion,
-        setMessage,
-        formatTime,
-    } = useStudentWeeklyQuiz();
+        startTime,
+        setInProgress,
+    } = useWeeklyQuizSession(quiz, Boolean(status?.hasPlayed));
+
+    const { submitting, handleSubmit } = useWeeklyQuizSubmit(
+        quiz,
+        inProgress,
+        startTime,
+        answers,
+        setStatus,
+        setResult,
+        setInProgress,
+        setMessage
+    );
+
+    useWeeklyQuizTimer(inProgress, timeLeft, setTimeLeft, handleSubmit);
+
+    useEffect(() => {
+        if (status?.hasPlayed) {
+            setResult({
+                score: status.score ?? 0,
+                percent: Math.round(status.accuracyPercent ?? 0),
+                coins: status.coinsEarned ?? 0,
+                streakBonus: 0,
+            });
+            return;
+        }
+
+        setResult(null);
+    }, [status]);
+
+    const startQuiz = useCallback(() => {
+        setResult(null);
+        rawStartQuiz();
+    }, [rawStartQuiz]);
+
+    const formatTime = useCallback((seconds: number): string => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+    }, []);
+
+    const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
+
+    const currentQuestion = useMemo(() => {
+        if (!quiz || !quiz.questions.length) {
+            return null;
+        }
+
+        return quiz.questions[currentIndex] ?? null;
+    }, [currentIndex, quiz]);
+
+    const progressPercent = useMemo(() => {
+        if (!quiz || quiz.questionCount === 0) {
+            return 0;
+        }
+        return Math.round((answeredCount / quiz.questionCount) * 100);
+    }, [answeredCount, quiz]);
+
+    const loading = quizLoading || statusLoading;
 
     if (loading) {
         return (

@@ -2,6 +2,8 @@ import { IPaginationMeta } from "./pagination";
 import { IResBase } from "./api";
 
 export type RewardTransactionStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
+export type RewardFilterStatus = 'All' | 'Active' | 'Inactive' | 'InStock' | 'OutOfStock';
+export type RewardModalType = '' | 'create' | 'edit' | 'delete';
 
 export interface IReward {
     id: number;
@@ -10,9 +12,21 @@ export interface IReward {
     cost: number;
     imageUrl: string;
     inStock: boolean;
+    active?: boolean;
+    isActive?: boolean;
+    stockQuantity?: number;
     quantity?: number;
     createdAt?: string;
     updatedAt?: string;
+}
+
+export interface IRewardFormData {
+    name: string;
+    description: string;
+    cost: string;
+    stockQuantity: string;
+    inStock: boolean;
+    active: boolean;
 }
 
 export interface IRewardPagination {
@@ -25,11 +39,18 @@ export interface IRewardTransaction {
     rewardId: number;
     reward: IReward;
     userId: number;
+    user?: {
+        name?: string;
+        email?: string;
+    };
     userName?: string;
     userEmail?: string;
     recipientName: string;
     recipientPhone: string;
     recipientAddress: string;
+    deliveryInfo?: string;
+    coinsCost?: number;
+    redeemedAt?: string;
     status: RewardTransactionStatus;
     createdAt: string;
     updatedAt?: string;

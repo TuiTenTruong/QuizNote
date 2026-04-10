@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { IStudentAnalytics } from "../types";
-import { getStudentAnalytics } from "../api/analytics.api";
+import { IAdminAnalytics, IStudentAnalytics } from "../types";
+import { getAdminAnalytics, getStudentAnalytics } from "../api/analytics.api";
 
 export type AnalyticsTimeRange = "7" | "30" | "all";
 
@@ -38,6 +38,38 @@ export const useStudentAnalytic = (userId: number, timeRange: AnalyticsTimeRange
 
         fetchAnalytics();
     }, [userId, timeRange]);
+
+    return { analytics, loading, error };
+};
+
+export const useAdminAnalytic = () => {
+    const [analytics, setAnalytics] = useState<IAdminAnalytics | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await getAdminAnalytics();
+                if (response && response.statusCode === 200) {
+                    setAnalytics(response.data);
+                    return;
+                }
+
+                setError(response.message || "Không thể tải dữ liệu phân tích quản trị.");
+            } catch (err) {
+                console.error("Error fetching admin analytics:", err);
+                setError("Không thể tải dữ liệu phân tích quản trị.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, []);
 
     return { analytics, loading, error };
 };

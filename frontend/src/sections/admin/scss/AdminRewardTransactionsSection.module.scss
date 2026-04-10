@@ -1,0 +1,181 @@
+.adminRewardTransactionsPage {
+    background: #0b0b0f;
+    min-height: 100vh;
+    color: #fff;
+    padding: 2rem 1rem;
+}
+
+.mutedText {
+    color: #6b7280 !important;
+}
+
+.textGradient {
+    background: linear-gradient(90deg, #9333ea, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.btnOutlineGradient {
+    background: transparent !important;
+    border: 2px solid;
+    border-image-slice: 1;
+    border-width: 2px;
+    border-image-source: linear-gradient(90deg, #9333ea, #f97316);
+    color: #fff;
+    font-weight: 600;
+    padding-inline: 1.25rem;
+    transition: 0.2s;
+
+    &:hover,
+    &:focus {
+        background: linear-gradient(90deg, #9333ea, #f97316) !important;
+        color: #fff;
+        opacity: 0.9;
+    }
+}
+
+.statsBox {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    background: #111827;
+    border: 1px solid #374151;
+    box-shadow: 0 2px 12px rgba(147, 51, 234, 0.12);
+}
+
+.transactionsTableCard {
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.searchGroup {
+    :global(.input-group-text) {
+        border-right: 0;
+    }
+
+    :global(.form-control) {
+        border-left: 0;
+    }
+}
+
+.bgInput {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+
+    &:focus {
+        border-color: #9333ea !important;
+        box-shadow: 0 0 0 0.15rem rgba(147, 51, 234, 0.35) !important;
+    }
+
+    &::placeholder {
+        color: #6b7280;
+    }
+}
+
+.transactionsTable {
+    :global(thead th) {
+        border-color: #2a2a2a;
+        color: #9ca3af;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding: 1rem 0.75rem;
+    }
+
+    :global(tbody tr) {
+        border-color: #2a2a2a;
+        transition: background 0.15s ease;
+    }
+
+    :global(tbody tr:hover) {
+        background: rgba(147, 51, 234, 0.14);
+    }
+
+    :global(tbody td) {
+        border-color: #2a2a2a;
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+    }
+}
+
+.userIconBox {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 1rem;
+}
+
+.transactionThumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #374151;
+}
+
+.placeholder {
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.customPagination {
+    :global(.page-item .page-link) {
+        background: #111827;
+        border-color: #374151;
+        color: #9ca3af;
+        border-radius: 8px;
+        margin: 0 0.25rem;
+        transition: all 0.2s;
+    }
+
+    :global(.page-item .page-link:hover) {
+        background: #1f2937;
+        border-color: #9333ea;
+        color: #fff;
+    }
+
+    :global(.page-item.active .page-link) {
+        background: linear-gradient(90deg, #9333ea, #f97316);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    :global(.page-item.disabled .page-link) {
+        background: #0b0b0f;
+        border-color: #2a2a2a;
+        color: #4b5563;
+    }
+}
+
+.transactionDetailModal {
+    :global(.modal-content) {
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .transactionsTable {
+        font-size: 0.9rem;
+
+        :global(th),
+        :global(td) {
+            white-space: nowrap;
+            padding: 0.75rem 0.5rem;
+        }
+    }
+
+    .statsBox {
+        padding: 0.75rem 1rem;
+    }
+}
