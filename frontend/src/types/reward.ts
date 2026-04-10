@@ -83,6 +83,23 @@ export interface IReqUpdateTransactionStatus {
     status: RewardTransactionStatus;
 }
 
+export interface IRewardRedeemRecipient {
+    recipientName: string;
+    recipientPhone: string;
+    recipientAddress: string;
+}
+
+export interface IRewardDeliveryInfo {
+    name: string;
+    phone: string;
+    address: string;
+}
+
+export interface IRewardUiAlert {
+    type: 'success' | 'danger' | 'warning' | 'info';
+    text: string;
+}
+
 export interface IResGetRewards extends IResBase<IReward[], string> { }
 
 export interface IResGetRewardsPaginated extends IResBase<IRewardPagination, string> { }

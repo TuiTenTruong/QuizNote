@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { toast } from 'react-toastify';
-import { approveSubject, deleteSubject, getAllSubjects, rejectSubject } from '../api/subject.api';
+import {
+    approveSubject,
+    deleteSubject,
+    getAllSubjects,
+    getSellerSubjectDetail,
+    getSubjectsBySellerId,
+    rejectSubject,
+    updateSubject,
+} from '../api/subject.api';
 import type { ISubject, SubjectStatus, AdminSubjectFilterStatus, AdminSubjectModalType } from '../types/subject';
 
 const isSubjectStatus = (value: string): value is SubjectStatus => {
@@ -223,5 +231,109 @@ export const useSubject = () => {
         handleApprove,
         handleReject,
         handleDelete
+    };
+};
+
+export const useSellerSubjectsQuery = (sellerId?: number, spec: string = '', page: number = 0) => {
+    const [subjects, setSubjects] = useState<ISubject[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchSellerSubjects = useCallback(async () => {
+        if (!sellerId) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getSubjectsBySellerId(sellerId, spec, page);
+            setSubjects(response.data.result || []);
+        } catch (fetchError: any) {
+            setSubjects([]);
+            setError(fetchError?.response?.data?.message || 'Khong the tai danh sach mon hoc.');
+        } finally {
+            setLoading(false);
+        }
+    }, [page, sellerId, spec]);
+
+    useEffect(() => {
+        fetchSellerSubjects();
+    }, [fetchSellerSubjects]);
+
+    return {
+        subjects,
+        loading,
+        error,
+        refetch: fetchSellerSubjects,
+    };
+};
+
+export const useDeleteSellerSubject = () => {
+    const [loading, setLoading] = useState(false);
+
+    const deleteById = useCallback(async (subjectId: number) => {
+        try {
+            setLoading(true);
+            return await deleteSubject(subjectId);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { deleteById, loading };
+};
+
+export const useSellerSubjectDetailQuery = (subjectId?: number) => {
+    const [subject, setSubject] = useState<ISubject | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchSellerSubjectDetail = useCallback(async () => {
+        if (!subjectId) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getSellerSubjectDetail(subjectId);
+            setSubject(response.data);
+        } catch (fetchError) {
+            console.error('Error fetching seller subject detail:', fetchError);
+            setError('Khong the tai chi tiet mon hoc.');
+        } finally {
+            setLoading(false);
+        }
+    }, [subjectId]);
+
+    useEffect(() => {
+        fetchSellerSubjectDetail();
+    }, [fetchSellerSubjectDetail]);
+
+    return {
+        subject,
+        loading,
+        error,
+        refetch: fetchSellerSubjectDetail,
+        setSubject,
+    };
+};
+
+export const useSellerSubjectUpdateMutation = () => {
+    const [loading, setLoading] = useState(false);
+
+    const updateSellerSubject = useCallback(async (formData: FormData) => {
+        try {
+            setLoading(true);
+            return await updateSubject(formData);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return {
+        updateSellerSubject,
+        loading,
     };
 };

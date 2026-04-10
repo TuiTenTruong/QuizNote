@@ -67,6 +67,30 @@ export interface IReqUpdateWeeklyQuiz extends Partial<IReqCreateWeeklyQuiz> {
     id: number;
 }
 
+export interface IAdminWeeklyQuizOptionForm {
+    id?: number;
+    content: string;
+    isCorrect: boolean;
+}
+
+export interface IAdminWeeklyQuizQuestionForm {
+    content: string;
+    imageFile: File | null;
+    imagePreview: string | null;
+    options: IAdminWeeklyQuizOptionForm[];
+}
+
+export interface IAdminWeeklyQuizFormData {
+    title: string;
+    description: string;
+    year: number;
+    weekNumber: number;
+    difficulty: string;
+    startDate: string;
+    endDate: string;
+    questions: IAdminWeeklyQuizQuestionForm[];
+}
+
 export interface IResGetCurrentWeeklyQuiz extends IResBase<IWeeklyQuiz, string> { }
 
 export interface IResGetWeeklyQuizStatus extends IResBase<IWeeklyQuizUserStatus, string> { }

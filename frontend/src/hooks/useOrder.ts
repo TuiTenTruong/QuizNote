@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getAdminOrders } from '../api/order.api';
+import { getAdminOrders, getSellerOrders } from '../api/order.api';
 import type {
     IAdminOrder,
     AdminOrderFilterStatus,
     IAdminOrderStats,
     AdminOrderStatus,
-    IAdminOrdersPayload
+    IAdminOrdersPayload,
+    IOrder
 } from '../types/order';
 
 const INITIAL_STATS: IAdminOrderStats = {
@@ -160,5 +161,44 @@ export const useOrderFormatters = () => {
     return {
         formatPaymentTime,
         calculateSellerReceive
+    };
+};
+
+export const useSellerOrdersQuery = (sellerId?: number, page: number = 1, pageSize: number = 10) => {
+    const [orders, setOrders] = useState<IOrder[]>([]);
+    const [meta, setMeta] = useState({ page: 1, pageSize, pages: 1, total: 0 });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchSellerOrders = useCallback(async () => {
+        if (!sellerId) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getSellerOrders(sellerId, page - 1, pageSize);
+            setOrders(response.data.result || []);
+            setMeta(response.data.meta || { page, pageSize, pages: 1, total: 0 });
+        } catch (fetchError) {
+            console.error('Error fetching seller orders:', fetchError);
+            setOrders([]);
+            setError('Khong the tai don hang.');
+        } finally {
+            setLoading(false);
+        }
+    }, [page, pageSize, sellerId]);
+
+    useEffect(() => {
+        fetchSellerOrders();
+    }, [fetchSellerOrders]);
+
+    return {
+        orders,
+        meta,
+        loading,
+        error,
+        refetch: fetchSellerOrders,
     };
 };

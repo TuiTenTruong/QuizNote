@@ -1,0 +1,25 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.sellerOrders {
+    background-color: $bg-dark;
+    color: $text-light;
+    min-height: 100vh;
+    padding: $spacing-8 $spacing-4;
+
+    :global(.text-gradient) {
+        @include gradient-text;
+    }
+
+    :global(.order-item) {
+        background: $gray-800;
+        border-radius: $border-radius-xl;
+        transition: $transition-slow;
+
+        &:hover {
+            background-color: $gray-700;
+            box-shadow: 0 0 12px rgba($primary-purple, 0.15);
+            transform: translateY(-2px);
+        }
+    }
+}

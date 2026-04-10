@@ -2,7 +2,7 @@ import { IResBase } from './api';
 import { IPaginationMeta } from './pagination';
 import { IUser } from './user';
 
-export type SubjectStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'REJECTED';
+export type SubjectStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'REJECTED' | 'DRAFT';
 export type AdminSubjectFilterStatus = 'All' | SubjectStatus;
 export type AdminSubjectModalType = '' | 'view' | 'approve' | 'reject' | 'delete';
 

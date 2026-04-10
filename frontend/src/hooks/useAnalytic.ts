@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { IAdminAnalytics, IStudentAnalytics } from "../types";
-import { getAdminAnalytics, getStudentAnalytics } from "../api/analytics.api";
+import { getAdminAnalytics, getSellerAnalytics, getStudentAnalytics } from "../api/analytics.api";
 
 export type AnalyticsTimeRange = "7" | "30" | "all";
 
@@ -72,4 +72,39 @@ export const useAdminAnalytic = () => {
     }, []);
 
     return { analytics, loading, error };
+};
+
+export const useSellerAnalyticsQuery = (sellerId?: number, months?: number | null) => {
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchSellerAnalytics = async () => {
+        if (!sellerId) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getSellerAnalytics(sellerId, months);
+            setData(response.data as any);
+        } catch (fetchError) {
+            console.error("Error fetching seller analytics:", fetchError);
+            setError("Loi khi tai thong ke nguoi ban.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSellerAnalytics();
+    }, [sellerId, months]);
+
+    return {
+        data,
+        loading,
+        error,
+        refetch: fetchSellerAnalytics,
+    };
 };

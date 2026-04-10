@@ -1,13 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import type { ChangeEvent, Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "react-toastify";
-import { getCurrentWeeklyQuiz, getUserWeeklyQuizStatus, submitWeeklyQuiz } from "../api/weeklyQuiz.api";
+import axiosInstance from "../utils/axiosCustomize";
+import {
+    createWeeklyQuiz,
+    deleteWeeklyQuiz,
+    getAllWeeklyQuizzes,
+    getCurrentWeeklyQuiz,
+    getUserWeeklyQuizStatus,
+    getWeeklyQuizQuestions,
+    submitWeeklyQuiz,
+    updateWeeklyQuiz,
+} from "../api/weeklyQuiz.api";
 import type {
     IResSubmitWeeklyQuiz,
     IWeeklyQuizQuestion,
     IWeeklyQuizSubmitData,
     IWeeklyQuizUserStatus
 } from "../types";
+import type {
+    IAdminWeeklyQuizFormData,
+    IAdminWeeklyQuizQuestionForm,
+} from "../types/weeklyQuiz";
 
 
 type MessageType = "" | "success" | "danger";
@@ -322,4 +336,360 @@ export const useWeeklyQuizTimer = (
 
         return () => window.clearTimeout(timer);
     }, [inProgress, onTimeout, setTimeLeft, timeLeft]);
+};
+
+const buildEmptyQuestion = (): IAdminWeeklyQuizQuestionForm => ({
+    content: "",
+    imageFile: null,
+    imagePreview: null,
+    options: [
+        { id: undefined, content: "", isCorrect: false },
+        { id: undefined, content: "", isCorrect: false },
+        { id: undefined, content: "", isCorrect: false },
+        { id: undefined, content: "", isCorrect: false },
+    ],
+});
+
+const buildDefaultQuestions = (): IAdminWeeklyQuizQuestionForm[] =>
+    Array(10)
+        .fill(null)
+        .map(() => buildEmptyQuestion());
+
+const getNextWeekInfo = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    const startOfYear = new Date(currentYear, 0, 1);
+    const days = Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+    const currentWeek = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    const nextWeek = currentWeek + 1;
+
+    if (nextWeek > 52) {
+        return { year: currentYear + 1, weekNumber: 1 };
+    }
+
+    return { year: currentYear, weekNumber: nextWeek };
+};
+
+const getWeekStartDate = (year: number, weekNumber: number): string => {
+    const jan4 = new Date(year, 0, 4);
+    const jan4Day = jan4.getDay() || 7;
+    const firstMonday = new Date(jan4);
+    firstMonday.setDate(jan4.getDate() - jan4Day + 1);
+
+    const targetMonday = new Date(firstMonday);
+    targetMonday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+    targetMonday.setHours(0, 0, 0, 0);
+
+    return targetMonday.toISOString().slice(0, 16);
+};
+
+const getWeekEndDate = (year: number, weekNumber: number): string => {
+    const monday = new Date(getWeekStartDate(year, weekNumber));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 0, 0);
+
+    return sunday.toISOString().slice(0, 16);
+};
+
+const createInitialFormData = (): IAdminWeeklyQuizFormData => {
+    const nextWeekInfo = getNextWeekInfo();
+    return {
+        title: "",
+        description: "",
+        year: nextWeekInfo.year,
+        weekNumber: nextWeekInfo.weekNumber,
+        difficulty: "Trung bình",
+        startDate: getWeekStartDate(nextWeekInfo.year, nextWeekInfo.weekNumber),
+        endDate: getWeekEndDate(nextWeekInfo.year, nextWeekInfo.weekNumber),
+        questions: buildDefaultQuestions(),
+    };
+};
+
+export const useAdminWeeklyQuiz = () => {
+    const [weeklyQuizzes, setWeeklyQuizzes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
+    const [currentQuiz, setCurrentQuiz] = useState<any | null>(null);
+    const [formData, setFormData] = useState<IAdminWeeklyQuizFormData>(createInitialFormData());
+
+    const backendBaseURL = `${axiosInstance.defaults.baseURL}storage/questions/`;
+
+    const fetchWeeklyQuizzes = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await getAllWeeklyQuizzes();
+            const rawData = response?.data as any;
+            const list = Array.isArray(rawData?.result)
+                ? rawData.result
+                : Array.isArray(rawData)
+                    ? rawData
+                    : [];
+            setWeeklyQuizzes(list);
+        } catch (error) {
+            console.error("Error fetching weekly quizzes:", error);
+            toast.error("Loi khi tai danh sach weekly quiz");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        void fetchWeeklyQuizzes();
+    }, [fetchWeeklyQuizzes]);
+
+    const handleOpenModal = useCallback(async (quiz: any | null = null) => {
+        if (quiz) {
+            try {
+                setLoading(true);
+                const response = await getWeeklyQuizQuestions(quiz.id);
+                const fetchedQuizData = response?.data as any;
+
+                setEditMode(true);
+                setCurrentQuiz(quiz);
+
+                setFormData({
+                    title: fetchedQuizData?.title || "",
+                    description: fetchedQuizData?.description || "",
+                    year: fetchedQuizData?.year || new Date().getFullYear(),
+                    weekNumber: fetchedQuizData?.weekNumber || 1,
+                    difficulty: fetchedQuizData?.difficulty || "Trung bình",
+                    startDate: fetchedQuizData?.startDate
+                        ? new Date(fetchedQuizData.startDate).toISOString().slice(0, 16)
+                        : getWeekStartDate(fetchedQuizData?.year || new Date().getFullYear(), fetchedQuizData?.weekNumber || 1),
+                    endDate: fetchedQuizData?.endDate
+                        ? new Date(fetchedQuizData.endDate).toISOString().slice(0, 16)
+                        : getWeekEndDate(fetchedQuizData?.year || new Date().getFullYear(), fetchedQuizData?.weekNumber || 1),
+                    questions:
+                        Array.isArray(fetchedQuizData?.questions) && fetchedQuizData.questions.length === 10
+                            ? fetchedQuizData.questions.map((q: any) => ({
+                                content: q.content || "",
+                                imageFile: null,
+                                imagePreview: q.imageUrl ? `${backendBaseURL}${q.imageUrl}` : null,
+                                options: Array.isArray(q.options)
+                                    ? q.options.map((opt: any) => ({
+                                        id: opt.id,
+                                        content: opt.content || "",
+                                        isCorrect: Boolean(opt.isCorrect),
+                                    }))
+                                    : buildEmptyQuestion().options,
+                            }))
+                            : buildDefaultQuestions(),
+                });
+
+                setShowModal(true);
+            } catch (error) {
+                console.error("Error loading weekly quiz detail:", error);
+                toast.error("Loi khi tai chi tiet weekly quiz");
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        setEditMode(false);
+        setCurrentQuiz(null);
+        setFormData(createInitialFormData());
+        setShowModal(true);
+    }, [backendBaseURL]);
+
+    const handleCloseModal = useCallback(() => {
+        setShowModal(false);
+        setEditMode(false);
+        setCurrentQuiz(null);
+    }, []);
+
+    const handleQuestionChange = useCallback((index: number, field: "content" | "imagePreview", value: string) => {
+        setFormData((prev) => {
+            const nextQuestions = [...prev.questions];
+            nextQuestions[index] = { ...nextQuestions[index], [field]: value };
+            return { ...prev, questions: nextQuestions };
+        });
+    }, []);
+
+    const handleQuestionFileChange = useCallback((qIndex: number, event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] || null;
+        setFormData((prev) => {
+            const nextQuestions = [...prev.questions];
+            nextQuestions[qIndex] = {
+                ...nextQuestions[qIndex],
+                imageFile: file,
+            };
+            return { ...prev, questions: nextQuestions };
+        });
+    }, []);
+
+    const handleOptionChange = useCallback((qIndex: number, optIndex: number, field: "content" | "isCorrect", value: string | boolean) => {
+        setFormData((prev) => {
+            const nextQuestions = [...prev.questions];
+            const nextOptions = [...nextQuestions[qIndex].options];
+
+            if (field === "isCorrect" && value) {
+                nextOptions.forEach((opt, index) => {
+                    nextOptions[index] = { ...opt, isCorrect: index === optIndex };
+                });
+            } else {
+                nextOptions[optIndex] = {
+                    ...nextOptions[optIndex],
+                    [field]: value,
+                };
+            }
+
+            nextQuestions[qIndex] = {
+                ...nextQuestions[qIndex],
+                options: nextOptions,
+            };
+
+            return { ...prev, questions: nextQuestions };
+        });
+    }, []);
+
+    const handleSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        for (let i = 0; i < formData.questions.length; i += 1) {
+            const question = formData.questions[i];
+            if (!question.content.trim()) {
+                toast.error(`Cau hoi ${i + 1} khong duoc de trong`);
+                return;
+            }
+
+            const validOptions = question.options.filter((opt) => opt.content.trim());
+            if (validOptions.length < 2) {
+                toast.error(`Cau hoi ${i + 1} phai co it nhat 2 dap an`);
+                return;
+            }
+
+            const correctCount = question.options.filter((opt) => opt.isCorrect).length;
+            if (correctCount !== 1) {
+                toast.error(`Cau hoi ${i + 1} phai co dung 1 dap an dung`);
+                return;
+            }
+        }
+
+        try {
+            const payload = new FormData();
+
+            const weeklyQuizPayload = {
+                title: formData.title,
+                description: formData.description,
+                year: formData.year,
+                weekNumber: formData.weekNumber,
+                difficulty: formData.difficulty,
+                startDate: new Date(formData.startDate).toISOString(),
+                endDate: new Date(formData.endDate).toISOString(),
+                questions: formData.questions.map((question) => ({
+                    content: question.content,
+                    options: question.options
+                        .filter((opt) => opt.content.trim())
+                        .map((opt) => ({
+                            id: opt.id,
+                            content: opt.content,
+                            isCorrect: opt.isCorrect,
+                        })),
+                })),
+            };
+
+            payload.append("weeklyQuiz", new Blob([JSON.stringify(weeklyQuizPayload)], { type: "application/json" }));
+
+            formData.questions.forEach((question) => {
+                if (question.imageFile) {
+                    payload.append("images", question.imageFile);
+                } else {
+                    payload.append("images", new Blob());
+                }
+            });
+
+            if (editMode && currentQuiz?.id) {
+                const response = await updateWeeklyQuiz(currentQuiz.id, payload);
+                if (response.statusCode === 200) {
+                    toast.success("Cap nhat weekly quiz thanh cong");
+                } else {
+                    toast.error("Co loi xay ra khi cap nhat weekly quiz");
+                    return;
+                }
+            } else {
+                const response = await createWeeklyQuiz(payload);
+                if (response.statusCode === 201) {
+                    toast.success("Tao weekly quiz thanh cong");
+                } else {
+                    toast.error("Co loi xay ra khi tao weekly quiz");
+                    return;
+                }
+            }
+
+            handleCloseModal();
+            await fetchWeeklyQuizzes();
+        } catch (error: any) {
+            console.error("Error saving weekly quiz:", error);
+            toast.error(error?.response?.data?.message || "Co loi xay ra");
+        }
+    }, [currentQuiz?.id, editMode, fetchWeeklyQuizzes, formData, handleCloseModal]);
+
+    const handleDeleteClick = useCallback((quizId: number) => {
+        setQuizToDelete(quizId);
+        setShowDeleteConfirm(true);
+    }, []);
+
+    const handleCloseDeleteConfirm = useCallback(() => {
+        setShowDeleteConfirm(false);
+        setQuizToDelete(null);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async () => {
+        if (!quizToDelete) {
+            return;
+        }
+
+        try {
+            const response = await deleteWeeklyQuiz(quizToDelete);
+            if (response.statusCode !== 200) {
+                toast.error("Co loi xay ra khi xoa weekly quiz");
+                return;
+            }
+
+            toast.success("Xoa weekly quiz thanh cong");
+            await fetchWeeklyQuizzes();
+        } catch (error: any) {
+            console.error("Error deleting weekly quiz:", error);
+            toast.error(error?.response?.data?.message || "Co loi xay ra");
+        } finally {
+            handleCloseDeleteConfirm();
+        }
+    }, [fetchWeeklyQuizzes, handleCloseDeleteConfirm, quizToDelete]);
+
+    const formatRange = useCallback((start?: string, end?: string) => {
+        if (!start || !end) {
+            return "--";
+        }
+
+        const startLabel = new Date(start).toLocaleDateString("vi-VN");
+        const endLabel = new Date(end).toLocaleDateString("vi-VN");
+        return `${startLabel} - ${endLabel}`;
+    }, []);
+
+    return {
+        weeklyQuizzes,
+        loading,
+        showModal,
+        editMode,
+        showDeleteConfirm,
+        currentQuiz,
+        formData,
+        setFormData,
+        handleOpenModal,
+        handleCloseModal,
+        handleQuestionChange,
+        handleQuestionFileChange,
+        handleOptionChange,
+        handleSubmit,
+        handleDeleteClick,
+        handleCloseDeleteConfirm,
+        handleConfirmDelete,
+        formatRange,
+    };
 };

@@ -1,0 +1,30 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.sellerWallet {
+    background-color: $bg-dark;
+    color: $text-light;
+    min-height: 100vh;
+    padding: $spacing-8 $spacing-4;
+
+    :global(.text-gradient) {
+        @include gradient-text;
+    }
+
+    :global(.wallet-card) {
+        border-radius: $border-radius-xl;
+        transition: $transition-slow;
+
+        &:hover {
+            background-color: $gray-700;
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba($primary-purple, 0.25);
+        }
+    }
+
+    :global(.btn-gradient) {
+        @include gradient-primary;
+        border: none;
+        color: $white;
+    }
+}

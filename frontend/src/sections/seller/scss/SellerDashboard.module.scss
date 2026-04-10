@@ -1,0 +1,39 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.sellerDashboard {
+    background-color: $bg-dark;
+    padding: $spacing-8 $spacing-4;
+    min-height: 100vh;
+
+    :global(.stat-card) {
+        background-color: $gray-800;
+        border: none;
+        color: $text-light;
+        border-radius: $border-radius-xl;
+        transition: $transition-slow;
+
+        &:hover {
+            background-color: $gray-700;
+        }
+    }
+
+    :global(.text-gradient) {
+        @include gradient-text;
+    }
+
+    :global(.order-card),
+    :global(.quiz-card) {
+        border-radius: $border-radius-xl;
+        transition: all $transition-slow;
+
+        &:hover {
+            background-color: $gray-800;
+            transform: translateY(-2px);
+        }
+    }
+
+    @include respond-below(md) {
+        padding: $spacing-4;
+    }
+}

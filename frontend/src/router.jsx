@@ -3,12 +3,12 @@ import App from "./App";
 import HomePage from "./pages/home/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
-import DashboardSeller from "./features/seller/Dashboard";
-import SellerDashboard from "./features/seller/SellerDashboardPage";
-import SellerQuizzes from "./features/seller/SellerQuizzes";
-import SellerOrders from "./features/seller/SellerOrders";
-import SellerAnalytics from "./features/seller/SellerAnalytics";
-import SellerWallet from "./features/seller/SellerWallet";
+import SellerLayoutPage from "./pages/seller/SellerLayoutPage";
+import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
+import SellerQuizzesPage from "./pages/seller/SellerQuizzesPage";
+import SellerOrdersPage from "./pages/seller/SellerOrdersPage";
+import SellerAnalyticsPage from "./pages/seller/SellerAnalyticsPage";
+import SellerWalletPage from "./pages/seller/SellerWalletPage";
 import SettingsPage from "./features/settings/SettingsPage";
 import CreateQuiz from "./features/quizzes/CreateQuiz";
 import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
@@ -18,11 +18,10 @@ import StudentPaymentResultPage from "./pages/student/StudentPaymentResultPage";
 import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
 import ExamQuiz from "./features/quizzes/student/ExamQuiz";
 import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
-import SellerSubjectDetailPage from "./features/seller/SellerSubjectDetailPage";
+import SellerSubjectDetailPage from "./pages/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminWeeklyQuizPage from "./features/weeklyquiz/AdminWeeklyQuizPage";
-import RewardShopPage from "./features/reward/RewardShopPage";
-import MyRewardTransactions from "./features/reward/MyRewardTransactions";
+import RewardShopPage from "./pages/reward/RewardShopPage";
+import MyRewardTransactionsPage from "./pages/reward/MyRewardTransactionsPage";
 import AboutPage from "./pages/about/AboutPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
 import StudentMyQuizzesPage from "./pages/student/StudentMyQuizzesPage";
@@ -39,6 +38,7 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminRolesPermissionsPage from "./pages/admin/AdminRolesPermissionsPage";
 import AdminRewardsPage from "./pages/admin/AdminRewardsPage";
 import AdminRewardTransactionsPage from "./pages/admin/AdminRewardTransactionsPage";
+import AdminWeeklyQuizPage from "./pages/admin/AdminWeeklyQuizPage";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -51,7 +51,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "/my-reward-transactions",
-                element: <ProtectedRoute allowedRoles={['STUDENT', 'SELLER', 'SUPER_ADMIN']}><MyRewardTransactions /></ProtectedRoute>
+                element: <ProtectedRoute allowedRoles={['STUDENT', 'SELLER', 'SUPER_ADMIN']}><MyRewardTransactionsPage /></ProtectedRoute>
             },
             {
                 path: "/about",
@@ -90,13 +90,13 @@ const router = createBrowserRouter([
     },
     {
         path: "/seller",
-        element: <ProtectedRoute allowedRoles={['SELLER']}><DashboardSeller /></ProtectedRoute>,
+        element: <ProtectedRoute allowedRoles={['SELLER']}><SellerLayoutPage /></ProtectedRoute>,
         children: [
-            { index: true, element: <SellerDashboard /> },
-            { path: "quizzes", element: <SellerQuizzes /> },
-            { path: 'orders', element: <SellerOrders /> },
-            { path: 'analytics', element: <SellerAnalytics /> },
-            { path: 'wallet', element: <SellerWallet /> },
+            { index: true, element: <SellerDashboardPage /> },
+            { path: "quizzes", element: <SellerQuizzesPage /> },
+            { path: 'orders', element: <SellerOrdersPage /> },
+            { path: 'analytics', element: <SellerAnalyticsPage /> },
+            { path: 'wallet', element: <SellerWalletPage /> },
             { path: 'settings', element: <SettingsPage /> },
             { path: 'quizzes/create', element: <CreateQuiz /> },
             { path: 'quizzes/:quizId', element: <SellerQuizDetail /> },

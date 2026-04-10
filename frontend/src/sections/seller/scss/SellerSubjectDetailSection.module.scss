@@ -1,0 +1,29 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.sellerSubjectDetailPage {
+    background: $bg-dark;
+    min-height: 100vh;
+    padding: $spacing-8 $spacing-4;
+    color: $text-light;
+
+    :global(.text-gradient) {
+        @include gradient-text;
+    }
+
+    :global(.btn-gradient) {
+        @include gradient-primary;
+        border: none;
+        color: $white;
+        font-weight: $font-semibold;
+    }
+
+    :global(.hover-gradient) {
+        transition: all 0.3s;
+
+        &:hover {
+            background: linear-gradient(90deg, #9333ea, #f97316);
+            border-color: transparent;
+        }
+    }
+}

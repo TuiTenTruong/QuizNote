@@ -1,0 +1,32 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.sellerLayout {
+    :global(.topbar) {
+        background-color: $bg-dark;
+
+        :global(.btn-gradient) {
+            @include gradient-primary;
+            border: none;
+            color: $text-light;
+        }
+
+        :global(input) {
+            color: $text-light;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        :global(.main-content) {
+            margin-left: 25% !important;
+            width: 75% !important;
+        }
+    }
+
+    @include respond-above(lg) {
+        :global(.main-content) {
+            margin-left: 16.666667% !important;
+            width: 83.333333% !important;
+        }
+    }
+}
