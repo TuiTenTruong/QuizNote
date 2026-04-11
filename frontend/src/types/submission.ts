@@ -8,7 +8,7 @@ export type SubmissionMode = 'PRACTICE' | 'EXAM';
 
 export interface ISubmissionAnswer {
     questionId: number;
-    selectedOptionId: number;
+    selectedOptionId?: number;
     selectedOptionIds?: number[];
     isCorrect?: boolean;
 }
@@ -29,9 +29,11 @@ export interface ISubmission {
     duration: number;
     timeSpent?: number;
     score?: number;
+    percentage?: number;
     totalQuestions?: number;
     correctCount?: number;
     startedAt: string;
+    endTime?: string;
     submittedAt?: string;
     answers?: ISubmissionAnswer[];
     questions?: ISubmissionQuestion[];
@@ -44,9 +46,14 @@ export interface IReqStartSubmission {
     isPractice: boolean;
 }
 
-export interface IReqSubmitQuiz {
-    answers: ISubmissionAnswer[];
+export interface IReqSubmitAnswerDTO {
+    questionId: number;
+    selectedOptionIds?: number[];
+    selectedOptionId?: number;
 }
+
+export type IReqSubmitQuiz = IReqSubmitAnswerDTO[];
+
 
 export interface IResStartSubmission extends IResBase<ISubmission> { }
 

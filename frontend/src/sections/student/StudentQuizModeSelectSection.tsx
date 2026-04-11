@@ -1,52 +1,91 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { FaClock, FaBookOpen, FaTrophy, FaBrain } from "react-icons/fa";
-import "./QuizModeSelect.scss";
+import styles from "./scss/StudentQuizModeSelectSection.module.scss";
 import { useEffect, useState } from "react";
-import { getQuizDetail } from "../../../services/apiService";
+import { getSubjectDetail } from "../../api/subject.api";
 import { Form } from "react-bootstrap";
 import { useSelector } from "react-redux";
-import axiosInstance from "../../../utils/axiosCustomize";
-const QuizModeSelect = () => {
+import axiosInstance from "../../utils/axiosCustomize";
+import { ISubject } from "../../types";
+
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
+}
+
+interface ModeSelectLocationState {
+    quiz?: ISubject;
+}
+
+type QuizMode = "practice" | "exam";
+
+const StudentQuizModeSelectSection = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { quizId } = useParams();
-    const [quiz, setQuiz] = useState({});
-    const [loading, setLoading] = useState(true);
-    const account = useSelector(state => state.user.account);
+    const [quiz, setQuiz] = useState<ISubject | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [duration, setDuration] = useState<number>(10);
+    const [numberOfQuestions, setNumberOfQuestions] = useState<number>(10);
+    const account = useSelector((state: RootState) => state.user?.account);
+    const parsedQuizId = Number(quizId ?? 0);
 
-    const STORAGE_KEY = `exam_quiz_${quizId}_${account?.id}`;
+    const STORAGE_KEY = `exam_quiz_${parsedQuizId}_${account?.id ?? "guest"}`;
     const savedState = sessionStorage.getItem(STORAGE_KEY);
-    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/subjects/";
+    const backendBaseURL = `${axiosInstance.defaults.baseURL ?? ""}storage/subjects/`;
+
     useEffect(() => {
-        if (location.state?.quiz) {
-            setQuiz(location.state.quiz);
+        const stateQuiz = (location.state as ModeSelectLocationState | undefined)?.quiz;
+
+        if (stateQuiz) {
+            setQuiz(stateQuiz);
+            setDuration(10);
+            setNumberOfQuestions(Math.min(10, Math.max(1, stateQuiz.questionCount || 1)));
             setLoading(false);
-            console.log("Quiz data from state:", location.state.quiz);
         } else {
             // Fallback: gọi API nếu user truy cập trực tiếp URL
             const fetchQuizDetails = async () => {
                 try {
-                    const quizId = location.pathname.split("/")[3];
-                    const response = await getQuizDetail(quizId);
+                    if (!parsedQuizId) {
+                        navigate("/");
+                        return;
+                    }
+
+                    const response = await getSubjectDetail(parsedQuizId);
                     setQuiz(response.data);
-                    console.log("Quiz data from API:", response.data);
+                    setDuration(10);
+                    setNumberOfQuestions(Math.min(10, Math.max(1, response.data.questionCount || 1)));
                 } catch (error) {
                     console.error("Lỗi khi lấy chi tiết quiz:", error);
+                    navigate("/");
                 } finally {
                     setLoading(false);
                 }
             };
 
-            fetchQuizDetails();
+            void fetchQuizDetails();
         }
-    }, [quizId, location.state]);
+    }, [location.state, navigate, parsedQuizId]);
 
-    const handleSelectMode = (mode) => {
+    const handleSelectMode = (mode: QuizMode) => {
+        if (!quiz) {
+            return;
+        }
+
         if (mode === "practice") {
             navigate(`/student/quizzes/${quiz.id}/practice`, { state: { quizId: quiz.id } });
         } else {
-            navigate(`/student/quizzes/${quiz.id}/exam`, { state: { quizId: quiz.id, duration: quiz.time, numberOfQuestions: quiz.numberOfQuestions } });
+            navigate(`/student/quizzes/${quiz.id}/exam`, {
+                state: {
+                    quizId: quiz.id,
+                    duration,
+                    numberOfQuestions,
+                }
+            });
         }
     };
 
@@ -54,8 +93,12 @@ const QuizModeSelect = () => {
         return <div className="text-center text-light py-5">Đang tải...</div>;
     }
 
+    if (!quiz) {
+        return <div className="text-center text-light py-5">Không tìm thấy quiz.</div>;
+    }
+
     return (
-        <div className="quiz-mode-page">
+        <div className={styles.quizModePage}>
             <Container className="py-5">
                 <Row className="justify-content-center">
                     <Col md={10} lg={8}>
@@ -65,7 +108,7 @@ const QuizModeSelect = () => {
                                 <Col xs={12} md={4}>
                                     <img
                                         src={backendBaseURL + quiz.imageUrl}
-                                        alt={quiz.title}
+                                        alt={quiz.name}
                                         className="rounded-3 w-100"
                                         style={{ height: "180px", objectFit: "cover" }}
                                     />
@@ -73,7 +116,7 @@ const QuizModeSelect = () => {
                                 <Col xs={12} md={8}>
                                     <h4 className="fw-bold text-gradient mb-2">{quiz.name}</h4>
                                     <p className="text-secondary small mb-3">
-                                        {quiz.createUser?.username ? quiz.createUser.username : quiz.username} • {quiz.questionCount} câu hỏi
+                                        {quiz.createUser?.name ? quiz.createUser.name : quiz.name} • {quiz.questionCount} câu hỏi
                                     </p>
                                 </Col>
                             </Row>
@@ -118,7 +161,7 @@ const QuizModeSelect = () => {
                                         thống chấm điểm và lưu kết quả tự động.
                                     </p>
                                     <ul className="small text-white-50 mb-4 ps-3">
-                                        <li>Giới hạn {quiz.time}</li>
+                                        <li>Giới hạn {duration} phút</li>
                                         <li>Không hiển thị đáp án khi làm</li>
                                         <li>Kết quả được lưu và xếp hạng</li>
                                     </ul>
@@ -128,8 +171,11 @@ const QuizModeSelect = () => {
                                             <Form.Control className="bg-dark text-white"
                                                 type="number"
                                                 placeholder="Nhập thời gian"
-                                                value={quiz.time < 0 ? 1 : quiz.time}
-                                                onChange={(e) => setQuiz({ ...quiz, time: e.target.value < 0 ? 1 : e.target.value })}
+                                                value={duration}
+                                                onChange={(e) => {
+                                                    const nextValue = Number(e.target.value);
+                                                    setDuration(Number.isNaN(nextValue) ? 1 : Math.max(1, nextValue));
+                                                }}
                                                 min={1}
                                             />
                                         </Form.Group >
@@ -140,8 +186,20 @@ const QuizModeSelect = () => {
                                                 max={quiz.questionCount}
                                                 type="number"
                                                 placeholder="Nhập số câu hỏi"
-                                                value={quiz.numberOfQuestions > quiz.questions ? quiz.questions : quiz.numberOfQuestions}
-                                                onChange={(e) => setQuiz({ ...quiz, numberOfQuestions: e.target.value })}
+                                                value={numberOfQuestions}
+                                                onChange={(e) => {
+                                                    const nextValue = Number(e.target.value);
+                                                    if (Number.isNaN(nextValue)) {
+                                                        setNumberOfQuestions(1);
+                                                        return;
+                                                    }
+
+                                                    const clampedValue = Math.min(
+                                                        Math.max(1, nextValue),
+                                                        Math.max(1, quiz.questionCount)
+                                                    );
+                                                    setNumberOfQuestions(clampedValue);
+                                                }}
                                             />
                                         </Form.Group>
                                     </>
@@ -172,4 +230,4 @@ const QuizModeSelect = () => {
     );
 }
 
-export default QuizModeSelect;
+export default StudentQuizModeSelectSection;

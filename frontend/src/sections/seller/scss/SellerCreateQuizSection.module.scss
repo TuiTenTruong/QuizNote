@@ -1,0 +1,66 @@
+@use "../../../assets/styles/variables" as *;
+@use "../../../assets/styles/mixins" as *;
+
+.createQuizPage {
+    background-color: #0b0b0f;
+    color: $white;
+    min-height: 100vh;
+    padding: $spacing-8 $spacing-4;
+
+    :global {
+        .text-gradient {
+            @include gradient-text;
+        }
+
+        .btn-gradient {
+            @include gradient-primary;
+            border: none;
+            color: $white;
+
+            &:hover {
+                opacity: 0.9;
+            }
+        }
+
+        .form-control {
+            &::placeholder {
+                color: $gray-400;
+            }
+        }
+
+        .answer-option {
+            background: #1a1a1a;
+            border: $border-width-2 solid #333;
+            transition: all $transition-base;
+
+            &.correct {
+                background: rgba($primary-purple, 0.2);
+                border-color: $primary-purple;
+            }
+
+            &:hover {
+                border-color: $gray-500;
+            }
+        }
+
+        .form-check-input {
+            background-color: #222;
+            border-color: #3a3a42;
+            cursor: pointer;
+
+            &:checked {
+                background-color: $primary-purple;
+                border-color: $primary-purple;
+            }
+        }
+
+        .hover-gradient:hover {
+            @include gradient-primary;
+            color: $white;
+        }
+    }
+
+    @include respond-below(md) {
+        padding: $spacing-4;
+    }
+}

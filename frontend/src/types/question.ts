@@ -13,7 +13,7 @@ export interface IQuestion {
     options: IQuestionOption[];
 }
 
-export type QuestionTypeEnum = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER';
+export type QuestionTypeEnum = 'ONE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER';
 
 export interface IQuestionOption {
     id: number;

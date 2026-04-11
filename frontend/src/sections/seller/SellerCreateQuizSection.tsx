@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import {
     Container,
     Row,
@@ -19,82 +19,126 @@ import {
     FaDollarSign,
     FaTrash,
 } from "react-icons/fa";
-import "./CreateQuiz.scss";
-import { createQuiz, createQuestion, createQuestionBatch, saveDraftQuiz } from "../../services/apiService";
+import styles from "./scss/SellerCreateQuizSection.module.scss";
+import { createSubject, saveDraftSubject } from "../../api/subject.api";
+import { createQuestion, createQuestionsBatch } from "../../api/question.api";
 import { useNavigate } from "react-router-dom";
-function CreateQuiz() {
+import type { IReqCreateSubject } from "../../types";
+
+type QuestionType = "ONE_CHOICE" | "MULTIPLE_CHOICE";
+
+interface DraftAnswer {
+    text: string;
+    isCorrect: boolean;
+}
+
+interface DraftQuestion {
+    text: string;
+    type: QuestionType;
+    imageFile: File | null;
+    explanation?: string;
+    answers: DraftAnswer[];
+}
+
+interface QuizFormState {
+    title: string;
+    description: string;
+    price: number;
+    imageUrl: File | null;
+    questions: DraftQuestion[];
+}
+
+interface MessageState {
+    type: "" | "danger" | "success";
+    text: string;
+}
+
+interface ApiErrorShape {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
+
+const buildDefaultQuestion = (): DraftQuestion => ({
+    text: "",
+    type: "ONE_CHOICE",
+    imageFile: null,
+    answers: [
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+    ],
+});
+
+function SellerCreateQuizSection() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [imageFile, setImageFile] = useState(null);
+    const [message, setMessage] = useState<MessageState>({ type: "", text: "" });
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const navigate = useNavigate();
-    const [quiz, setQuiz] = useState({
+    const [quiz, setQuiz] = useState<QuizFormState>({
         title: "",
         description: "",
         price: 0,
-        questions: [
-
-        ],
+        imageUrl: null,
+        questions: [],
     });
 
-    const handleChange = (e) =>
-        setQuiz({ ...quiz, [e.target.name]: e.target.value });
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
 
+        if (name === "price") {
+            const parsedPrice = Number(value);
+            setQuiz((prev) => ({ ...prev, price: Number.isNaN(parsedPrice) ? 0 : parsedPrice }));
+            return;
+        }
 
-
-    const handleFileChange = (e) => {
-        setQuiz({ ...quiz, [e.target.name]: e.target.files[0] });
-        setImageFile(e.target.files[0]);
-    }
-
-
-
-    const handleToggle = (key) =>
-        setQuiz({ ...quiz, [key]: !quiz[key] });
-
-    const addQuestion = () => {
-        setQuiz({
-            ...quiz,
-            questions: [
-                ...quiz.questions,
-                {
-                    text: "",
-                    type: "ONE_CHOICE",
-                    imageFile: null,
-                    answers: [
-                        { text: "", isCorrect: false },
-                        { text: "", isCorrect: false },
-                        { text: "", isCorrect: false },
-                        { text: "", isCorrect: false },
-                    ],
-                },
-            ],
-        });
+        setQuiz((prev) => ({ ...prev, [name]: value }));
     };
 
-    const addAnswer = (qIndex) => {
+
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] ?? null;
+        setQuiz((prev) => ({ ...prev, imageUrl: file }));
+        setImageFile(file);
+    };
+
+    const addQuestion = () => {
+        setQuiz((prev) => ({
+            ...prev,
+            questions: [...prev.questions, buildDefaultQuestion()],
+        }));
+    };
+
+    const addAnswer = (qIndex: number) => {
         const updated = [...quiz.questions];
         updated[qIndex].answers.push({ text: "", isCorrect: false });
         setQuiz({ ...quiz, questions: updated });
     };
 
-    const removeQuestion = (qIndex) => {
+    const removeQuestion = (qIndex: number) => {
         const updated = [...quiz.questions];
         updated.splice(qIndex, 1);
         setQuiz({ ...quiz, questions: updated });
     };
-    const removeAnswer = (qIndex, aIndex) => {
+
+    const removeAnswer = (qIndex: number, aIndex: number) => {
         const updated = [...quiz.questions];
         updated[qIndex].answers.splice(aIndex, 1);
         setQuiz({ ...quiz, questions: updated });
     };
-    const handleAnswerChange = (qIndex, aIndex, value) => {
+
+    const handleAnswerChange = (qIndex: number, aIndex: number, value: string) => {
         const updated = [...quiz.questions];
         updated[qIndex].answers[aIndex].text = value;
         setQuiz({ ...quiz, questions: updated });
     };
 
-    const toggleCorrect = (qIndex, aIndex) => {
+    const toggleCorrect = (qIndex: number, aIndex: number) => {
         const updated = [...quiz.questions];
         if (updated[qIndex].type === "ONE_CHOICE") {
             // Set all answers to false
@@ -108,14 +152,14 @@ function CreateQuiz() {
         setQuiz({ ...quiz, questions: updated });
     };
 
-    const handleQuestionFileChange = (qIndex, e) => {
-        const file = e.target.files[0];
+    const handleQuestionFileChange = (qIndex: number, e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const file = (e.target as HTMLInputElement).files?.[0] ?? null;
         const updated = [...quiz.questions];
         updated[qIndex].imageFile = file;
         setQuiz({ ...quiz, questions: updated });
     };
 
-    const handleQuestionTypeChange = (qIndex, newType) => {
+    const handleQuestionTypeChange = (qIndex: number, newType: QuestionType) => {
         const updated = [...quiz.questions];
         updated[qIndex].type = newType;
         setQuiz({ ...quiz, questions: updated });
@@ -181,7 +225,7 @@ function CreateQuiz() {
             const subjectData = {
                 name: quiz.title,
                 description: quiz.description,
-                price: parseFloat(quiz.price),
+                price: quiz.price,
             };
             formData.append('subject', JSON.stringify(subjectData));
 
@@ -191,17 +235,18 @@ function CreateQuiz() {
             submitQuiz(formData);
         } catch (error) {
             console.error('Error creating quiz:', error);
+            const apiMessage = (error as ApiErrorShape)?.response?.data?.message;
             setMessage({
                 type: 'danger',
-                text: error.response?.data?.message || 'Error creating quiz. Please try again.'
+                text: apiMessage || 'Error creating quiz. Please try again.'
             });
             setLoading(false);
         }
     };
 
-    const submitQuiz = async (formData) => {
+    const submitQuiz = async (formData: FormData) => {
         try {
-            const quizRes = await createQuiz(formData);
+            const quizRes = await createSubject(formData);
             const quizId = quizRes.data.id;
 
             // Prepare batch questions with images
@@ -236,7 +281,7 @@ function CreateQuiz() {
             });
 
             // Create all questions in batch
-            await createQuestionBatch(batchFormData);
+            await createQuestionsBatch(batchFormData);
 
             setMessage({ type: 'success', text: 'Tạo bài kiểm tra thành công!' });
             setTimeout(() => {
@@ -244,9 +289,10 @@ function CreateQuiz() {
             }, 2000);
         } catch (error) {
             console.error('Lỗi khi tạo bài kiểm tra:', error);
+            const apiMessage = (error as ApiErrorShape)?.response?.data?.message;
             setMessage({
                 type: 'danger',
-                text: error.response?.data?.message || 'Tạo bài kiểm tra thất bại. Vui lòng thử lại.'
+                text: apiMessage || 'Tạo bài kiểm tra thất bại. Vui lòng thử lại.'
             });
         } finally {
             setLoading(false);
@@ -259,19 +305,14 @@ function CreateQuiz() {
         setLoading(true);
         try {
             // Create draft subject with DRAFT status
-            const formData = new FormData();
-            const draftData = {
+            const draftData: IReqCreateSubject = {
                 name: quiz.title,
                 description: quiz.description,
-                price: parseFloat(quiz.price),
+                price: quiz.price,
+                status: "DRAFT",
             };
-            formData.append('subject', JSON.stringify(draftData));
 
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-
-            const response = await saveDraftQuiz(formData);
+            const response = await saveDraftSubject(draftData);
             const subjectId = response.data.id;
 
             // Create questions for draft
@@ -282,6 +323,7 @@ function CreateQuiz() {
                             subjectId: subjectId,
                             content: question.text,
                             explanation: question.explanation || '',
+                            type: question.type,
                             options: question.answers
                                 .filter(answer => answer.text.trim()) // Only save answers with content
                                 .map((answer, index) => ({
@@ -304,9 +346,10 @@ function CreateQuiz() {
             }, 2000);
         } catch (error) {
             console.error('Lỗi khi lưu nháp:', error);
+            const apiMessage = (error as ApiErrorShape)?.response?.data?.message;
             setMessage({
                 type: 'danger',
-                text: error.response?.data?.message || 'Lỗi khi lưu nháp. Vui lòng thử lại.'
+                text: apiMessage || 'Lỗi khi lưu nháp. Vui lòng thử lại.'
             });
         } finally {
             setLoading(false);
@@ -314,7 +357,7 @@ function CreateQuiz() {
     };
 
     return (
-        <div className="create-quiz-page">
+        <div className={styles.createQuizPage}>
             <Container fluid="sm">
                 {message.text && (
                     <Alert variant={message.type} dismissible onClose={() => setMessage({ type: '', text: '' })}>
@@ -430,7 +473,7 @@ function CreateQuiz() {
                                         <Form.Group>
                                             <Form.Select
                                                 value={q.type}
-                                                onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
+                                                onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value as QuestionType)}
                                                 className="bg-dark text-light border-secondary"
                                             >
                                                 <option value="ONE_CHOICE">One Choice</option>
@@ -520,7 +563,7 @@ function CreateQuiz() {
                                 <Button
                                     variant="outline-light"
                                     className="w-50 py-2 mt-2 mx-auto hover-gradient"
-                                    onClick={addAnswer.bind(this, qIndex)}
+                                    onClick={() => addAnswer(qIndex)}
                                 >
                                     + Thêm Đáp Án
                                 </Button>
@@ -576,4 +619,4 @@ function CreateQuiz() {
     );
 }
 
-export default CreateQuiz;
+export default SellerCreateQuizSection;

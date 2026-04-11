@@ -4,7 +4,7 @@ import { Container, Row, Col, Button, Card, ProgressBar, Form, Alert } from "rea
 import { FaUserGraduate, FaStar, FaShoppingCart } from "react-icons/fa";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import ReviewItem from "../../features/quizzes/student/ReviewItem";
+import ReviewItem from "./components/ReviewItem";
 import { navigateToSelectMode } from "../../utils/quizNavigation";
 import { useCommentQuery, useCreateComment } from "../../hooks/useComment";
 import { useGetQuizDetail, useQuizDemo } from "../../hooks/useQuiz";
@@ -261,7 +261,14 @@ const StudentQuizDetailSection = (): ReactElement => {
                             {reviews.length > 0 ? (
                                 reviews.map((review, index) => (
                                     <div key={review.id}>
-                                        <ReviewItem review={review} />
+                                        <ReviewItem
+                                            review={review}
+                                            replyingTo={null}
+                                            onReplyClick={() => { }}
+                                            onCancelReply={() => { }}
+                                            onSubmitReply={() => { }}
+                                            onReplyContentChange={() => { }}
+                                        />
                                         {index < reviews.length - 1 && <hr className="text-secondary opacity-25" />}
                                     </div>
                                 ))

@@ -1,19 +1,19 @@
-import React from 'react';
 import { Badge, Button, Form } from 'react-bootstrap';
 import axiosInstance from "../../../utils/axiosCustomize";
 import { FaReply } from 'react-icons/fa';
+import type { ReviewItemProps } from "../../../types/reviewItem";
 
 const ReviewItem = ({
     review,
     isReply = false,
     canReply = false,
-    replyingTo = null,
+    replyingTo,
     replyContent = "",
-    onReplyClick = null,
-    onCancelReply = null,
-    onSubmitReply = null,
-    onReplyContentChange = null
-}) => {
+    onReplyClick,
+    onCancelReply,
+    onSubmitReply,
+    onReplyContentChange
+}: ReviewItemProps) => {
     const backendBaseUserURL = axiosInstance.defaults.baseURL + "storage/users/";
 
     // Check if the user is the author/seller
@@ -41,11 +41,12 @@ const ReviewItem = ({
                     <div className="d-flex justify-content-between">
                         <div>
                             <h6 className="fw-semibold text-secondary mb-0">{review.user.name}</h6>
-                            {isSeller && <Badge bg="info" size="sm" className="ms-2">Chủ shop</Badge>}
+                            {isSeller && <Badge bg="info" className="ms-2">Chủ shop</Badge>}
                         </div>
-                        {review.rating > 0 && (
+                        {Number(review.rating ?? 0) > 0 && (
                             <span className="text-warning small">
-                                {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
+                                {"★".repeat(Number(review.rating ?? 0))}
+                                {"☆".repeat(5 - Number(review.rating ?? 0))}
                             </span>
                         )}
                     </div>
@@ -62,7 +63,7 @@ const ReviewItem = ({
                                             rows={3}
                                             placeholder="Nhập phản hồi của bạn..."
                                             value={replyContent}
-                                            onChange={(e) => onReplyContentChange(e.target.value)}
+                                            onChange={(e) => onReplyContentChange?.(e.target.value)}
                                             className="bg-secondary text-light border-0"
                                         />
                                     </Form.Group>
@@ -70,7 +71,7 @@ const ReviewItem = ({
                                         <Button
                                             variant="primary"
                                             size="sm"
-                                            onClick={() => onSubmitReply(review.id)}
+                                            onClick={() => onSubmitReply?.(review.id)}
                                         >
                                             Gửi
                                         </Button>
@@ -88,7 +89,7 @@ const ReviewItem = ({
                                     variant="link"
                                     size="sm"
                                     className="text-secondary p-0"
-                                    onClick={() => onReplyClick(review.id)}
+                                    onClick={() => onReplyClick?.(review.id)}
                                 >
                                     <FaReply className="me-1" /> Phản hồi
                                 </Button>
@@ -101,7 +102,7 @@ const ReviewItem = ({
             {/* Recursive rendering for replies */}
             {review.replies && review.replies.length > 0 && (
                 <div className="replies-container mt-2">
-                    {review.replies.map(reply => (
+                    {review.replies.map((reply) => (
                         <ReviewItem
                             key={reply.id}
                             review={reply}

@@ -9,15 +9,15 @@ import SellerQuizzesPage from "./pages/seller/SellerQuizzesPage";
 import SellerOrdersPage from "./pages/seller/SellerOrdersPage";
 import SellerAnalyticsPage from "./pages/seller/SellerAnalyticsPage";
 import SellerWalletPage from "./pages/seller/SellerWalletPage";
-import SettingsPage from "./features/settings/SettingsPage";
-import CreateQuiz from "./features/quizzes/CreateQuiz";
-import SellerQuizDetail from "./features/quizzes/seller/SellerQuizDetail";
+import SettingsPage from "./pages/setting/SettingsPage";
+import SellerCreateQuizPage from "./pages/seller/SellerCreateQuizPage";
+import SellerQuizDetailPage from "./pages/seller/SellerQuizDetailPage";
 import StudentQuizDetailPage from "./pages/student/StudentQuizDetailPage";
 import StudentQuizPaymentPage from "./pages/student/StudentQuizPaymentPage";
 import StudentPaymentResultPage from "./pages/student/StudentPaymentResultPage";
-import QuizModeSelect from "./features/quizzes/student/QuizModeSelect";
-import ExamQuiz from "./features/quizzes/student/ExamQuiz";
-import QuizPracticePage from "./features/quizzes/student/QuizPracticePage";
+import StudentQuizModeSelectPage from "./pages/student/StudentQuizModeSelectPage";
+import StudentExamQuizPage from "./pages/student/StudentExamQuizPage";
+import StudentQuizPracticePage from "./pages/student/StudentQuizPracticePage";
 import SellerSubjectDetailPage from "./pages/seller/SellerSubjectDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RewardShopPage from "./pages/reward/RewardShopPage";
@@ -78,9 +78,9 @@ const router = createBrowserRouter([
             { path: "weekly-quiz", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentWeeklyQuizPage /></ProtectedRoute> },
             { path: "quiz-payment/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizPaymentPage /></ProtectedRoute> },
             { path: "payment-result", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentPaymentResultPage /></ProtectedRoute> },
-            { path: "quizzes/:quizId/mode-select", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizModeSelect /></ProtectedRoute> },
-            { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><ExamQuiz /></ProtectedRoute> },
-            { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><QuizPracticePage /></ProtectedRoute> },
+            { path: "quizzes/:quizId/mode-select", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizModeSelectPage /></ProtectedRoute> },
+            { path: "quizzes/:quizId/exam", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentExamQuizPage /></ProtectedRoute> },
+            { path: "quizzes/:quizId/practice", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentQuizPracticePage /></ProtectedRoute> },
             { path: "quizzes/my", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentMyQuizzesPage /></ProtectedRoute> },
             { path: "history", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistoryPage /></ProtectedRoute> },
             { path: "history/quiz/:quizId", element: <ProtectedRoute allowedRoles={['STUDENT']}><StudentHistoryDetailPage /></ProtectedRoute> },
@@ -98,8 +98,8 @@ const router = createBrowserRouter([
             { path: 'analytics', element: <SellerAnalyticsPage /> },
             { path: 'wallet', element: <SellerWalletPage /> },
             { path: 'settings', element: <SettingsPage /> },
-            { path: 'quizzes/create', element: <CreateQuiz /> },
-            { path: 'quizzes/:quizId', element: <SellerQuizDetail /> },
+            { path: 'quizzes/create', element: <SellerCreateQuizPage /> },
+            { path: 'quizzes/:quizId', element: <SellerQuizDetailPage /> },
             { path: 'detail/:quizId', element: <SellerSubjectDetailPage /> }
         ]
     },

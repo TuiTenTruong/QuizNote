@@ -1,0 +1,62 @@
+@use "../../../assets/styles/variables" as *;
+@use "../../../assets/styles/mixins" as *;
+
+.sellerQuizDetail {
+    background-color: #0b0b0f;
+    color: $white;
+    min-height: 100vh;
+    padding: $spacing-8 $spacing-4;
+
+    :global {
+        .text-gradient {
+            @include gradient-text;
+        }
+
+        .btn-gradient {
+            @include gradient-primary;
+            border: none;
+            color: $white;
+
+            &:hover {
+                opacity: 0.9;
+                color: $white;
+            }
+        }
+
+        .stat-card {
+            border-radius: $border-radius-xl;
+            transition: $transition-slow;
+
+            &:hover {
+                background-color: #1a1a1a;
+                transform: translateY(-2px);
+                box-shadow: 0 0 10px rgba($primary-purple, 0.2);
+            }
+
+            .icon {
+                font-size: 1.4rem;
+            }
+        }
+
+        .progress-custom {
+            height: 10px;
+            border-radius: $border-radius-md;
+            background-color: #1a1a1a;
+
+            .progress-bar {
+                @include gradient-primary;
+            }
+        }
+    }
+
+    @include respond-below(md) {
+        padding: $spacing-4;
+
+        :global {
+            .stat-card {
+                padding: $spacing-4;
+                font-size: $font-sm;
+            }
+        }
+    }
+}

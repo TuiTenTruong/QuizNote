@@ -1,0 +1,50 @@
+@use "../../assets/styles/variables" as *;
+@use "../../assets/styles/mixins" as *;
+@use "../../assets/styles/utilities" as *;
+
+.settingsPage {
+    background-color: #0b0b0f;
+    color: $white;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+
+    :global {
+        .text-gradient {
+            @include gradient-text;
+        }
+
+        .btn-gradient {
+            @include gradient-primary;
+            border: none;
+            color: $white;
+            transition: opacity $transition-base;
+
+            &:hover {
+                opacity: 0.9;
+                color: $white;
+            }
+        }
+
+        .hover-gradient {
+            &:hover {
+                @include gradient-primary;
+                color: $white;
+            }
+        }
+    }
+}
+
+.settingsTabs {
+    :global(.nav-link) {
+        color: #aaa;
+        border: none;
+        background: transparent;
+
+        &.active {
+            color: $white;
+            @include gradient-primary;
+            border-radius: $border-radius-md;
+            font-weight: $font-semibold;
+        }
+    }
+}

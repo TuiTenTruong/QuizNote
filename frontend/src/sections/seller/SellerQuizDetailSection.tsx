@@ -1,38 +1,42 @@
 import { Container, Row, Col, Card, Button, Table, ProgressBar, Badge } from "react-bootstrap";
-import {
-    FaClock,
-    FaUserGraduate,
-    FaTrophy,
-    FaEdit,
-    FaShareAlt,
-    FaEye,
-    FaMoneyBillWave,
-    FaShoppingCart,
-    FaChartBar,
-    FaTrash,
-    FaStar,
-    FaReply
-} from "react-icons/fa";
-import "./SellerQuizDetail.scss";
+import { FaTrophy, FaEdit, FaMoneyBillWave, FaShoppingCart, FaTrash, FaStar } from "react-icons/fa";
+import styles from "./scss/SellerQuizDetailSection.module.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axiosInstance from "../../../utils/axiosCustomize";
-import ReviewItem from "../student/ReviewItem";
-import { getSellerQuizDetail, getQuizDemo, getQuizReviews, sellerGetRecentOrders, replyComment, deleteSubject } from "../../../services/apiService";
+import axiosInstance from "../../utils/axiosCustomize";
+import ReviewItem from "../student/components/ReviewItem";
+import { getSellerSubjectDetail } from "../../api/subject.api";
+import { getQuestionsDemo } from "../../api/question.api";
+import { getCommentsBySubject, replyComment } from "../../api/comment.api";
+import { getSellerRecentOrders } from "../../api/order.api";
 import { toast } from "react-toastify";
-import DeleteConfirmModal from "./components/DeleteComfirmModal";
+import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import { IComment, IOrder, IQuestion, ISubject } from "../../types";
+import type { CommentMeta, CommentPagePayload } from "../../types/sellerQuizDetail";
 
-function SellerQuizDetail() {
-    const [quiz, setQuiz] = useState(null);
-    const [quizDemo, setQuizDemo] = useState(null);
-    const [reviews, setReviews] = useState([]);
+const readCommentPayload = (data: unknown): { result: IComment[]; meta: CommentMeta } => {
+    if (Array.isArray(data)) {
+        return { result: data as IComment[], meta: {} };
+    }
+
+    const payload = (data ?? {}) as CommentPagePayload;
+    return {
+        result: Array.isArray(payload.result) ? payload.result : [],
+        meta: payload.meta ?? {},
+    };
+};
+
+function SellerQuizDetailSection() {
+    const [quiz, setQuiz] = useState<ISubject>();
+    const [quizDemo, setQuizDemo] = useState<IQuestion[]>([]);
+    const [reviews, setReviews] = useState<IComment[]>([]);
     const [reviewsPage, setReviewsPage] = useState(0);
     const [maxReviews, setMaxReviews] = useState(0);
     const [countReviews, setCountReviews] = useState(0);
     const [hasMoreReviews, setHasMoreReviews] = useState(true);
     const [reviewsLoading, setReviewsLoading] = useState(false);
-    const [recentOrders, setRecentOrders] = useState([]);
-    const [replyingTo, setReplyingTo] = useState(null);
+    const [recentOrders, setRecentOrders] = useState<IOrder[]>([]);
+    const [replyingTo, setReplyingTo] = useState<number | null>(null);
     const [replyContent, setReplyContent] = useState("");
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { quizId } = useParams();
@@ -43,7 +47,7 @@ function SellerQuizDetail() {
     useEffect(() => {
         // Fetch quiz detail from API
         const fetchQuizDetail = async () => {
-            const response = await getSellerQuizDetail(quizId);
+            const response = await getSellerSubjectDetail(Number(quizId));
             if (response && response.statusCode === 200) {
                 setQuiz(response.data);
             } else {
@@ -56,7 +60,7 @@ function SellerQuizDetail() {
 
     useEffect(() => {
         const fetchQuizDemo = async () => {
-            const response = await getQuizDemo(quizId);
+            const response = await getQuestionsDemo(Number(quizId), 0, 5);
             if (response && response.statusCode === 200) {
                 setQuizDemo(response.data);
             } else {
@@ -68,16 +72,19 @@ function SellerQuizDetail() {
     }, [quizId]);
 
     // Fetch reviews
-    const fetchReviews = async (page) => {
+    const fetchReviews = async (page: number) => {
         if (!hasMoreReviews && page > 0) return;
         setReviewsLoading(true);
-        const res = await getQuizReviews(quizId, page, 5);
+        const res = await getCommentsBySubject(Number(quizId), page, 5);
         if (res && res.statusCode === 200) {
-            setReviews(prev => [...prev, ...res.data.result]);
+            const { result, meta } = readCommentPayload(res.data);
+            setReviews((prev) => [...prev, ...result]);
             setReviewsPage(page);
-            setHasMoreReviews(!res.data.last);
-            setMaxReviews(res.data.meta.pages);
-            setCountReviews(res.data.meta.total);
+            const totalPages = meta.pages ?? 0;
+            const isLast = typeof meta.last === "boolean" ? meta.last : totalPages > 0 ? page >= totalPages - 1 : result.length < 5;
+            setHasMoreReviews(!isLast);
+            setMaxReviews(totalPages);
+            setCountReviews(meta.total ?? result.length);
         } else {
             console.error("Failed to fetch reviews");
             toast.error("Không thể tải đánh giá. Vui lòng thử lại sau.");
@@ -94,7 +101,7 @@ function SellerQuizDetail() {
     useEffect(() => {
         const fetchRecentOrders = async () => {
             if (quizId) {
-                const response = await sellerGetRecentOrders(quizId);
+                const response = await getSellerRecentOrders(Number(quizId));
                 if (response && response.statusCode === 200) {
 
                     setRecentOrders(response.data);
@@ -117,22 +124,12 @@ function SellerQuizDetail() {
         navigate(`/seller/detail/${quizId}`);
     };
 
-    const handleConfirmDelete = async () => {
-        try {
-            const response = await deleteSubject(quizId);
-            if (response && response.statusCode === 200) {
-                toast.success("Xóa quiz thành công!");
-                navigate("/seller/quizzes");
-            } else {
-                toast.error(response?.message || "Có lỗi xảy ra khi xóa quiz.");
-            }
-        } catch (error) {
-            toast.error("Có lỗi xảy ra khi xóa quiz.");
-            console.error("Delete quiz error:", error);
-        }
+    const handleDeleteSuccess = () => {
+        toast.success("Xóa quiz thành công!");
+        navigate("/seller/quizzes");
     };
 
-    const handleReplyClick = (reviewId) => {
+    const handleReplyClick = (reviewId: number) => {
         setReplyingTo(reviewId);
         setReplyContent("");
     };
@@ -142,7 +139,7 @@ function SellerQuizDetail() {
         setReplyContent("");
     };
 
-    const handleSubmitReply = async (reviewId) => {
+    const handleSubmitReply = async (reviewId: number) => {
         if (!replyContent.trim()) {
             toast.error("Vui lòng nhập nội dung phản hồi");
             return;
@@ -174,7 +171,7 @@ function SellerQuizDetail() {
     const totalRevenue = quiz.price * quiz.purchaseCount;
 
     return (
-        <div className="seller-quiz-detail">
+        <div className={styles.sellerQuizDetail}>
             <Container fluid="sm">
                 {/* HEADER */}
                 <div className="d-flex flex-wrap justify-content-between align-items-start mb-4 gap-2">
@@ -243,9 +240,9 @@ function SellerQuizDetail() {
                                     <tbody>
                                         {recentOrders.map((order, i) => (
                                             <tr key={i}>
-                                                <td>{order.buyer}</td>
-                                                <td>{order.buyerEmail}</td>
-                                                <td>{order.purchaseDate}</td>
+                                                <td>{order.buyer?.name ?? "-"}</td>
+                                                <td>{order.buyer?.email ?? "-"}</td>
+                                                <td>{new Date(order.createdAt).toLocaleDateString("vi-VN")}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -294,7 +291,7 @@ function SellerQuizDetail() {
                                 </Col>
                                 <Col md={6}>
                                     <p className="text-light mb-2">
-                                        <strong>Đánh giá trung bình:</strong> ★ {quiz.averageRating.toFixed(1)} / 5
+                                        <strong>Đánh giá trung bình:</strong> ★ {(quiz.averageRating ?? 0).toFixed(1)} / 5
                                     </p>
                                     <p className="text-light mb-2">
                                         <strong>Trạng thái:</strong>{" "}
@@ -349,9 +346,10 @@ function SellerQuizDetail() {
                 </Card>
 
                 <DeleteConfirmModal
-                    isOpen={showDeleteModal}
-                    onClose={() => setShowDeleteModal(false)}
-                    onConfirm={handleConfirmDelete}
+                    show={showDeleteModal}
+                    onHide={() => setShowDeleteModal(false)}
+                    quizId={quiz?.id ?? null}
+                    onDeleteSuccess={handleDeleteSuccess}
                 />
 
             </Container>
@@ -359,4 +357,4 @@ function SellerQuizDetail() {
     );
 }
 
-export default SellerQuizDetail;
+export default SellerQuizDetailSection;

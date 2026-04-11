@@ -1,33 +1,92 @@
 import { useState, useRef } from "react";
 import { Container, Row, Col, Button, Card, ProgressBar, Modal, Badge } from "react-bootstrap";
 import { FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaFlagCheckered, FaArrowLeft } from "react-icons/fa";
-import "./QuizPracticePage.scss";
+import styles from "./scss/StudentQuizPracticeSection.module.scss";
 import { useEffect } from "react";
-import { getQuizQuestions, startSubmission, submitQuizResult } from "../../../services/apiService";
+import { getQuestionsBySubject } from "../../api/question.api";
+import { startSubmission, submitQuiz } from "../../api/submission.api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import axiosInstance from "../../../utils/axiosCustomize";
+import axiosInstance from "../../utils/axiosCustomize";
+import type { IQuestion, QuestionTypeEnum } from "../../types/question";
+import type { IReqSubmitAnswerDTO } from "../../types/submission";
 
-const QuizPracticePage = () => {
-    const [quizData, setQuizData] = useState(null);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [showResult, setShowResult] = useState(false);
-    const [answers, setAnswers] = useState([]);
-    const [feedback, setFeedback] = useState([]);
-    const [score, setScore] = useState(0);
-    const [submissionId, setSubmissionId] = useState(null);
-    const [imageModal, setImageModal] = useState({ show: false, url: '' });
-    const [tempMultipleChoiceAnswers, setTempMultipleChoiceAnswers] = useState([]);
+interface RootState {
+    user?: {
+        account?: {
+            id?: number;
+        } | null;
+    };
+}
+
+interface PracticeLocationState {
+    quizId?: number;
+}
+
+interface PracticeOption {
+    id: number;
+    content: string;
+    isCorrect: boolean;
+}
+
+interface PracticeQuestion {
+    id: number;
+    text: string;
+    imageUrl?: string;
+    type: QuestionTypeEnum;
+    options: PracticeOption[];
+    correctOptionId?: number;
+    correctCount: number;
+    explain?: string;
+    chapterName: string | null;
+}
+
+interface PracticeQuizData {
+    totalQuestions: number;
+    questions: PracticeQuestion[];
+}
+
+type AnswerValue = number | number[] | null;
+
+interface ImageModalState {
+    show: boolean;
+    url: string;
+}
+
+interface SavedPracticeState {
+    answers: AnswerValue[];
+    feedback: Array<boolean | null>;
+    currentPage: number;
+    submissionId: number;
+    tempMultipleChoiceAnswers: number[][];
+}
+
+interface PersistedPracticeState {
+    data: SavedPracticeState;
+    expiration: number;
+}
+
+const StudentQuizPracticeSection = () => {
+    const [quizData, setQuizData] = useState<PracticeQuizData | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [showResult, setShowResult] = useState<boolean>(false);
+    const [answers, setAnswers] = useState<AnswerValue[]>([]);
+    const [feedback, setFeedback] = useState<Array<boolean | null>>([]);
+    const [score, setScore] = useState<number>(0);
+    const [submissionId, setSubmissionId] = useState<number | null>(null);
+    const [imageModal, setImageModal] = useState<ImageModalState>({ show: false, url: '' });
+    const [tempMultipleChoiceAnswers, setTempMultipleChoiceAnswers] = useState<number[][]>([]);
     const location = useLocation();
     const navigate = useNavigate();
     const QUESTIONS_PER_PAGE = 5;
-    const backendBaseURL = axiosInstance.defaults.baseURL + "storage/questions/";
-    const questionRefs = useRef([]);
-    const containerTopRef = useRef(null);
+    const backendBaseURL = `${axiosInstance.defaults.baseURL ?? ""}storage/questions/`;
+    const questionRefs = useRef<Array<HTMLDivElement | null>>([]);
+    const containerTopRef = useRef<HTMLDivElement | null>(null);
 
-    const quizId = location.state?.quizId || 0;
-    const account = useSelector(state => state.user.account);
+    const locationState = (location.state as PracticeLocationState | undefined) ?? {};
+    const quizId = Number(locationState.quizId ?? 0);
+    const account = useSelector((state: RootState) => state.user?.account);
 
     // Session storage key
     const SESSION_KEY = `quiz_practice_${quizId}_${account?.id}`;
@@ -52,11 +111,11 @@ const QuizPracticePage = () => {
     // };
 
     // Save quiz progress into localStorage with expiration
-    const saveToLocalStorage = (data) => {
+    const saveToLocalStorage = (data: SavedPracticeState) => {
         try {
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + 30); // Set expiration to 30 days
-            const dataWithExpiration = {
+            const dataWithExpiration: PersistedPracticeState = {
                 data,
                 expiration: expirationDate.getTime(),
             };
@@ -66,11 +125,11 @@ const QuizPracticePage = () => {
         }
     };
 
-    const loadFromLocalStorage = () => {
+    const loadFromLocalStorage = (): SavedPracticeState | null => {
         try {
             const saved = localStorage.getItem(SESSION_KEY);
             if (saved) {
-                const parsed = JSON.parse(saved);
+                const parsed = JSON.parse(saved) as PersistedPracticeState;
                 if (parsed.expiration > Date.now()) {
                     return parsed.data;
                 } else {
@@ -108,7 +167,7 @@ const QuizPracticePage = () => {
             const savedState = loadFromLocalStorage();
 
             try {
-                let newSubmissionId;
+                let newSubmissionId: number;
 
                 if (savedState && savedState.submissionId) {
                     // Resume existing submission
@@ -116,24 +175,28 @@ const QuizPracticePage = () => {
                     console.log("Resuming practice with submission ID:", newSubmissionId);
                 } else {
                     // Start new submission
-                    const startResponse = await startSubmission(quizId, account.id, null, false);
-                    newSubmissionId = startResponse.data.id || startResponse.data.submissionId;
+                    const startResponse = await startSubmission({
+                        subjectId: Number(quizId),
+                        userId: Number(account.id),
+                        duration: 0,
+                        isPractice: true
+                    });
+                    newSubmissionId = Number(startResponse.data.id);
                     console.log("Practice submission started with ID:", newSubmissionId);
                 }
 
                 setSubmissionId(newSubmissionId);
 
-                const response = await getQuizQuestions(quizId);
+                const response = await getQuestionsBySubject(Number(quizId));
 
-                const transformedData = {
-                    ...response.data,
+                const transformedData: PracticeQuizData = {
                     totalQuestions: response.data.length,
-                    questions: response.data.map(question => ({
+                    questions: response.data.map((question: IQuestion) => ({
                         id: question.id,
                         text: question.content,
                         imageUrl: question.imageUrl,
                         type: question.type,
-                        options: question.options
+                        options: [...question.options]
                             .sort((a, b) => a.optionOrder - b.optionOrder)
                             .map(opt => ({ id: opt.id, content: opt.content, isCorrect: opt.isCorrect })),
                         correctOptionId: question.options.find(opt => opt.isCorrect)?.id,
@@ -147,14 +210,17 @@ const QuizPracticePage = () => {
                 console.log("Quiz data loaded for practice:", transformedData);
                 // Restore state or initialize new
                 if (savedState) {
-                    setAnswers(savedState.answers || new Array(transformedData.totalQuestions).fill(null));
-                    setFeedback(savedState.feedback || new Array(transformedData.totalQuestions).fill(null));
+                    setAnswers(savedState.answers || new Array<AnswerValue>(transformedData.totalQuestions).fill(null));
+                    setFeedback(savedState.feedback || new Array<boolean | null>(transformedData.totalQuestions).fill(null));
                     setCurrentPage(savedState.currentPage || 0);
-                    setTempMultipleChoiceAnswers(savedState.tempMultipleChoiceAnswers || new Array(transformedData.totalQuestions).fill([]));
+                    setTempMultipleChoiceAnswers(
+                        savedState.tempMultipleChoiceAnswers
+                        || Array.from({ length: transformedData.totalQuestions }, () => [])
+                    );
                 } else {
-                    setAnswers(new Array(transformedData.totalQuestions).fill(null));
-                    setFeedback(new Array(transformedData.totalQuestions).fill(null));
-                    setTempMultipleChoiceAnswers(new Array(transformedData.totalQuestions).fill([]));
+                    setAnswers(new Array<AnswerValue>(transformedData.totalQuestions).fill(null));
+                    setFeedback(new Array<boolean | null>(transformedData.totalQuestions).fill(null));
+                    setTempMultipleChoiceAnswers(Array.from({ length: transformedData.totalQuestions }, () => []));
                 }
             } catch (error) {
                 console.error("Error starting practice or fetching quiz:", error);
@@ -186,7 +252,8 @@ const QuizPracticePage = () => {
     }, [answers, feedback, currentPage, submissionId, quizData, tempMultipleChoiceAnswers]);
 
     // Khi chọn đáp án
-    const handleSelect = (questionIndex, optionId) => {
+    const handleSelect = (questionIndex: number, optionId: number) => {
+        if (!quizData) return;
         if (answers[questionIndex] !== null) return;
 
         const question = quizData.questions[questionIndex];
@@ -195,7 +262,7 @@ const QuizPracticePage = () => {
             // Cho phép chọn nhiều đáp án
             const currentSelections = tempMultipleChoiceAnswers[questionIndex] || [];
             const newSelections = currentSelections.includes(optionId)
-                ? currentSelections.filter(id => id !== optionId)
+                ? currentSelections.filter((id) => id !== optionId)
                 : [...currentSelections, optionId];
 
             const newTempAnswers = [...tempMultipleChoiceAnswers];
@@ -215,7 +282,8 @@ const QuizPracticePage = () => {
     };
 
     // Xác nhận đáp án multiple choice
-    const handleConfirmMultipleChoice = (questionIndex) => {
+    const handleConfirmMultipleChoice = (questionIndex: number) => {
+        if (!quizData) return;
         const selectedOptions = tempMultipleChoiceAnswers[questionIndex] || [];
         if (selectedOptions.length === 0) return;
 
@@ -223,14 +291,14 @@ const QuizPracticePage = () => {
 
         // Lấy tất cả các option đúng
         const correctOptionIds = question.options
-            .filter(opt => opt.isCorrect)
-            .map(opt => opt.id);
+            .filter((opt) => opt.isCorrect)
+            .map((opt) => opt.id);
 
         // Kiểm tra xem tất cả đáp án đúng đã được chọn và không có đáp án sai
         const isCorrect =
             selectedOptions.length === correctOptionIds.length &&
-            selectedOptions.every(id => correctOptionIds.includes(id)) &&
-            correctOptionIds.every(id => selectedOptions.includes(id));
+            selectedOptions.every((id) => correctOptionIds.includes(id)) &&
+            correctOptionIds.every((id) => selectedOptions.includes(id));
 
         const newAnswers = [...answers];
         newAnswers[questionIndex] = selectedOptions;
@@ -242,7 +310,7 @@ const QuizPracticePage = () => {
     };
 
     const handleFinish = async () => {
-        if (!submissionId) return;
+        if (!submissionId || !quizData) return;
 
         const correctCount = feedback.filter((f) => f === true).length;
         const totalQuestions = quizData.totalQuestions; // Use total questions for score calculation
@@ -267,11 +335,13 @@ const QuizPracticePage = () => {
                     }
                 }
                 return null;
-            })
-            .filter(answer => answer !== null);
+            }) as Array<IReqSubmitAnswerDTO | null>;
+
+        const validAnswers = formattedAnswers
+            .filter((answer): answer is IReqSubmitAnswerDTO => answer !== null);
 
         try {
-            const response = await submitQuizResult(submissionId, formattedAnswers);
+            const response = await submitQuiz(submissionId, validAnswers);
             console.log("Practice submission response:", response.data);
 
             const finalScore = calculatedScore;
@@ -295,7 +365,7 @@ const QuizPracticePage = () => {
         navigate(-1);
     };
 
-    const handleImageClick = (imageUrl) => {
+    const handleImageClick = (imageUrl: string) => {
         setImageModal({ show: true, url: imageUrl });
     };
 
@@ -303,7 +373,7 @@ const QuizPracticePage = () => {
         setImageModal({ show: false, url: '' });
     };
 
-    const handleQuestionNumberClick = (questionIndex) => {
+    const handleQuestionNumberClick = (questionIndex: number) => {
         const newPage = Math.floor(questionIndex / QUESTIONS_PER_PAGE);
         setCurrentPage(newPage);
 
@@ -376,7 +446,7 @@ const QuizPracticePage = () => {
 
     if (showResult) {
         return (
-            <div className="practice-result">
+            <div className={styles.practiceResult}>
                 <Container className="text-center py-5">
                     <h3 className="fw-bold text-gradient mb-3">
                         Kết thúc luyện tập
@@ -408,7 +478,7 @@ const QuizPracticePage = () => {
     }
 
     return (
-        <div className="practice-quiz">
+        <div className={styles.practiceQuiz}>
             <Container fluid className="py-4">
                 <div className="mb-3" ref={containerTopRef}>
                     <Button variant="outline-light" onClick={handleBack}>
@@ -417,7 +487,7 @@ const QuizPracticePage = () => {
                 </div>
                 <Row>
                     <Col md={8}>
-                        {currentQuestions.map((question, index) => {
+                        {currentQuestions.map((question: PracticeQuestion, index: number) => {
                             const questionIndex = startIndex + index;
                             const prevQuestion = index > 0 ? currentQuestions[index - 1] : null;
                             const showChapterHeader = question.chapterName &&
@@ -426,7 +496,9 @@ const QuizPracticePage = () => {
                             return (
                                 <div
                                     key={question.id}
-                                    ref={(el) => questionRefs.current[questionIndex] = el}
+                                    ref={(el) => {
+                                        questionRefs.current[questionIndex] = el;
+                                    }}
                                 >
                                     {showChapterHeader && (
                                         <div className="chapter-divider mb-3 mt-4">
@@ -467,16 +539,16 @@ const QuizPracticePage = () => {
                                             </div>
                                         )}
 
-                                        {question.options.map((opt, i) => {
+                                        {question.options.map((opt) => {
                                             const isMultipleChoice = question.type === 'MULTIPLE_CHOICE';
                                             const tempSelected = isMultipleChoice &&
                                                 (tempMultipleChoiceAnswers[questionIndex] || []).includes(opt.id);
                                             const finalSelected = Array.isArray(answers[questionIndex])
-                                                ? answers[questionIndex].includes(opt.id)
+                                                ? (answers[questionIndex] as number[]).includes(opt.id)
                                                 : answers[questionIndex] === opt.id;
 
                                             const isCorrect = isMultipleChoice
-                                                ? question.options.find(o => o.id === opt.id)?.isCorrect
+                                                ? question.options.find((o) => o.id === opt.id)?.isCorrect
                                                 : question.correctOptionId === opt.id;
 
                                             const showFeedback = answers[questionIndex] !== null;
@@ -565,7 +637,7 @@ const QuizPracticePage = () => {
                             />
 
                             <div className="grid-answers mb-4">
-                                {quizData.questions.map((_, i) => (
+                                {quizData.questions.map((_: PracticeQuestion, i: number) => (
                                     <Button
                                         key={i}
                                         size="sm"
@@ -613,4 +685,4 @@ const QuizPracticePage = () => {
     );
 }
 
-export default QuizPracticePage;
+export default StudentQuizPracticeSection;

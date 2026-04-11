@@ -13,6 +13,7 @@ export interface ISubject {
     price: number;
     status: SubjectStatus;
     color: string;
+    time: number;
     averageRating: number | null;
     ratingCount: number;
     purchaseCount: number;

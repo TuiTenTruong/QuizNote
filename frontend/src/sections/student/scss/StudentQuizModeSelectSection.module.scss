@@ -1,0 +1,59 @@
+@use "../../../assets/styles/variables" as *;
+@use "../../../assets/styles/mixins" as *;
+
+.quizModePage {
+    background-color: #0b0b0f;
+    color: $white;
+    min-height: 100vh;
+
+    :global {
+        .text-gradient {
+            @include gradient-text;
+        }
+
+        .btn-gradient {
+            @include gradient-primary;
+            border: none;
+            color: $white;
+            font-weight: $font-semibold;
+
+            &:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+        }
+
+        .hover-gradient {
+            &:hover {
+                @include gradient-primary;
+                color: $white;
+                font-weight: $font-semibold;
+            }
+        }
+
+        .bg-gradient {
+            @include gradient-primary;
+            color: $white;
+            width: 50px;
+            height: 50px;
+            display: grid;
+            place-items: center;
+            border-radius: $border-radius-full;
+        }
+
+        .mode-card {
+            border-radius: $border-radius-xl;
+            transition: $transition-slow;
+            cursor: pointer;
+
+            &:hover {
+                box-shadow: 0 0 15px rgba($primary-purple, 0.3);
+                transform: translateY(-3px);
+            }
+        }
+    }
+
+    @include respond-below(md) {
+        padding: $spacing-4;
+    }
+}

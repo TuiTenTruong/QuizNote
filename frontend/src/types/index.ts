@@ -10,6 +10,8 @@ export * from './chapter';
 export * from './question';
 export * from './comment';
 export * from './submission';
+export * from './sellerQuizDetail';
+export * from './reviewItem';
 
 // Commerce types
 export * from './order';
